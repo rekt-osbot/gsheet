@@ -23,34 +23,86 @@ function onOpen() {
     .addItem('Generate Workpaper', 'createIndAS116Workpaper')
     .addSeparator()
     .addItem('Refresh Formatting', 'applyFormattingOnly')
+    .addSeparator()
+    .addItem('Debug - Show Input Values', 'debugInputs')
     .addToUi();
+}
+
+/**
+ * Debug function to display the current input values in the console.
+ * Run this if you're getting validation errors to see what values are being read.
+ */
+function debugInputs() {
+  try {
+    const sheet = SpreadsheetApp.getActiveSheet();
+
+    // Read raw values (corrected cell references)
+    const leaseStartDate = sheet.getRange("C8").getValue();
+    const leaseTermYears = sheet.getRange("C9").getValue();
+    const paymentAmount = sheet.getRange("C10").getValue();
+    const paymentFrequency = sheet.getRange("C11").getValue();
+    const discountRate = sheet.getRange("C12").getValue();
+    const reportingEndDate = sheet.getRange("C13").getValue();
+    const initialDirectCosts = sheet.getRange("C15").getValue();
+    const prepaidPayments = sheet.getRange("C16").getValue();
+
+    // Show in console and alert
+    const debugInfo = `
+CURRENT INPUT VALUES:
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Lease Commencement Date (C8): ${leaseStartDate} (Type: ${typeof leaseStartDate})
+Lease Term (C9): ${leaseTermYears} (Type: ${typeof leaseTermYears})
+Lease Payment (C10): ${paymentAmount} (Type: ${typeof paymentAmount})
+Payment Frequency (C11): "${paymentFrequency}" (Type: ${typeof paymentFrequency})
+Discount Rate (C12): ${discountRate} (Type: ${typeof discountRate})
+Reporting End Date (C13): ${reportingEndDate} (Type: ${typeof reportingEndDate})
+Initial Direct Costs (C15): ${initialDirectCosts} (Type: ${typeof initialDirectCosts})
+Prepaid Payments (C16): ${prepaidPayments} (Type: ${typeof prepaidPayments})
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+VALIDATION CHECKS:
+Lease Start Date is valid: ${leaseStartDate && !isNaN(new Date(leaseStartDate).getTime())}
+Lease Term is positive number: ${!isNaN(Number(leaseTermYears)) && Number(leaseTermYears) > 0}
+Payment Amount is positive number: ${!isNaN(Number(paymentAmount)) && Number(paymentAmount) > 0}
+Payment Frequency is valid: ${paymentFrequency && ['MONTHLY', 'QUARTERLY', 'ANNUALLY'].includes(String(paymentFrequency).trim().toUpperCase())}
+Discount Rate is valid: ${!isNaN(Number(discountRate)) && Number(discountRate) >= 0}
+Reporting End Date is valid: ${reportingEndDate && !isNaN(new Date(reportingEndDate).getTime())}
+    `;
+
+    Logger.log(debugInfo);
+    SpreadsheetApp.getUi().alert(debugInfo);
+
+  } catch (error) {
+    SpreadsheetApp.getUi().alert('Error during debug: ' + error.message);
+  }
 }
 
 /**
  * Main function to generate the entire Ind AS 116 workpaper.
  */
 function createIndAS116Workpaper() {
-  const ss = SpreadsheetApp.getActiveSpreadsheet();
-  let sheet = ss.getSheetByName("Ind AS 116 Workpaper");
+  try {
+    const ss = SpreadsheetApp.getActiveSpreadsheet();
+    let sheet = ss.getSheetByName("Ind AS 116 Workpaper");
 
-  if (sheet) {
-    // Clear existing content but keep the sheet
-    sheet.clear();
-    sheet.clearFormats();
-  } else {
-    sheet = ss.insertSheet("Ind AS 116 Workpaper");
-  }
-  ss.setActiveSheet(sheet);
+    if (sheet) {
+      // Clear existing content but keep the sheet
+      sheet.clear();
+      sheet.clearFormats();
+    } else {
+      sheet = ss.insertSheet("Ind AS 116 Workpaper");
+    }
+    ss.setActiveSheet(sheet);
 
-  // --- STEP 1: SETUP HEADER & INSTRUCTIONS ---
-  setupHeader(sheet);
-  
-  // --- STEP 2: SETUP INPUT SECTION ---
-  setupInputs(sheet);
-  
-  // --- STEP 3: READ INPUTS AND PERFORM CALCULATIONS ---
-  const inputs = readInputs(sheet);
-  const calculations = performCalculations(inputs);
+    // --- STEP 1: SETUP HEADER & INSTRUCTIONS ---
+    setupHeader(sheet);
+
+    // --- STEP 2: SETUP INPUT SECTION ---
+    setupInputs(sheet);
+
+    // --- STEP 3: READ INPUTS AND PERFORM CALCULATIONS ---
+    const inputs = readInputs(sheet);
+    const calculations = performCalculations(inputs);
   
   // --- STEP 4: CREATE SUMMARY DASHBOARD ---
   createSummaryDashboard(sheet, calculations, inputs);
@@ -77,10 +129,15 @@ function createIndAS116Workpaper() {
   // --- STEP 9: APPLY COMPREHENSIVE FORMATTING ---
   applyFormatting(sheet, calculations.totalPeriods);
   
-  // --- STEP 10: PROTECT FORMULA CELLS ---
-  protectFormulaCells(sheet);
+    // --- STEP 10: PROTECT FORMULA CELLS ---
+    protectFormulaCells(sheet);
 
-  SpreadsheetApp.getUi().alert('✅ Ind AS 116 Workpaper successfully created!\n\nThe workpaper is now ready for review by management and auditors.');
+    SpreadsheetApp.getUi().alert('✅ Ind AS 116 Workpaper successfully created!\n\nThe workpaper is now ready for review by management and auditors.');
+  } catch (error) {
+    // Error will be shown by readInputs validation or other functions
+    Logger.log('Error creating workpaper: ' + error.message);
+    return;
+  }
 }
 
 /**
@@ -128,32 +185,83 @@ function setupInputs(sheet) {
  * Reads and validates input values from the sheet.
  */
 function readInputs(sheet) {
-  return {
-    leaseStartDate: new Date(sheet.getRange("C7").getValue()),
-    leaseTermYears: sheet.getRange("C8").getValue(),
-    paymentAmount: sheet.getRange("C9").getValue(),
-    paymentFrequency: String(sheet.getRange("C10").getValue() || 'Annually'),
-    discountRate: sheet.getRange("C11").getValue(),
-    reportingEndDate: new Date(sheet.getRange("C12").getValue()),
-    initialDirectCosts: sheet.getRange("C14").getValue() || 0,
-    prepaidPayments: sheet.getRange("C15").getValue() || 0
+  // Read raw values (cell references corrected to match setupInputs layout)
+  // setupInputs places data at A5:M16, so:
+  // Row 5: empty, Row 6: LEASE INFORMATION, Row 7: empty
+  // Row 8: Lease Commencement Date, Row 9: Lease Term, etc.
+  const leaseStartDate = sheet.getRange("C8").getValue();
+  const leaseTermYears = sheet.getRange("C9").getValue();
+  const paymentAmount = sheet.getRange("C10").getValue();
+  const paymentFrequency = sheet.getRange("C11").getValue();
+  const discountRate = sheet.getRange("C12").getValue();
+  const reportingEndDate = sheet.getRange("C13").getValue();
+  const initialDirectCosts = sheet.getRange("C15").getValue();
+  const prepaidPayments = sheet.getRange("C16").getValue();
+
+  // Convert to proper types with validation
+  const inputs = {
+    leaseStartDate: new Date(leaseStartDate),
+    leaseTermYears: Number(leaseTermYears),
+    paymentAmount: Number(paymentAmount),
+    paymentFrequency: String(paymentFrequency).trim(),
+    discountRate: Number(discountRate),
+    reportingEndDate: new Date(reportingEndDate),
+    initialDirectCosts: Number(initialDirectCosts) || 0,
+    prepaidPayments: Number(prepaidPayments) || 0
   };
+
+  // Validate inputs
+  const errors = [];
+
+  if (!inputs.leaseStartDate || isNaN(inputs.leaseStartDate.getTime())) {
+    errors.push('Lease Commencement Date is missing or invalid');
+  }
+
+  if (!inputs.leaseTermYears || isNaN(inputs.leaseTermYears) || inputs.leaseTermYears <= 0) {
+    errors.push('Lease Term must be a positive number (e.g., 5)');
+  }
+
+  if (!inputs.paymentAmount || isNaN(inputs.paymentAmount) || inputs.paymentAmount <= 0) {
+    errors.push('Lease Payment Amount must be a positive number');
+  }
+
+  if (!inputs.paymentFrequency || !['MONTHLY', 'QUARTERLY', 'ANNUALLY'].includes(inputs.paymentFrequency.toUpperCase())) {
+    errors.push('Payment Frequency must be "Annually", "Quarterly", or "Monthly"');
+  }
+
+  if (!inputs.discountRate || isNaN(inputs.discountRate) || inputs.discountRate < 0) {
+    errors.push('Incremental Borrowing Rate must be a non-negative number');
+  }
+
+  if (!inputs.reportingEndDate || isNaN(inputs.reportingEndDate.getTime())) {
+    errors.push('First Reporting Period End Date is missing or invalid');
+  }
+
+  // If there are validation errors, show them
+  if (errors.length > 0) {
+    SpreadsheetApp.getUi().alert('❌ Error: Invalid inputs detected.\n\n' + errors.join('\n'));
+    throw new Error('Input validation failed');
+  }
+
+  return inputs;
 }
 
 /**
  * Performs all necessary calculations based on inputs.
  */
 function performCalculations(inputs) {
-  // Determine periods based on frequency
+  // Determine periods based on frequency (case-insensitive)
   let periodsPerYear;
-  switch (inputs.paymentFrequency.toLowerCase().trim()) {
-    case 'monthly':
+  const freqUpper = inputs.paymentFrequency.toUpperCase();
+
+  switch (freqUpper) {
+    case 'MONTHLY':
       periodsPerYear = 12;
       break;
-    case 'quarterly':
+    case 'QUARTERLY':
       periodsPerYear = 4;
       break;
-    case 'annually':
+    case 'ANNUALLY':
     default:
       periodsPerYear = 1;
       break;
@@ -211,25 +319,25 @@ function createSummaryDashboard(sheet, calculations, inputs) {
   ];
   sheet.getRange("A18:M26").setValues(dashboardData);
 
-  // Now set formulas for calculated values
+  // Now set formulas for calculated values (corrected cell references)
   // Key Metrics section
-  sheet.getRange("C23").setFormula('=C9*C8*IF(C10="Monthly",12,IF(C10="Quarterly",4,1))'); // Total Lease Payments
-  sheet.getRange("C24").setFormula('=C8*IF(C10="Monthly",12,IF(C10="Quarterly",4,1))'); // Number of Payments
-  sheet.getRange("C25").setFormula('=C9'); // Payment per Period
-  sheet.getRange("C26").setFormula('=C10'); // Payment Frequency
+  sheet.getRange("C23").setFormula('=C10*C9*IF(C11="Monthly",12,IF(C11="Quarterly",4,1))'); // Total Lease Payments
+  sheet.getRange("C24").setFormula('=C9*IF(C11="Monthly",12,IF(C11="Quarterly",4,1))'); // Number of Payments
+  sheet.getRange("C25").setFormula('=C10'); // Payment per Period
+  sheet.getRange("C26").setFormula('=C11'); // Payment Frequency
 
   // Initial Recognition section
-  // PV of lease payments calculation
-  const pvFormula = '=C9*((1-POWER(1+C11/IF(C10="Monthly",12,IF(C10="Quarterly",4,1)),-C8*IF(C10="Monthly",12,IF(C10="Quarterly",4,1))))/(C11/IF(C10="Monthly",12,IF(C10="Quarterly",4,1))))';
+  // PV of lease payments calculation (corrected cell references)
+  const pvFormula = '=C10*((1-POWER(1+C12/IF(C11="Monthly",12,IF(C11="Quarterly",4,1)),-C9*IF(C11="Monthly",12,IF(C11="Quarterly",4,1))))/(C12/IF(C11="Monthly",12,IF(C11="Quarterly",4,1))))';
   sheet.getRange("F23").setFormula(pvFormula); // Initial Lease Liability
-  sheet.getRange("F24").setFormula('=F23+C14+C15'); // Initial ROU Asset
-  sheet.getRange("F25").setFormula('=C14'); // Initial Direct Costs
-  sheet.getRange("F26").setFormula('=C15'); // Prepaid Amounts
+  sheet.getRange("F24").setFormula('=F23+C15+C16'); // Initial ROU Asset
+  sheet.getRange("F25").setFormula('=C15'); // Initial Direct Costs
+  sheet.getRange("F26").setFormula('=C16'); // Prepaid Amounts
 
   // Lease Economics section
   sheet.getRange("I23").setFormula('=C23-F23'); // Implied Interest Cost
-  sheet.getRange("I24").setFormula('=C11/IF(C10="Monthly",12,IF(C10="Quarterly",4,1))'); // Effective Interest Rate (periodic)
-  sheet.getRange("I25").setFormula('=C11'); // Effective Interest Rate (annual)
+  sheet.getRange("I24").setFormula('=C12/IF(C11="Monthly",12,IF(C11="Quarterly",4,1))'); // Effective Interest Rate (periodic)
+  sheet.getRange("I25").setFormula('=C12'); // Effective Interest Rate (annual)
 }
 
 /**
@@ -376,8 +484,8 @@ function writeSchedules(sheet, amortizationData, rouAssetData, calculations) {
     // Period # (static value)
     sheet.getRange(row, 1).setValue(periodNum);
 
-    // Payment Date (formula based on frequency)
-    const dateFormula = `=IF($C$10="Monthly",EDATE($C$7,${periodNum}),IF($C$10="Quarterly",EDATE($C$7,${periodNum}*3),DATE(YEAR($C$7)+${periodNum},MONTH($C$7),DAY($C$7))))`;
+    // Payment Date (formula based on frequency) - corrected cell references
+    const dateFormula = `=IF($C$11="Monthly",EDATE($C$8,${periodNum}),IF($C$11="Quarterly",EDATE($C$8,${periodNum}*3),DATE(YEAR($C$8)+${periodNum},MONTH($C$8),DAY($C$8))))`;
     sheet.getRange(row, 2).setFormula(dateFormula);
 
     // Fiscal Year (extract year from payment date)
@@ -390,8 +498,8 @@ function writeSchedules(sheet, amortizationData, rouAssetData, calculations) {
       sheet.getRange(row, 4).setFormula(`=H${row - 1}`); // Previous closing balance
     }
 
-    // Cash Payment
-    sheet.getRange(row, 5).setFormula('=$C$9');
+    // Cash Payment (corrected cell reference)
+    sheet.getRange(row, 5).setFormula('=$C$10');
 
     // Interest Expense = Opening Balance * Periodic Rate
     sheet.getRange(row, 6).setFormula(`=D${row}*$I$24`);
@@ -485,12 +593,12 @@ function generateComprehensiveJournalEntries(sheet, amortizationData, rouAssetDa
 
   sheet.getRange(currentRow, 1, initialJournalLabels.length, 13).setValues(initialJournalLabels);
 
-  // Add formulas for initial journal entry
-  sheet.getRange(currentRow + 1, 2).setFormula('=TEXT($C$7,"dd-mmm-yyyy")'); // Date
+  // Add formulas for initial journal entry (corrected cell references)
+  sheet.getRange(currentRow + 1, 2).setFormula('=TEXT($C$8,"dd-mmm-yyyy")'); // Date
   sheet.getRange(currentRow + 4, 3).setFormula('=$F$24'); // ROU Asset Debit
   sheet.getRange(currentRow + 5, 4).setFormula('=$F$23'); // Lease Liability Credit
-  sheet.getRange(currentRow + 6, 4).setFormula('=IF($C$14>0,$C$14,"")'); // Initial Direct Costs
-  sheet.getRange(currentRow + 7, 4).setFormula('=IF($C$15>0,$C$15,"")'); // Prepaid Payments
+  sheet.getRange(currentRow + 6, 4).setFormula('=IF($C$15>0,$C$15,"")'); // Initial Direct Costs
+  sheet.getRange(currentRow + 7, 4).setFormula('=IF($C$16>0,$C$16,"")'); // Prepaid Payments
 
   currentRow += initialJournalLabels.length + 2;
 
@@ -642,25 +750,25 @@ function applyFormatting(sheet, scheduleRows) {
     .setFontWeight('bold').setFontSize(12);
   
   // Input labels
-  sheet.getRange("A7:A15").setFontWeight('bold').setBackground('#e8eaf6');
-  
-  // Input fields (yellow highlight)
-  const inputRanges = ["C7", "C8", "C9", "C10", "C11", "C12", "C14", "C15"];
+  sheet.getRange("A8:A16").setFontWeight('bold').setBackground('#e8eaf6');
+
+  // Input fields (yellow highlight) - corrected cell references
+  const inputRanges = ["C8", "C9", "C10", "C11", "C12", "C13", "C15", "C16"];
   inputRanges.forEach(range => {
     sheet.getRange(range).setBackground('#fff9c4').setBorder(true, true, true, true, null, null, '#f57c00', SpreadsheetApp.BorderStyle.SOLID_MEDIUM);
   });
-  
+
   // Help text
-  sheet.getRange("E7:E15").setFontStyle('italic').setFontSize(9).setFontColor('#666666');
-  
-  // Number formatting for inputs (Indian Rupees)
-  sheet.getRange("C7").setNumberFormat('dd-mmm-yyyy');
-  sheet.getRange("C8").setNumberFormat('0');  // Lease term - just a number
-  sheet.getRange("C9").setNumberFormat('₹#,##,##0.00');  // Indian number format
-  sheet.getRange("C10").setNumberFormat('@');  // Payment frequency - text
-  sheet.getRange("C11").setNumberFormat('0.00%');
-  sheet.getRange("C12").setNumberFormat('dd-mmm-yyyy');
-  sheet.getRange("C14:C15").setNumberFormat('₹#,##,##0.00');  // Indian number format
+  sheet.getRange("E8:E16").setFontStyle('italic').setFontSize(9).setFontColor('#666666');
+
+  // Number formatting for inputs (Indian Rupees) - corrected cell references
+  sheet.getRange("C8").setNumberFormat('dd-mmm-yyyy');   // Lease Commencement Date
+  sheet.getRange("C9").setNumberFormat('0');             // Lease term - just a number
+  sheet.getRange("C10").setNumberFormat('₹#,##,##0.00'); // Lease Payment - Indian format
+  sheet.getRange("C11").setNumberFormat('@');            // Payment frequency - text
+  sheet.getRange("C12").setNumberFormat('0.00%');        // Discount Rate
+  sheet.getRange("C13").setNumberFormat('dd-mmm-yyyy');  // Reporting End Date
+  sheet.getRange("C15:C16").setNumberFormat('₹#,##,##0.00'); // Indian number format
   
   // Input section border
   sheet.getRange("A6:M16").setBorder(true, true, true, true, null, null, '#1c4587', SpreadsheetApp.BorderStyle.SOLID_THICK);
@@ -908,17 +1016,17 @@ function applyConditionalFormatting(sheet) {
 function protectFormulaCells(sheet) {
   // Protect the entire sheet
   const protection = sheet.protect().setDescription('Protected Workpaper');
-  
-  // Allow editing only for the input cells
+
+  // Allow editing only for the input cells (corrected cell references)
   const unprotectedRanges = [
-    sheet.getRange('C7'),  // Lease Start Date
-    sheet.getRange('C8'),  // Lease Term
-    sheet.getRange('C9'),  // Payment Amount
-    sheet.getRange('C10'), // Payment Frequency
-    sheet.getRange('C11'), // Discount Rate
-    sheet.getRange('C12'), // Reporting End Date
-    sheet.getRange('C14'), // Initial Direct Costs
-    sheet.getRange('C15')  // Prepaid Payments
+    sheet.getRange('C8'),  // Lease Start Date
+    sheet.getRange('C9'),  // Lease Term
+    sheet.getRange('C10'), // Payment Amount
+    sheet.getRange('C11'), // Payment Frequency
+    sheet.getRange('C12'), // Discount Rate
+    sheet.getRange('C13'), // Reporting End Date
+    sheet.getRange('C15'), // Initial Direct Costs
+    sheet.getRange('C16')  // Prepaid Payments
   ];
   
   protection.setUnprotectedRanges(unprotectedRanges);
