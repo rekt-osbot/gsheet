@@ -863,11 +863,14 @@ function createROUAssetScheduleSheet(ss) {
     sheet.getRange('A' + row).setFormula(`=IF('Lease Register'!A${dataRow}<>"", 'Lease Register'!A${dataRow}, "")`);
     sheet.getRange('B' + row).setFormula(`=IF('Lease Register'!A${dataRow}<>"", 'Lease Register'!B${dataRow}, "")`);
     sheet.getRange('C' + row).setFormula(`=IF('Lease Register'!A${dataRow}<>"", 'Lease Register'!D${dataRow}, "")`);
-    
-    // Opening Balance (Cost) - ROU Asset value from Lease Register
-    sheet.getRange('D' + row).setFormula(
-      `=IF('Lease Register'!A${dataRow}<>"", IF('Lease Register'!O${dataRow}="No", 'Lease Register'!N${dataRow}, 0), "")`
-    );
+
+    // Opening Balance (Cost) - INPUT CELL for roll-forward functionality
+    // For NEW leases: Link from Lease Register column N (ROU asset value)
+    // For EXISTING leases: Enter closing balance from prior period
+    const openingBalanceCell = sheet.getRange('D' + row);
+    openingBalanceCell.setValue(0);
+    openingBalanceCell.setBackground('#cfe2f3')
+      .setNote('INPUT REQUIRED: For existing leases, enter the closing balance from the prior period. For new leases, you can link to \'Lease Register\'!N' + dataRow + ' or enter the initial ROU asset value.');
     
     // Additions (if commencement date is in current period)
     sheet.getRange('E' + row).setFormula(
@@ -1095,11 +1098,14 @@ function createLeaseLiabilityScheduleSheet(ss) {
     sheet.getRange('A' + row).setFormula(`=IF('Lease Register'!A${dataRow}<>"", 'Lease Register'!A${dataRow}, "")`);
     sheet.getRange('B' + row).setFormula(`=IF('Lease Register'!A${dataRow}<>"", 'Lease Register'!B${dataRow}, "")`);
     sheet.getRange('C' + row).setFormula(`=IF('Lease Register'!A${dataRow}<>"", 'Lease Register'!D${dataRow}, "")`);
-    
-    // Opening Liability - same as PV from Lease Register
-    sheet.getRange('D' + row).setFormula(
-      `=IF('Lease Register'!A${dataRow}<>"", IF('Lease Register'!O${dataRow}="No", 'Lease Register'!L${dataRow}, 0), "")`
-    );
+
+    // Opening Liability - INPUT CELL for roll-forward functionality
+    // For NEW leases: Link from Lease Register column L (PV of lease payments)
+    // For EXISTING leases: Enter closing balance from prior period
+    const openingLiabilityCell = sheet.getRange('D' + row);
+    openingLiabilityCell.setValue(0);
+    openingLiabilityCell.setBackground('#cfe2f3')
+      .setNote('INPUT REQUIRED: For existing leases, enter the closing liability from the prior period. For new leases, you can link to \'Lease Register\'!L' + dataRow + ' or enter the initial lease liability (PV).');
     
     // Additions (if new lease in current period)
     sheet.getRange('E' + row).setFormula(

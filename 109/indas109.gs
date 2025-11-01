@@ -286,9 +286,7 @@ function createInputVariablesSheet(ss) {
     // Section: Materiality Thresholds
     ['MATERIALITY & THRESHOLDS', '', '', '', ''],
     ['Materiality Threshold', 50000, 'Currency', '', 'Minimum amount for separate disclosure'],
-    ['Rounding Factor', 1, 'Currency', '1, 1000, 100000', '1=Exact, 1000=Thousands, 100000=Lakhs'],
-    ['Hedge Effectiveness Lower', 0.80, 'Ratio', '0.80 - 1.25', 'Lower bound for effective hedge'],
-    ['Hedge Effectiveness Upper', 1.25, 'Ratio', '0.80 - 1.25', 'Upper bound for effective hedge']
+    ['Rounding Factor', 1, 'Currency', '1, 1000, 100000', '1=Exact, 1000=Thousands, 100000=Lakhs']
   ];
   
   let row = 3;
@@ -379,9 +377,13 @@ function createInstrumentsRegisterSheet(ss) {
   sheet.setColumnWidth(14, 100); // DPD
   sheet.setColumnWidth(15, 150); // SPPI Test
   sheet.setColumnWidth(16, 150); // Business Model
-  
-  formatHeader(sheet, 1, 1, 16, 'FINANCIAL INSTRUMENTS REGISTER', '#e65100');
-  
+  sheet.setColumnWidth(17, 130); // Designated at FVTPL
+  sheet.setColumnWidth(18, 130); // FVOCI Equity Election
+  sheet.setColumnWidth(19, 120); // Coupon Frequency
+  sheet.setColumnWidth(20, 120); // Simplified ECL
+
+  formatHeader(sheet, 1, 1, 20, 'FINANCIAL INSTRUMENTS REGISTER', '#e65100');
+
   const headers = [
     'ID',
     'Instrument Name',
@@ -398,20 +400,24 @@ function createInstrumentsRegisterSheet(ss) {
     'Credit Rating',
     'DPD (Days)',
     'SPPI Test Result',
-    'Business Model'
+    'Business Model',
+    'Designated at FVTPL',
+    'FVOCI Equity Election',
+    'Coupon Frequency',
+    'Simplified ECL'
   ];
   
   formatSubHeader(sheet, 2, 1, headers, '#f57c00');
   
   // Sample data with formulas
   const sampleData = [
-    ['FI001', 'Term Loan - ABC Ltd', 'Loan', 'ABC Limited', '=DATE(2023,4,1)', '=DATE(2028,3,31)', 10000000, 0.09, 0.095, 9500000, 'INR', 'Secured', 'AA', 0, 'Pass', 'Hold to Collect'],
-    ['FI002', 'Corporate Bond - XYZ Corp', 'Bond', 'XYZ Corporation', '=DATE(2022,1,15)', '=DATE(2027,1,14)', 5000000, 0.085, 0.088, 4950000, 'INR', 'Unsecured', 'A', 0, 'Pass', 'Hold to Collect'],
-    ['FI003', 'Equity - TechCo', 'Equity', 'TechCo Ltd', '=DATE(2021,6,1)', '', 2000000, 0, 0, 2500000, 'INR', 'Equity', 'Not Rated', 0, 'Fail', 'FVTPL'],
-    ['FI004', 'Trade Receivable - Client A', 'Receivable', 'Client A', '=DATE(2024,10,1)', '=DATE(2025,1,31)', 750000, 0, 0.12, 750000, 'INR', 'Unsecured', 'BBB', 15, 'Pass', 'Hold to Collect'],
-    ['FI005', 'Govt Security - 10Y', 'G-Sec', 'Government of India', '=DATE(2020,7,1)', '=DATE(2030,6,30)', 3000000, 0.0675, 0.068, 3050000, 'INR', 'Sovereign', 'AAA', 0, 'Pass', 'Hold to Collect & Sell'],
-    ['FI006', 'Mutual Fund Units', 'Mutual Fund', 'HDFC Balanced Fund', '=DATE(2023,3,1)', '', 1000000, 0, 0, 1150000, 'INR', 'Units', 'Not Rated', 0, 'Fail', 'FVTPL'],
-    ['FI007', 'Loan - Stressed Account', 'Loan', 'DEF Enterprises', '=DATE(2021,9,1)', '=DATE(2026,8,31)', 2000000, 0.11, 0.115, 1800000, 'INR', 'Secured', 'B', 120, 'Pass', 'Hold to Collect']
+    ['FI001', 'Term Loan - ABC Ltd', 'Loan', 'ABC Limited', '=DATE(2023,4,1)', '=DATE(2028,3,31)', 10000000, 0.09, 0.095, 9500000, 'INR', 'Secured', 'AA', 0, 'Pass', 'Hold to Collect', 'No', 'No', 'Annual', 'No'],
+    ['FI002', 'Corporate Bond - XYZ Corp', 'Bond', 'XYZ Corporation', '=DATE(2022,1,15)', '=DATE(2027,1,14)', 5000000, 0.085, 0.088, 4950000, 'INR', 'Unsecured', 'A', 0, 'Pass', 'Hold to Collect', 'No', 'No', 'Semi-Annual', 'No'],
+    ['FI003', 'Equity - TechCo', 'Equity', 'TechCo Ltd', '=DATE(2021,6,1)', '', 2000000, 0, 0, 2500000, 'INR', 'Equity', 'Not Rated', 0, 'Fail', 'Other (Trading)', 'No', 'No', 'Not Applicable', 'N/A'],
+    ['FI004', 'Trade Receivable - Client A', 'Receivable', 'Client A', '=DATE(2024,10,1)', '=DATE(2025,1,31)', 750000, 0, 0.12, 750000, 'INR', 'Unsecured', 'BBB', 15, 'Pass', 'Hold to Collect', 'No', 'No', 'Not Applicable', 'Yes'],
+    ['FI005', 'Govt Security - 10Y', 'G-Sec', 'Government of India', '=DATE(2020,7,1)', '=DATE(2030,6,30)', 3000000, 0.0675, 0.068, 3050000, 'INR', 'Sovereign', 'AAA', 0, 'Pass', 'Hold to Collect & Sell', 'No', 'No', 'Semi-Annual', 'No'],
+    ['FI006', 'Mutual Fund Units', 'Mutual Fund', 'HDFC Balanced Fund', '=DATE(2023,3,1)', '', 1000000, 0, 0, 1150000, 'INR', 'Units', 'Not Rated', 0, 'Fail', 'Other (Trading)', 'No', 'No', 'Not Applicable', 'N/A'],
+    ['FI007', 'Loan - Stressed Account', 'Loan', 'DEF Enterprises', '=DATE(2021,9,1)', '=DATE(2026,8,31)', 2000000, 0.11, 0.115, 1800000, 'INR', 'Secured', 'B', 120, 'Pass', 'Hold to Collect', 'No', 'No', 'Quarterly', 'No']
   ];
   
   let row = 3;
@@ -426,11 +432,11 @@ function createInstrumentsRegisterSheet(ss) {
     });
     
     // Format input cells (most cells are inputs)
-    formatInputCell(sheet.getRange(row, 2, 1, 15), '#fff3e0');
-    
+    formatInputCell(sheet.getRange(row, 2, 1, 19), '#fff3e0');
+
     row++;
   });
-  
+
   // Format columns
   formatDate(sheet.getRange('E3:F' + (row - 1)));
   formatCurrency(sheet.getRange('G3:G' + (row - 1)));
@@ -463,17 +469,49 @@ function createInstrumentsRegisterSheet(ss) {
   sheet.getRange('O3:O1000').setDataValidation(sppiValidation);
   
   const businessModelValidation = SpreadsheetApp.newDataValidation()
-    .requireValueInList(['Hold to Collect', 'Hold to Collect & Sell', 'FVTPL', 'Other'])
+    .requireValueInList(['Hold to Collect', 'Hold to Collect & Sell', 'Other (Trading)'])
     .setAllowInvalid(false)
     .build();
   sheet.getRange('P3:P1000').setDataValidation(businessModelValidation);
-  
+
+  // Add "Designated at FVTPL" validation (Q column)
+  const fvtplDesignationValidation = SpreadsheetApp.newDataValidation()
+    .requireValueInList(['Yes', 'No'])
+    .setAllowInvalid(false)
+    .build();
+  sheet.getRange('Q3:Q1000').setDataValidation(fvtplDesignationValidation);
+
+  // Add "FVOCI Equity Election" validation (R column)
+  const fvociEquityValidation = SpreadsheetApp.newDataValidation()
+    .requireValueInList(['Yes', 'No'])
+    .setAllowInvalid(false)
+    .build();
+  sheet.getRange('R3:R1000').setDataValidation(fvociEquityValidation);
+
+  // Add "Coupon Frequency" validation (S column)
+  const couponFrequencyValidation = SpreadsheetApp.newDataValidation()
+    .requireValueInList(['Annual', 'Semi-Annual', 'Quarterly', 'Monthly', 'Not Applicable'])
+    .setAllowInvalid(false)
+    .build();
+  sheet.getRange('S3:S1000').setDataValidation(couponFrequencyValidation);
+
+  // Add "Simplified ECL" validation (T column)
+  const simplifiedECLValidation = SpreadsheetApp.newDataValidation()
+    .requireValueInList(['Yes', 'No', 'N/A'])
+    .setAllowInvalid(false)
+    .build();
+  sheet.getRange('T3:T1000').setDataValidation(simplifiedECLValidation);
+
   // Add notes
   sheet.getRange('A' + (row + 2)).setValue('INSTRUCTIONS:').setFontWeight('bold').setFontColor('#e65100');
-  sheet.getRange('A' + (row + 3) + ':P' + (row + 6)).merge()
+  sheet.getRange('A' + (row + 3) + ':T' + (row + 6)).merge()
        .setValue('• Add all financial instruments held as of reporting date\n' +
                  '• SPPI Test: "Pass" if cash flows are solely payments of principal and interest\n' +
-                 '• Business Model: Select based on how the instrument is managed\n' +
+                 '• Business Model: Select "Hold to Collect", "Hold to Collect & Sell", or "Other (Trading)"\n' +
+                 '• Designated at FVTPL: Use "Yes" only when irrevocably designating to eliminate accounting mismatch (fair value option)\n' +
+                 '• FVOCI Equity Election: "Yes" for equity investments irrevocably designated at FVOCI (no P&L recycling on disposal, per Ind AS 109.5.7.5)\n' +
+                 '• Coupon Frequency: Select frequency for interest/coupon payments (affects interim period cash flow calculations)\n' +
+                 '• Simplified ECL: "Yes" for trade receivables without significant financing component (lifetime ECL from day 1, per Ind AS 109.5.5.15)\n' +
                  '• DPD (Days Past Due): Enter 0 if current, otherwise number of days overdue\n' +
                  '• All fields in orange background are required for accurate classification\n' +
                  '• EIR should include all transaction costs and fees for amortized cost instruments')
@@ -500,17 +538,21 @@ function createClassificationMatrixSheet(ss) {
   sheet.setColumnWidth(2, 200);
   sheet.setColumnWidth(3, 150);
   sheet.setColumnWidth(4, 150);
-  sheet.setColumnWidth(5, 150);
-  sheet.setColumnWidth(6, 180);
-  sheet.setColumnWidth(7, 250);
-  
-  formatHeader(sheet, 1, 1, 7, 'IND AS 109 CLASSIFICATION MATRIX', '#6a1b9a');
-  
+  sheet.setColumnWidth(5, 130);
+  sheet.setColumnWidth(6, 130);
+  sheet.setColumnWidth(7, 150);
+  sheet.setColumnWidth(8, 180);
+  sheet.setColumnWidth(9, 250);
+
+  formatHeader(sheet, 1, 1, 9, 'IND AS 109 CLASSIFICATION MATRIX', '#6a1b9a');
+
   const headers = [
     'ID',
     'Instrument Name',
     'SPPI Test',
     'Business Model',
+    'Designated at FVTPL',
+    'FVOCI Equity Election',
     'Classification',
     'Measurement',
     'Ind AS 109 Reference'
@@ -521,18 +563,20 @@ function createClassificationMatrixSheet(ss) {
   // Classification logic formulas
   const formulas = [
     // Row 3
-    ['=Instruments_Register!A3',
-     '=Instruments_Register!B3',
-     '=Instruments_Register!O3',
-     '=Instruments_Register!P3',
-     '=IF(C3="Fail","FVTPL",IF(D3="FVTPL","FVTPL",IF(AND(C3="Pass",D3="Hold to Collect"),"Amortized Cost",IF(AND(C3="Pass",D3="Hold to Collect & Sell"),"FVOCI","FVTPL"))))',
-     '=IF(E3="Amortized Cost","Amortized Cost using EIR",IF(E3="FVOCI","Fair Value with OCI",IF(E3="FVTPL","Fair Value through P&L","Review Required")))',
-     '=IF(E3="Amortized Cost","Para 4.1.2 - AC if SPPI passed & HTC",IF(E3="FVOCI","Para 4.1.2A - FVOCI if SPPI passed & HTC&S",IF(E3="FVTPL","Para 4.1.4 - Default FVTPL measurement","")))'
+    ['=IF(ISBLANK(Instruments_Register!A3),"",Instruments_Register!A3)',
+     '=IF(ISBLANK(Instruments_Register!A3),"",Instruments_Register!B3)',
+     '=IF(ISBLANK(Instruments_Register!A3),"",Instruments_Register!O3)',
+     '=IF(ISBLANK(Instruments_Register!A3),"",Instruments_Register!P3)',
+     '=IF(ISBLANK(Instruments_Register!A3),"",Instruments_Register!Q3)',
+     '=IF(ISBLANK(Instruments_Register!A3),"",Instruments_Register!R3)',
+     '=IF(ISBLANK(Instruments_Register!A3),"",IF(E3="Yes","FVTPL",IF(F3="Yes","FVOCI",IF(C3="Fail","FVTPL",IF(AND(C3="Pass",D3="Hold to Collect"),"Amortized Cost",IF(AND(C3="Pass",D3="Hold to Collect & Sell"),"FVOCI","FVTPL"))))))',
+     '=IF(ISBLANK(Instruments_Register!A3),"",IF(G3="Amortized Cost","Amortized Cost using EIR",IF(G3="FVOCI",IF(F3="Yes","Fair Value - OCI (Equity - no recycling)","Fair Value - OCI (Debt - recycling)"),IF(G3="FVTPL","Fair Value through P&L","Review Required"))))',
+     '=IF(ISBLANK(Instruments_Register!A3),"",IF(G3="Amortized Cost","Para 4.1.2 - AC if SPPI passed & HTC",IF(G3="FVOCI",IF(F3="Yes","Para 5.7.5 - FVOCI equity (irrevocable election)","Para 4.1.2A - FVOCI debt (SPPI passed & HTC&S)"),IF(G3="FVTPL","Para 4.1.4 - Default FVTPL or fair value option",""))))'
     ]
   ];
-  
-  // Apply formulas for sample rows (will auto-extend for new instruments)
-  for (let i = 0; i < 7; i++) { // 7 sample instruments
+
+  // Apply formulas for extended rows (100 rows to support scalability)
+  for (let i = 0; i < 100; i++) {
     const row = 3 + i;
     formulas[0].forEach((formula, col) => {
       const adjustedFormula = formula.replace(/3/g, row.toString());
@@ -540,9 +584,9 @@ function createClassificationMatrixSheet(ss) {
     });
   }
   
-  // Conditional formatting for classification
-  const classificationRange = sheet.getRange('E3:E1000');
-  
+  // Conditional formatting for classification (now column G)
+  const classificationRange = sheet.getRange('G3:G1000');
+
   // Amortized Cost - Green
   const acRule = SpreadsheetApp.newConditionalFormatRule()
     .whenTextEqualTo('Amortized Cost')
@@ -550,7 +594,7 @@ function createClassificationMatrixSheet(ss) {
     .setFontColor('#2e7d32')
     .setRanges([classificationRange])
     .build();
-  
+
   // FVOCI - Blue
   const fvociRule = SpreadsheetApp.newConditionalFormatRule()
     .whenTextEqualTo('FVOCI')
@@ -558,7 +602,7 @@ function createClassificationMatrixSheet(ss) {
     .setFontColor('#1565c0')
     .setRanges([classificationRange])
     .build();
-  
+
   // FVTPL - Orange
   const fvtplRule = SpreadsheetApp.newConditionalFormatRule()
     .whenTextEqualTo('FVTPL')
@@ -573,17 +617,17 @@ function createClassificationMatrixSheet(ss) {
   
   // Summary section
   const summaryRow = 13;
-  formatHeader(sheet, summaryRow, 1, 7, 'CLASSIFICATION SUMMARY', '#7b1fa2');
-  
+  formatHeader(sheet, summaryRow, 1, 9, 'CLASSIFICATION SUMMARY', '#7b1fa2');
+
   sheet.getRange(summaryRow + 1, 1, 1, 2).merge().setValue('Classification Category').setFontWeight('bold');
   sheet.getRange(summaryRow + 1, 3).setValue('Count').setFontWeight('bold');
   sheet.getRange(summaryRow + 1, 4).setValue('Total Balance (₹)').setFontWeight('bold');
   sheet.getRange(summaryRow + 1, 5).setValue('% of Total').setFontWeight('bold');
-  
+
   const summaryData = [
-    ['Amortized Cost', '=COUNTIF(E3:E1000,"Amortized Cost")', '=SUMIF(E3:E1000,"Amortized Cost",Instruments_Register!J3:J1000)', '=D15/D18'],
-    ['FVOCI', '=COUNTIF(E3:E1000,"FVOCI")', '=SUMIF(E3:E1000,"FVOCI",Instruments_Register!J3:J1000)', '=D16/D18'],
-    ['FVTPL', '=COUNTIF(E3:E1000,"FVTPL")', '=SUMIF(E3:E1000,"FVTPL",Instruments_Register!J3:J1000)', '=D17/D18'],
+    ['Amortized Cost', '=COUNTIF(G3:G1000,"Amortized Cost")', '=SUMIF(G3:G1000,"Amortized Cost",Instruments_Register!J3:J1000)', '=D15/D18'],
+    ['FVOCI', '=COUNTIF(G3:G1000,"FVOCI")', '=SUMIF(G3:G1000,"FVOCI",Instruments_Register!J3:J1000)', '=D16/D18'],
+    ['FVTPL', '=COUNTIF(G3:G1000,"FVTPL")', '=SUMIF(G3:G1000,"FVTPL",Instruments_Register!J3:J1000)', '=D17/D18'],
     ['Total', '=SUM(C15:C17)', '=SUM(D15:D17)', '1']
   ];
   
@@ -605,15 +649,16 @@ function createClassificationMatrixSheet(ss) {
   
   // Add explanation
   sheet.getRange('A' + (row + 2)).setValue('CLASSIFICATION LOGIC:').setFontWeight('bold').setFontColor('#6a1b9a');
-  sheet.getRange('A' + (row + 3) + ':G' + (row + 7)).merge()
-       .setValue('Ind AS 109 Classification Decision Tree:\n\n' +
-                 '1. SPPI Test Fails → FVTPL (mandatory)\n' +
-                 '2. SPPI Pass + Business Model "Hold to Collect" → Amortized Cost\n' +
-                 '3. SPPI Pass + Business Model "Hold to Collect & Sell" → FVOCI\n' +
-                 '4. Business Model "FVTPL" → FVTPL (irrevocable election)\n' +
-                 '5. Default → FVTPL\n\n' +
+  sheet.getRange('A' + (row + 3) + ':I' + (row + 7)).merge()
+       .setValue('Ind AS 109 Classification Decision Tree (Corrected per Ind AS 109):\n\n' +
+                 '1. Designated at FVTPL = "Yes" → FVTPL (fair value option to eliminate accounting mismatch)\n' +
+                 '2. FVOCI Equity Election = "Yes" → FVOCI (equity - no recycling on disposal per Para 5.7.5)\n' +
+                 '3. SPPI Test Fails → FVTPL (mandatory)\n' +
+                 '4. SPPI Pass + Business Model "Hold to Collect" → Amortized Cost\n' +
+                 '5. SPPI Pass + Business Model "Hold to Collect & Sell" → FVOCI (debt - recycling)\n' +
+                 '6. Default → FVTPL\n\n' +
                  'SPPI = Solely Payments of Principal and Interest\n' +
-                 'This classification determines the measurement basis and P&L vs OCI treatment.')
+                 'Note: FVTPL is not a business model; it is a measurement category. Business models are: Hold to Collect, Hold to Collect & Sell, or Other (Trading).')
        .setWrap(true)
        .setVerticalAlignment('top')
        .setBackground('#f3e5f5')
@@ -658,27 +703,27 @@ function createFairValueWorkingsSheet(ss) {
   
   formatSubHeader(sheet, 2, 1, headers, '#00acc1');
   
-  // Formulas for fair value instruments only
-  for (let i = 0; i < 7; i++) {
+  // Formulas for fair value instruments only (extended to 100 rows)
+  for (let i = 0; i < 100; i++) {
     const row = 3 + i;
     const formulas = [
-      `=Instruments_Register!A${row}`,
-      `=Instruments_Register!B${row}`,
-      `=Classification_Matrix!E${row}`,
-      `=Instruments_Register!J${row}`,
+      `=IF(ISBLANK(Instruments_Register!A${row}),"",Instruments_Register!A${row})`,
+      `=IF(ISBLANK(Instruments_Register!A${row}),"",Instruments_Register!B${row})`,
+      `=IF(ISBLANK(Instruments_Register!A${row}),"",Classification_Matrix!G${row})`,
+      `=IF(ISBLANK(Instruments_Register!A${row}),"",Instruments_Register!J${row})`,
       // Fair Value calculation
       // CORRECTED: Removed RANDBETWEEN placeholder. Fair value should be based on:
       // - Market prices for listed securities, OR
       // - Valuation models (DCF, comparable multiples, etc.), OR
       // - Manual override input by user
       // Default: Opening balance (to be updated by user with actual fair value)
-      `=IF(OR(C${row}="FVTPL",C${row}="FVOCI"),D${row},0)`,
-      `=IF(OR(C${row}="FVTPL",C${row}="FVOCI"),E${row}-D${row},0)`,
-      `=IF(C${row}="FVTPL",F${row},0)`,
-      `=IF(C${row}="FVOCI",F${row},0)`,
-      `=IF(OR(C${row}="FVTPL",C${row}="FVOCI"),"Level 2 - Observable Inputs","-")`
+      `=IF(ISBLANK(Instruments_Register!A${row}),"",IF(OR(C${row}="FVTPL",C${row}="FVOCI"),D${row},0))`,
+      `=IF(ISBLANK(Instruments_Register!A${row}),"",IF(OR(C${row}="FVTPL",C${row}="FVOCI"),E${row}-D${row},0))`,
+      `=IF(ISBLANK(Instruments_Register!A${row}),"",IF(C${row}="FVTPL",F${row},0))`,
+      `=IF(ISBLANK(Instruments_Register!A${row}),"",IF(C${row}="FVOCI",F${row},0))`,
+      `=IF(ISBLANK(Instruments_Register!A${row}),"",IF(OR(C${row}="FVTPL",C${row}="FVOCI"),"Level 2 - Observable Inputs","-"))`
     ];
-    
+
     formulas.forEach((formula, col) => {
       sheet.getRange(row, col + 1).setFormula(formula);
     });
@@ -705,9 +750,19 @@ function createFairValueWorkingsSheet(ss) {
     .setFontColor('#c62828')
     .setRanges([gainLossRange])
     .build();
-  
+
+  // Conditional formatting for stale fair values (Period End = Opening and Opening > 0)
+  // This highlights cells that need user attention for fair value updates
+  const staleFVRange = sheet.getRange('E3:E1000');
+  const staleFVRule = SpreadsheetApp.newConditionalFormatRule()
+    .whenFormulaSatisfied('=AND(E3=D3,D3>0,NOT(ISBLANK(D3)))')
+    .setBackground('#fff9c4')
+    .setFontColor('#f57f17')
+    .setRanges([staleFVRange])
+    .build();
+
   const rules = sheet.getConditionalFormatRules();
-  rules.push(gainRule, lossRule);
+  rules.push(gainRule, lossRule, staleFVRule);
   sheet.setConditionalFormatRules(rules);
   
   // Summary section
@@ -815,36 +870,38 @@ function createECLImpairmentSheet(ss) {
   
   formatSubHeader(sheet, 2, 1, headers, '#d32f2f');
   
-  // ECL calculation formulas
-  for (let i = 0; i < 7; i++) {
+  // ECL calculation formulas (extended to 100 rows)
+  for (let i = 0; i < 100; i++) {
     const row = 3 + i;
     const formulas = [
-      `=Instruments_Register!A${row}`,
-      `=Instruments_Register!B${row}`,
-      `=Instruments_Register!N${row}`,
-      `=Instruments_Register!J${row}`,
-      // Stage determination based on DPD and classification
-      // CORRECTED: Compare DPD (C${row}) with DPD thresholds, not LGD percentages
+      `=IF(ISBLANK(Instruments_Register!A${row}),"",Instruments_Register!A${row})`,
+      `=IF(ISBLANK(Instruments_Register!A${row}),"",Instruments_Register!B${row})`,
+      `=IF(ISBLANK(Instruments_Register!A${row}),"",Instruments_Register!N${row})`,
+      `=IF(ISBLANK(Instruments_Register!A${row}),"",Instruments_Register!J${row})`,
+      // Stage determination based on DPD, classification, and simplified ECL approach
+      // CORRECTED: Implements simplified approach per Ind AS 109.5.5.15 for trade receivables
+      // Simplified approach = Lifetime ECL from day 1 (no Stage 1/12-month bucket)
       // B$16 = DPD Threshold Stage 3 (90 days), B$15 = DPD Threshold Stage 2 (30 days)
-      `=IF(Classification_Matrix!E${row}="Amortized Cost",IF(C${row}>=Input_Variables!$B$16,"Stage 3",IF(C${row}>=Input_Variables!$B$15,"Stage 2","Stage 1")),"N/A")`,
+      `=IF(ISBLANK(Instruments_Register!A${row}),"",IF(Classification_Matrix!F${row}="Amortized Cost",IF(Instruments_Register!S${row}="Yes",IF(C${row}>=Input_Variables!$B$16,"Stage 3","Simplified (Lifetime)"),IF(C${row}>=Input_Variables!$B$16,"Stage 3",IF(C${row}>=Input_Variables!$B$15,"Stage 2","Stage 1"))),"N/A"))`,
       // PD based on stage
-      `=IF(E${row}="Stage 1",Input_Variables!$B$10,IF(E${row}="Stage 2",Input_Variables!$B$11,IF(E${row}="Stage 3",Input_Variables!$B$12,0)))`,
+      // Simplified (Lifetime) uses lifetime PD (same as Stage 2)
+      `=IF(ISBLANK(Instruments_Register!A${row}),"",IF(E${row}="Stage 1",Input_Variables!$B$10,IF(OR(E${row}="Stage 2",E${row}="Simplified (Lifetime)"),Input_Variables!$B$11,IF(E${row}="Stage 3",Input_Variables!$B$12,0))))`,
       // LGD based on security type
-      `=IF(Instruments_Register!L${row}="Secured",Input_Variables!$B$13,Input_Variables!$B$14)`,
+      `=IF(ISBLANK(Instruments_Register!A${row}),"",IF(Instruments_Register!L${row}="Secured",Input_Variables!$B$13,Input_Variables!$B$14))`,
       // EAD (Exposure at Default) - typically equal to carrying amount
-      `=D${row}`,
+      `=IF(ISBLANK(Instruments_Register!A${row}),"",D${row})`,
       // ECL = EAD × PD × LGD
-      `=IF(E${row}<>"N/A",H${row}*F${row}*G${row},0)`,
+      `=IF(ISBLANK(Instruments_Register!A${row}),"",IF(E${row}<>"N/A",H${row}*F${row}*G${row},0))`,
       // Opening provision - INPUT CELL (should be closing provision from prior period)
       // CORRECTED: Changed from arbitrary 50% to input cell for proper period-to-period continuity
       // Users must enter opening ECL provision from prior period's closing balance
-      `0`,
+      `=IF(ISBLANK(Instruments_Register!A${row}),"",0)`,
       // Movement
-      `=I${row}-J${row}`,
+      `=IF(ISBLANK(Instruments_Register!A${row}),"",I${row}-J${row})`,
       // Closing provision
-      `=I${row}`
+      `=IF(ISBLANK(Instruments_Register!A${row}),"",I${row})`
     ];
-    
+
     formulas.forEach((formula, col) => {
       sheet.getRange(row, col + 1).setFormula(formula);
     });
@@ -880,9 +937,16 @@ function createECLImpairmentSheet(ss) {
     .setFontColor('#c62828')
     .setRanges([stageRange])
     .build();
-  
+
+  const simplifiedRule = SpreadsheetApp.newConditionalFormatRule()
+    .whenTextEqualTo('Simplified (Lifetime)')
+    .setBackground('#e1bee7')
+    .setFontColor('#6a1b9a')
+    .setRanges([stageRange])
+    .build();
+
   const rules = sheet.getConditionalFormatRules();
-  rules.push(stage1Rule, stage2Rule, stage3Rule);
+  rules.push(stage1Rule, stage2Rule, stage3Rule, simplifiedRule);
   sheet.setConditionalFormatRules(rules);
   
   // Summary section
@@ -902,7 +966,8 @@ function createECLImpairmentSheet(ss) {
     ['Stage 1 - Performing', '=COUNTIF(E3:E1000,"Stage 1")', '=SUMIF(E3:E1000,"Stage 1",D3:D1000)', '=IF(C15>0,G15/C15,0)', '=SUMIF(E3:E1000,"Stage 1",J3:J1000)', '=SUMIF(E3:E1000,"Stage 1",K3:K1000)', '=SUMIF(E3:E1000,"Stage 1",L3:L1000)', '=IF(C15>0,G15/C15,0)'],
     ['Stage 2 - Underperforming', '=COUNTIF(E3:E1000,"Stage 2")', '=SUMIF(E3:E1000,"Stage 2",D3:D1000)', '=IF(C16>0,G16/C16,0)', '=SUMIF(E3:E1000,"Stage 2",J3:J1000)', '=SUMIF(E3:E1000,"Stage 2",K3:K1000)', '=SUMIF(E3:E1000,"Stage 2",L3:L1000)', '=IF(C16>0,G16/C16,0)'],
     ['Stage 3 - Credit Impaired', '=COUNTIF(E3:E1000,"Stage 3")', '=SUMIF(E3:E1000,"Stage 3",D3:D1000)', '=IF(C17>0,G17/C17,0)', '=SUMIF(E3:E1000,"Stage 3",J3:J1000)', '=SUMIF(E3:E1000,"Stage 3",K3:K1000)', '=SUMIF(E3:E1000,"Stage 3",L3:L1000)', '=IF(C17>0,G17/C17,0)'],
-    ['Total', '=SUM(B15:B17)', '=SUM(C15:C17)', '=IF(C18>0,G18/C18,0)', '=SUM(E15:E17)', '=SUM(F15:F17)', '=SUM(G15:G17)', '=IF(C18>0,G18/C18,0)']
+    ['Simplified (Lifetime ECL)', '=COUNTIF(E3:E1000,"Simplified (Lifetime)")', '=SUMIF(E3:E1000,"Simplified (Lifetime)",D3:D1000)', '=IF(C18>0,G18/C18,0)', '=SUMIF(E3:E1000,"Simplified (Lifetime)",J3:J1000)', '=SUMIF(E3:E1000,"Simplified (Lifetime)",K3:K1000)', '=SUMIF(E3:E1000,"Simplified (Lifetime)",L3:L1000)', '=IF(C18>0,G18/C18,0)'],
+    ['Total', '=SUM(B15:B18)', '=SUM(C15:C18)', '=IF(C19>0,G19/C19,0)', '=SUM(E15:E18)', '=SUM(F15:F18)', '=SUM(G15:G18)', '=IF(C19>0,G19/C19,0)']
   ];
   
   let row = summaryRow + 2;
@@ -979,33 +1044,35 @@ function createAmortizationScheduleSheet(ss) {
   
   formatSubHeader(sheet, 2, 1, headers, '#4caf50');
   
-  // Amortization calculations for Amortized Cost instruments only
-  for (let i = 0; i < 7; i++) {
+  // Amortization calculations for Amortized Cost instruments only (extended to 100 rows)
+  for (let i = 0; i < 100; i++) {
     const row = 3 + i;
     const formulas = [
-      `=Instruments_Register!A${row}`,
-      `=Instruments_Register!B${row}`,
-      `=Instruments_Register!J${row}`,
-      `=Instruments_Register!I${row}`,
+      `=IF(ISBLANK(Instruments_Register!A${row}),"",Instruments_Register!A${row})`,
+      `=IF(ISBLANK(Instruments_Register!A${row}),"",Instruments_Register!B${row})`,
+      `=IF(ISBLANK(Instruments_Register!A${row}),"",Instruments_Register!J${row})`,
+      `=IF(ISBLANK(Instruments_Register!A${row}),"",Instruments_Register!I${row})`,
       // Days in period - CORRECTED: Use actual period days (B$8) not full year (B$7)
       // This allows for interim reporting (monthly, quarterly, etc.)
-      `=Input_Variables!$B$8`,
+      `=IF(ISBLANK(Instruments_Register!A${row}),"",Input_Variables!$B$8)`,
       // Interest income = Opening Balance × EIR × (Days / Days in Year)
       // CORRECTED: For Stage 3 (credit-impaired), calculate interest on net carrying amount (gross - ECL provision)
       // Per Ind AS 109.5.4.1, interest revenue for credit-impaired assets = net carrying amount × EIR
-      `=IF(Classification_Matrix!E${row}="Amortized Cost",IF(ECL_Impairment!E${row}="Stage 3",(C${row}-ECL_Impairment!J${row})*D${row}*(E${row}/Input_Variables!$B$7),C${row}*D${row}*(E${row}/Input_Variables!$B$7)),0)`,
-      // Cash received (coupon payment)
-      `=IF(Classification_Matrix!E${row}="Amortized Cost",Instruments_Register!G${row}*Instruments_Register!H${row},0)`,
+      `=IF(ISBLANK(Instruments_Register!A${row}),"",IF(Classification_Matrix!F${row}="Amortized Cost",IF(ECL_Impairment!E${row}="Stage 3",(C${row}-ECL_Impairment!J${row})*D${row}*(E${row}/Input_Variables!$B$7),C${row}*D${row}*(E${row}/Input_Variables!$B$7)),0))`,
+      // Cash received (coupon payment) - CORRECTED to account for coupon frequency and period
+      // Formula: Face Value × Coupon Rate × Frequency Factor × (Days in Period / Days in Year)
+      // Frequency Factor: Annual=1, Semi-Annual=0.5, Quarterly=0.25, Monthly=1/12
+      `=IF(ISBLANK(Instruments_Register!A${row}),"",IF(Classification_Matrix!F${row}="Amortized Cost",Instruments_Register!G${row}*Instruments_Register!H${row}*IF(Instruments_Register!R${row}="Semi-Annual",0.5,IF(Instruments_Register!R${row}="Quarterly",0.25,IF(Instruments_Register!R${row}="Monthly",1/12,IF(Instruments_Register!R${row}="Annual",1,0))))*(E${row}/Input_Variables!$B$7),0))`,
       // Amortization = Interest Income - Cash Received
-      `=F${row}-G${row}`,
+      `=IF(ISBLANK(Instruments_Register!A${row}),"",F${row}-G${row})`,
       // Impairment charge from ECL sheet
-      `=IF(Classification_Matrix!E${row}="Amortized Cost",ECL_Impairment!K${row},0)`,
+      `=IF(ISBLANK(Instruments_Register!A${row}),"",IF(Classification_Matrix!F${row}="Amortized Cost",ECL_Impairment!K${row},0))`,
       // Other adjustments (input cell for manual entries)
-      `0`,
+      `=IF(ISBLANK(Instruments_Register!A${row}),"",0)`,
       // Closing = Opening + Interest - Cash - Impairment + Adjustments
-      `=IF(Classification_Matrix!E${row}="Amortized Cost",C${row}+F${row}-G${row}-I${row}+J${row},0)`
+      `=IF(ISBLANK(Instruments_Register!A${row}),"",IF(Classification_Matrix!F${row}="Amortized Cost",C${row}+F${row}-G${row}-I${row}+J${row},0))`
     ];
-    
+
     formulas.forEach((formula, col) => {
       sheet.getRange(row, col + 1).setFormula(formula);
     });
@@ -1026,12 +1093,12 @@ function createAmortizationScheduleSheet(ss) {
   sheet.getRange(summaryRow + 1, 3).setValue('Amount (₹)').setFontWeight('bold');
   
   const summaryData = [
-    ['Total Opening Amortized Cost', '=SUMIF(Classification_Matrix!E3:E1000,"Amortized Cost",C3:C1000)'],
+    ['Total Opening Amortized Cost', '=SUMIF(Classification_Matrix!F3:F1000,"Amortized Cost",C3:C1000)'],
     ['Add: Interest Income (EIR basis)', '=SUM(F3:F1000)'],
     ['Less: Cash Receipts', '=SUM(G3:G1000)'],
     ['Less: Impairment Charge', '=SUM(I3:I1000)'],
     ['Add/(Less): Other Adjustments', '=SUM(J3:J1000)'],
-    ['Total Closing Amortized Cost', '=SUMIF(Classification_Matrix!E3:E1000,"Amortized Cost",K3:K1000)'],
+    ['Total Closing Amortized Cost', '=SUMIF(Classification_Matrix!F3:F1000,"Amortized Cost",K3:K1000)'],
     ['', ''],
     ['Verification (should be zero)', '=C15+C16-C17-C18+C19-C20']
   ];
@@ -1476,7 +1543,7 @@ function createReferencesSheet(ss) {
     
     ['Hedge Accounting', ''],
     ['Para 6.4.1', 'A hedging relationship qualifies for hedge accounting only if: (a) it consists of eligible items, (b) there is formal designation and documentation, and (c) the hedge meets effectiveness requirements.'],
-    ['Para 6.5.11', 'Hedge effectiveness ratio must be within 80-125% range for the hedge to qualify for hedge accounting.'],
+    ['Para 6.4.1(c)', 'Ind AS 109 effectiveness requirements (principles-based): (i) economic relationship between hedged item and hedging instrument, (ii) credit risk does not dominate value changes, and (iii) hedge ratio consistent with risk management objective. No fixed 80-125% rule.'],
     ['', ''],
     
     ['Derecognition', ''],
