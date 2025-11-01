@@ -259,6 +259,7 @@ function createInputVariablesSheet(ss) {
     ['Previous Reporting Date', '', 'Date', '', 'Previous period end date'],
     ['Risk-Free Rate', 0.0675, 'Percentage', '0% - 20%', 'G-Sec 10Y rate for discounting'],
     ['Days in Year', 365, 'Days', '365 or 360', 'Day count convention'],
+    ['Days in Current Period', 365, 'Days', '30-365', 'CORRECTED: Actual days in reporting period (30=monthly, 90=quarterly, 365=annual)'],
     ['', '', '', '', ''],
     
     // Section: ECL Parameters
@@ -665,8 +666,13 @@ function createFairValueWorkingsSheet(ss) {
       `=Instruments_Register!B${row}`,
       `=Classification_Matrix!E${row}`,
       `=Instruments_Register!J${row}`,
-      // Fair Value calculation (simplified - in practice would use complex models)
-      `=IF(OR(C${row}="FVTPL",C${row}="FVOCI"),IF(ISNUMBER(Instruments_Register!G${row}),Instruments_Register!G${row}*(1+RANDBETWEEN(-10,15)/100),D${row}),0)`,
+      // Fair Value calculation
+      // CORRECTED: Removed RANDBETWEEN placeholder. Fair value should be based on:
+      // - Market prices for listed securities, OR
+      // - Valuation models (DCF, comparable multiples, etc.), OR
+      // - Manual override input by user
+      // Default: Opening balance (to be updated by user with actual fair value)
+      `=IF(OR(C${row}="FVTPL",C${row}="FVOCI"),D${row},0)`,
       `=IF(OR(C${row}="FVTPL",C${row}="FVOCI"),E${row}-D${row},0)`,
       `=IF(C${row}="FVTPL",F${row},0)`,
       `=IF(C${row}="FVOCI",F${row},0)`,
@@ -676,8 +682,11 @@ function createFairValueWorkingsSheet(ss) {
     formulas.forEach((formula, col) => {
       sheet.getRange(row, col + 1).setFormula(formula);
     });
+
+    // Mark Fair Value (Column E) as input cell for manual override
+    formatInputCell(sheet.getRange(row, 5), '#e0f2f1');
   }
-  
+
   formatCurrency(sheet.getRange('D3:H1000'));
   
   // Conditional formatting for gains/losses
@@ -815,7 +824,9 @@ function createECLImpairmentSheet(ss) {
       `=Instruments_Register!N${row}`,
       `=Instruments_Register!J${row}`,
       // Stage determination based on DPD and classification
-      `=IF(Classification_Matrix!E${row}="Amortized Cost",IF(C${row}>=Input_Variables!$B$15,"Stage 3",IF(C${row}>=Input_Variables!$B$14,"Stage 2","Stage 1")),"N/A")`,
+      // CORRECTED: Compare DPD (C${row}) with DPD thresholds, not LGD percentages
+      // B$16 = DPD Threshold Stage 3 (90 days), B$15 = DPD Threshold Stage 2 (30 days)
+      `=IF(Classification_Matrix!E${row}="Amortized Cost",IF(C${row}>=Input_Variables!$B$16,"Stage 3",IF(C${row}>=Input_Variables!$B$15,"Stage 2","Stage 1")),"N/A")`,
       // PD based on stage
       `=IF(E${row}="Stage 1",Input_Variables!$B$10,IF(E${row}="Stage 2",Input_Variables!$B$11,IF(E${row}="Stage 3",Input_Variables!$B$12,0)))`,
       // LGD based on security type
@@ -824,8 +835,10 @@ function createECLImpairmentSheet(ss) {
       `=D${row}`,
       // ECL = EAD × PD × LGD
       `=IF(E${row}<>"N/A",H${row}*F${row}*G${row},0)`,
-      // Opening provision (for demo, assume 50% of calculated ECL)
-      `=I${row}*0.5`,
+      // Opening provision - INPUT CELL (should be closing provision from prior period)
+      // CORRECTED: Changed from arbitrary 50% to input cell for proper period-to-period continuity
+      // Users must enter opening ECL provision from prior period's closing balance
+      `0`,
       // Movement
       `=I${row}-J${row}`,
       // Closing provision
@@ -835,8 +848,11 @@ function createECLImpairmentSheet(ss) {
     formulas.forEach((formula, col) => {
       sheet.getRange(row, col + 1).setFormula(formula);
     });
+
+    // Mark Opening Provision (Column J) as input cell
+    formatInputCell(sheet.getRange(row, 10), '#ffebee');
   }
-  
+
   formatCurrency(sheet.getRange('D3:D1000'));
   formatPercentage(sheet.getRange('F3:G1000'));
   formatCurrency(sheet.getRange('H3:L1000'));
@@ -971,10 +987,13 @@ function createAmortizationScheduleSheet(ss) {
       `=Instruments_Register!B${row}`,
       `=Instruments_Register!J${row}`,
       `=Instruments_Register!I${row}`,
-      // Days in period (assume full year for demo)
-      `=Input_Variables!$B$7`,
+      // Days in period - CORRECTED: Use actual period days (B$8) not full year (B$7)
+      // This allows for interim reporting (monthly, quarterly, etc.)
+      `=Input_Variables!$B$8`,
       // Interest income = Opening Balance × EIR × (Days / Days in Year)
-      `=IF(Classification_Matrix!E${row}="Amortized Cost",C${row}*D${row}*(E${row}/Input_Variables!$B$7),0)`,
+      // CORRECTED: For Stage 3 (credit-impaired), calculate interest on net carrying amount (gross - ECL provision)
+      // Per Ind AS 109.5.4.1, interest revenue for credit-impaired assets = net carrying amount × EIR
+      `=IF(Classification_Matrix!E${row}="Amortized Cost",IF(ECL_Impairment!E${row}="Stage 3",(C${row}-ECL_Impairment!J${row})*D${row}*(E${row}/Input_Variables!$B$7),C${row}*D${row}*(E${row}/Input_Variables!$B$7)),0)`,
       // Cash received (coupon payment)
       `=IF(Classification_Matrix!E${row}="Amortized Cost",Instruments_Register!G${row}*Instruments_Register!H${row},0)`,
       // Amortization = Interest Income - Cash Received

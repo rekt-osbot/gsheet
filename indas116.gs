@@ -874,10 +874,16 @@ function createROUAssetScheduleSheet(ss) {
       `=IF('Lease Register'!A${dataRow}<>"", ` +
       `IF(AND('Lease Register'!E${dataRow}>=Assumptions!$C$20, 'Lease Register'!E${dataRow}<=Assumptions!$C$21), D${row}, 0), "")`
     );
-    
-    // Accumulated Depreciation (Opening) - assume zero for first period, calculate for subsequent
-    sheet.getRange('F' + row).setValue(0);
-    
+
+    // Accumulated Depreciation (Opening) - INPUT CELL
+    // CORRECTED: Changed from hardcoded 0 to input cell
+    // Users must enter opening accumulated depreciation from prior period's closing balance
+    // For first-time adoption or new leases, this would be 0; for subsequent periods, copy prior closing
+    const openingAccumDepCell = sheet.getRange('F' + row);
+    openingAccumDepCell.setValue(0);
+    openingAccumDepCell.setBackground('#cfe2f3')
+      .setNote('INPUT REQUIRED: Enter opening accumulated depreciation from prior period closing balance. Enter 0 for new leases.');
+
     // Net Opening Balance
     sheet.getRange('G' + row).setFormula(`=IF(A${row}<>"", D${row}-F${row}, "")`);
     
@@ -1110,11 +1116,16 @@ function createLeaseLiabilityScheduleSheet(ss) {
       `MIN('Lease Register'!F${dataRow},Assumptions!$C$21), "M"), 0), "")`
     );
     
-    // Interest Expense (Opening balance × IBR × time proportion)
+    // Interest Expense - IMPROVED but still simplified
+    // CORRECTED: Using average balance method for better accuracy
+    // Proper effective interest method would require monthly breakdown
+    // Formula: ((Opening + Closing pre-interest) / 2) × IBR × (Months / 12)
+    // Closing pre-interest = Opening + Additions - Payments
+    // This is more accurate than using only opening balance
     sheet.getRange('G' + row).setFormula(
       `=IF('Lease Register'!A${dataRow}<>"", ` +
       `IF('Lease Register'!O${dataRow}="No", ` +
-      `D${row}*'Lease Register'!K${dataRow}*` +
+      `((D${row}+E${row})+(D${row}+E${row}-F${row}))/2*'Lease Register'!K${dataRow}*` +
       `DATEDIF(MAX('Lease Register'!E${dataRow},Assumptions!$C$20), ` +
       `MIN('Lease Register'!F${dataRow},Assumptions!$C$21), "M")/12, 0), "")`
     );
@@ -1122,10 +1133,15 @@ function createLeaseLiabilityScheduleSheet(ss) {
     // Closing Liability
     sheet.getRange('H' + row).setFormula(`=IF(A${row}<>"", D${row}+E${row}+G${row}-F${row}, "")`);
     
-    // Current Portion (payments due in next 12 months)
+    // Current Portion - IMPROVED calculation
+    // CORRECTED: More accurate approximation than MIN(Closing, 12 × Monthly Payment)
+    // Current portion = Principal repayment in next 12 months
+    // Approximation: Next 12 months payments - Avg interest on reducing balance
+    // Formula: MIN(Closing, 12×Payment - H×IBR×0.5)
+    // The 0.5 factor approximates average balance over 12 months
     sheet.getRange('I' + row).setFormula(
       `=IF('Lease Register'!A${dataRow}<>"", ` +
-      `MIN(H${row}, 'Lease Register'!H${dataRow}*12), "")`
+      `MIN(H${row}, MAX(0, 'Lease Register'!H${dataRow}*12 - H${row}*'Lease Register'!K${dataRow}*0.5)), "")`
     );
     
     // Non-Current Portion
@@ -1155,9 +1171,9 @@ function createLeaseLiabilityScheduleSheet(ss) {
   const notes = [
     ['• Initial Measurement:', 'Lease Liability = PV of future lease payments using IBR (Ind AS 116 Para 26)'],
     ['• Subsequent Measurement:', 'Liability increases by interest, decreases by payments (Para 36)'],
-    ['• Interest Calculation:', 'Interest = Opening Liability × IBR × (Months in Period / 12)'],
-    ['• Effective Interest Method:', 'Produces constant periodic rate on remaining balance'],
-    ['• Current vs Non-Current:', 'Current = payments due within 12 months of reporting date'],
+    ['• Interest Calculation (IMPROVED):', 'Interest = Average Balance × IBR × (Months/12). Uses average of opening and closing liability for more accurate effective interest method approximation.'],
+    ['• Effective Interest Method:', 'True EIM requires monthly calculations. This workbook uses average balance method as practical approximation.'],
+    ['• Current vs Non-Current (IMPROVED):', 'Current portion = Principal repayment in next 12 months. Calculated as (Next 12 months payments - Interest on avg balance). More accurate than simple MIN(Closing, 12×Payment) proxy.'],
     ['• Journal Entries:', 'Dr. Lease Liability / Cr. Cash (payment)'],
     ['', 'Dr. Interest Expense / Cr. Lease Liability (interest accretion)']
   ];
