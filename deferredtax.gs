@@ -92,11 +92,18 @@ function createDeferredTaxWorkbook() {
 
 function clearExistingSheets(ss) {
   const sheets = ss.getSheets();
-  sheets.forEach(sheet => {
-    if (sheet.getName() !== "Sheet1") {
-      ss.deleteSheet(sheet);
+  // Keep at least one sheet - delete all except the last one, then delete that if more than 1 sheet
+  if (sheets.length > 1) {
+    for (let i = sheets.length - 1; i >= 0; i--) {
+      if (sheets.length > 1) {  // Always keep at least one sheet
+        ss.deleteSheet(sheets[i]);
+      }
     }
-  });
+  }
+  // Rename the remaining sheet to a temporary name
+  if (ss.getSheets().length === 1) {
+    ss.getSheets()[0].setName('_temp_sheet_');
+  }
 }
 
 function setColumnWidths(sheet, widths) {
@@ -1850,10 +1857,7 @@ function applyFinalFormatting(ss) {
     sheet.getDataRange().setFontFamily("Arial").setFontSize(10);
 
     // Hide gridlines for clean, professional sleek appearance
-    sheet.hideGridlines(true);
-
-    // Auto-resize rows for better visibility
-    sheet.autoResizeRows(1, sheet.getMaxRows());
+    sheet.setHiddenGridlines(true);
   });
 
   Logger.log("Final formatting applied - gridlines hidden for professional appearance");

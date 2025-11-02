@@ -1826,7 +1826,7 @@ function finalizeWorkingPapers(ss) {
    */
   ss.getSheets().forEach(sheet => {
     // Hide gridlines for professional clean appearance
-    sheet.hideGridlines(true);
+    sheet.setHiddenGridlines(true);
 
     // Set professional Arial font throughout
     sheet.getDataRange().setFontFamily("Arial").setFontSize(10);

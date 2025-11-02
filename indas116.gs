@@ -61,11 +61,18 @@ function createIndAS116Workbook() {
 
 function clearExistingSheets(ss) {
   const sheets = ss.getSheets();
-  sheets.forEach(sheet => {
-    if (sheet.getName() !== 'Sheet1') {
-      ss.deleteSheet(sheet);
+  // Keep at least one sheet - delete all except the last one
+  if (sheets.length > 1) {
+    for (let i = sheets.length - 1; i >= 0; i--) {
+      if (sheets.length > 1) {  // Always keep at least one sheet
+        ss.deleteSheet(sheets[i]);
+      }
     }
-  });
+  }
+  // Rename the remaining sheet to a temporary name
+  if (ss.getSheets().length === 1) {
+    ss.getSheets()[0].setName('_temp_sheet_');
+  }
 }
 
 function setupNamedRanges(ss) {
@@ -95,7 +102,7 @@ function finalizeWorkbook(ss) {
     }
 
     // Hide gridlines for clean, professional sleek appearance per 109 guide
-    sheet.hideGridlines(true);
+    sheet.setHiddenGridlines(true);
 
     // Set professional font
     sheet.getDataRange().setFontFamily("Arial").setFontSize(10);
