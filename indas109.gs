@@ -451,59 +451,59 @@ function createInstrumentsRegisterSheet(ss) {
     .requireValueInList(['Loan', 'Bond', 'Debenture', 'Equity', 'Mutual Fund', 'G-Sec', 'T-Bill', 'Receivable', 'Derivative', 'Other'])
     .setAllowInvalid(false)
     .build();
-  sheet.getRange('C3:C1000').setDataValidation(typeValidation);
+  sheet.getRange('C3:C250').setDataValidation(typeValidation);
   
   const securityValidation = SpreadsheetApp.newDataValidation()
     .requireValueInList(['Secured', 'Unsecured', 'Equity', 'Sovereign', 'Units', 'Not Applicable'])
     .setAllowInvalid(false)
     .build();
-  sheet.getRange('L3:L1000').setDataValidation(securityValidation);
+  sheet.getRange('L3:L250').setDataValidation(securityValidation);
   
   const ratingValidation = SpreadsheetApp.newDataValidation()
     .requireValueInList(['AAA', 'AA+', 'AA', 'AA-', 'A+', 'A', 'A-', 'BBB+', 'BBB', 'BBB-', 'BB', 'B', 'C', 'D', 'Not Rated'])
     .setAllowInvalid(false)
     .build();
-  sheet.getRange('M3:M1000').setDataValidation(ratingValidation);
+  sheet.getRange('M3:M250').setDataValidation(ratingValidation);
   
   const sppiValidation = SpreadsheetApp.newDataValidation()
     .requireValueInList(['Pass', 'Fail', 'Not Applicable'])
     .setAllowInvalid(false)
     .build();
-  sheet.getRange('O3:O1000').setDataValidation(sppiValidation);
+  sheet.getRange('O3:O250').setDataValidation(sppiValidation);
   
   const businessModelValidation = SpreadsheetApp.newDataValidation()
     .requireValueInList(['Hold to Collect', 'Hold to Collect & Sell', 'Other (Trading)'])
     .setAllowInvalid(false)
     .build();
-  sheet.getRange('P3:P1000').setDataValidation(businessModelValidation);
+  sheet.getRange('P3:P250').setDataValidation(businessModelValidation);
 
   // Add "Designated at FVTPL" validation (Q column)
   const fvtplDesignationValidation = SpreadsheetApp.newDataValidation()
     .requireValueInList(['Yes', 'No'])
     .setAllowInvalid(false)
     .build();
-  sheet.getRange('Q3:Q1000').setDataValidation(fvtplDesignationValidation);
+  sheet.getRange('Q3:Q250').setDataValidation(fvtplDesignationValidation);
 
   // Add "FVOCI Equity Election" validation (R column)
   const fvociEquityValidation = SpreadsheetApp.newDataValidation()
     .requireValueInList(['Yes', 'No'])
     .setAllowInvalid(false)
     .build();
-  sheet.getRange('R3:R1000').setDataValidation(fvociEquityValidation);
+  sheet.getRange('R3:R250').setDataValidation(fvociEquityValidation);
 
   // Add "Coupon Frequency" validation (S column)
   const couponFrequencyValidation = SpreadsheetApp.newDataValidation()
     .requireValueInList(['Annual', 'Semi-Annual', 'Quarterly', 'Monthly', 'Not Applicable'])
     .setAllowInvalid(false)
     .build();
-  sheet.getRange('S3:S1000').setDataValidation(couponFrequencyValidation);
+  sheet.getRange('S3:S250').setDataValidation(couponFrequencyValidation);
 
   // Add "Simplified ECL" validation (T column)
   const simplifiedECLValidation = SpreadsheetApp.newDataValidation()
     .requireValueInList(['Yes', 'No', 'N/A'])
     .setAllowInvalid(false)
     .build();
-  sheet.getRange('T3:T1000').setDataValidation(simplifiedECLValidation);
+  sheet.getRange('T3:T250').setDataValidation(simplifiedECLValidation);
 
   // Add notes
   sheet.getRange('A' + (row + 2)).setValue('INSTRUCTIONS:').setFontWeight('bold').setFontColor('#e65100');
@@ -564,31 +564,39 @@ function createClassificationMatrixSheet(ss) {
   formatSubHeader(sheet, 2, 1, headers, '#7b1fa2');
   
   // Classification logic formulas
-  const formulas = [
-    // Row 3
-    ['=IF(ISBLANK(Instruments_Register!A3),"",Instruments_Register!A3)',
-     '=IF(ISBLANK(Instruments_Register!A3),"",Instruments_Register!B3)',
-     '=IF(ISBLANK(Instruments_Register!A3),"",Instruments_Register!O3)',
-     '=IF(ISBLANK(Instruments_Register!A3),"",Instruments_Register!P3)',
-     '=IF(ISBLANK(Instruments_Register!A3),"",Instruments_Register!Q3)',
-     '=IF(ISBLANK(Instruments_Register!A3),"",Instruments_Register!R3)',
-     '=IF(ISBLANK(Instruments_Register!A3),"",IF(E3="Yes","FVTPL",IF(F3="Yes","FVOCI",IF(C3="Fail","FVTPL",IF(AND(C3="Pass",D3="Hold to Collect"),"Amortized Cost",IF(AND(C3="Pass",D3="Hold to Collect & Sell"),"FVOCI","FVTPL"))))))',
-     '=IF(ISBLANK(Instruments_Register!A3),"",IF(G3="Amortized Cost","Amortized Cost using EIR",IF(G3="FVOCI",IF(F3="Yes","Fair Value - OCI (Equity - no recycling)","Fair Value - OCI (Debt - recycling)"),IF(G3="FVTPL","Fair Value through P&L","Review Required"))))',
-     '=IF(ISBLANK(Instruments_Register!A3),"",IF(G3="Amortized Cost","Para 4.1.2 - AC if SPPI passed & HTC",IF(G3="FVOCI",IF(F3="Yes","Para 5.7.5 - FVOCI equity (irrevocable election)","Para 4.1.2A - FVOCI debt (SPPI passed & HTC&S)"),IF(G3="FVTPL","Para 4.1.4 - Default FVTPL or fair value option",""))))'
-    ]
+  // OPTIMIZED: Batch operations to reduce API calls from ~900 to ~2
+  const numRows = 100;
+  const startRow = 3;
+  const numCols = 9;
+
+  // Create 2D array for batch operations
+  const formulaArray = [];
+
+  // Template formulas for row 3
+  const formulaTemplate = [
+    '=IF(ISBLANK(Instruments_Register!A3),"",Instruments_Register!A3)',
+    '=IF(ISBLANK(Instruments_Register!A3),"",Instruments_Register!B3)',
+    '=IF(ISBLANK(Instruments_Register!A3),"",Instruments_Register!O3)',
+    '=IF(ISBLANK(Instruments_Register!A3),"",Instruments_Register!P3)',
+    '=IF(ISBLANK(Instruments_Register!A3),"",Instruments_Register!Q3)',
+    '=IF(ISBLANK(Instruments_Register!A3),"",Instruments_Register!R3)',
+    '=IF(ISBLANK(Instruments_Register!A3),"",IF(E3="Yes","FVTPL",IF(F3="Yes","FVOCI",IF(C3="Fail","FVTPL",IF(AND(C3="Pass",D3="Hold to Collect"),"Amortized Cost",IF(AND(C3="Pass",D3="Hold to Collect & Sell"),"FVOCI","FVTPL"))))))',
+    '=IF(ISBLANK(Instruments_Register!A3),"",IF(G3="Amortized Cost","Amortized Cost using EIR",IF(G3="FVOCI",IF(F3="Yes","Fair Value - OCI (Equity - no recycling)","Fair Value - OCI (Debt - recycling)"),IF(G3="FVTPL","Fair Value through P&L","Review Required"))))',
+    '=IF(ISBLANK(Instruments_Register!A3),"",IF(G3="Amortized Cost","Para 4.1.2 - AC if SPPI passed & HTC",IF(G3="FVOCI",IF(F3="Yes","Para 5.7.5 - FVOCI equity (irrevocable election)","Para 4.1.2A - FVOCI debt (SPPI passed & HTC&S)"),IF(G3="FVTPL","Para 4.1.4 - Default FVTPL or fair value option",""))))'
   ];
 
-  // Apply formulas for extended rows (100 rows to support scalability)
-  for (let i = 0; i < 100; i++) {
-    const row = 3 + i;
-    formulas[0].forEach((formula, col) => {
-      const adjustedFormula = formula.replace(/3/g, row.toString());
-      sheet.getRange(row, col + 1).setFormula(adjustedFormula);
-    });
+  // Populate array in memory (fast)
+  for (let i = 0; i < numRows; i++) {
+    const row = startRow + i;
+    const rowFormulas = formulaTemplate.map(formula => formula.replace(/3/g, row.toString()));
+    formulaArray.push(rowFormulas);
   }
-  
-  // Conditional formatting for classification (now column G)
-  const classificationRange = sheet.getRange('G3:G1000');
+
+  // Write all formulas in batch (fast - only 1 API call!)
+  sheet.getRange(startRow, 1, numRows, numCols).setFormulas(formulaArray);
+
+  // Conditional formatting for classification (reduced range for performance)
+  const classificationRange = sheet.getRange('G3:G250');
 
   // Amortized Cost - Green
   const acRule = SpreadsheetApp.newConditionalFormatRule()
@@ -628,9 +636,9 @@ function createClassificationMatrixSheet(ss) {
   sheet.getRange(summaryRow + 1, 5).setValue('% of Total').setFontWeight('bold');
 
   const summaryData = [
-    ['Amortized Cost', '=COUNTIF(G3:G1000,"Amortized Cost")', '=SUMIF(G3:G1000,"Amortized Cost",Instruments_Register!J3:J1000)', '=D15/D18'],
-    ['FVOCI', '=COUNTIF(G3:G1000,"FVOCI")', '=SUMIF(G3:G1000,"FVOCI",Instruments_Register!J3:J1000)', '=D16/D18'],
-    ['FVTPL', '=COUNTIF(G3:G1000,"FVTPL")', '=SUMIF(G3:G1000,"FVTPL",Instruments_Register!J3:J1000)', '=D17/D18'],
+    ['Amortized Cost', '=COUNTIF(G3:G250,"Amortized Cost")', '=SUMIF(G3:G250,"Amortized Cost",Instruments_Register!J3:J250)', '=D15/D18'],
+    ['FVOCI', '=COUNTIF(G3:G250,"FVOCI")', '=SUMIF(G3:G250,"FVOCI",Instruments_Register!J3:J250)', '=D16/D18'],
+    ['FVTPL', '=COUNTIF(G3:G250,"FVTPL")', '=SUMIF(G3:G250,"FVTPL",Instruments_Register!J3:J250)', '=D17/D18'],
     ['Total', '=SUM(C15:C17)', '=SUM(D15:D17)', '1']
   ];
   
@@ -707,8 +715,18 @@ function createFairValueWorkingsSheet(ss) {
   formatSubHeader(sheet, 2, 1, headers, '#00acc1');
   
   // Formulas for fair value instruments only (extended to 100 rows)
-  for (let i = 0; i < 100; i++) {
-    const row = 3 + i;
+  // OPTIMIZED: Batch operations to reduce API calls from ~900 to ~5
+  const numRows = 100;
+  const startRow = 3;
+  const numCols = 9;
+
+  // Create 2D arrays for batch operations
+  const formulaArray = [];
+  const backgroundArray = Array(numRows).fill(null).map(() => Array(numCols).fill(null));
+
+  // Populate arrays in memory (fast)
+  for (let i = 0; i < numRows; i++) {
+    const row = startRow + i;
     const formulas = [
       `=IF(ISBLANK(Instruments_Register!A${row}),"",Instruments_Register!A${row})`,
       `=IF(ISBLANK(Instruments_Register!A${row}),"",Instruments_Register!B${row})`,
@@ -727,26 +745,30 @@ function createFairValueWorkingsSheet(ss) {
       `=IF(ISBLANK(Instruments_Register!A${row}),"",IF(OR(C${row}="FVTPL",C${row}="FVOCI"),"Level 2 - Observable Inputs","-"))`
     ];
 
-    formulas.forEach((formula, col) => {
-      sheet.getRange(row, col + 1).setFormula(formula);
-    });
+    formulaArray.push(formulas);
 
-    // Mark Fair Value (Column E) as input cell for manual override
-    formatInputCell(sheet.getRange(row, 5), '#e0f2f1');
+    // Mark Fair Value (Column E, index 4) as input cell for manual override
+    backgroundArray[i][4] = '#e0f2f1';
   }
 
-  formatCurrency(sheet.getRange('D3:H1000'));
+  // Write all formulas and backgrounds in batch (fast - only 2 API calls!)
+  const dataRange = sheet.getRange(startRow, 1, numRows, numCols);
+  dataRange.setFormulas(formulaArray);
+  dataRange.setBackgrounds(backgroundArray);
+
+  // Batch format currency ranges (reduced from :1000 to :250 for performance)
+  formatCurrency(sheet.getRange('D3:H250'));
   
-  // Conditional formatting for gains/losses
-  const gainLossRange = sheet.getRange('F3:H1000');
-  
+  // Conditional formatting for gains/losses (reduced range for performance)
+  const gainLossRange = sheet.getRange('F3:H250');
+
   const gainRule = SpreadsheetApp.newConditionalFormatRule()
     .whenNumberGreaterThan(0)
     .setBackground('#c8e6c9')
     .setFontColor('#2e7d32')
     .setRanges([gainLossRange])
     .build();
-  
+
   const lossRule = SpreadsheetApp.newConditionalFormatRule()
     .whenNumberLessThan(0)
     .setBackground('#ffcdd2')
@@ -756,7 +778,7 @@ function createFairValueWorkingsSheet(ss) {
 
   // Conditional formatting for stale fair values (Period End = Opening and Opening > 0)
   // This highlights cells that need user attention for fair value updates
-  const staleFVRange = sheet.getRange('E3:E1000');
+  const staleFVRange = sheet.getRange('E3:E250');
   const staleFVRule = SpreadsheetApp.newConditionalFormatRule()
     .whenFormulaSatisfied('=AND(E3=D3,D3>0,NOT(ISBLANK(D3)))')
     .setBackground('#fff9c4')
@@ -778,8 +800,8 @@ function createFairValueWorkingsSheet(ss) {
   sheet.getRange(summaryRow + 1, 6).setValue('To OCI').setFontWeight('bold');
   
   const summaryData = [
-    ['FVTPL Instruments', '=SUMIF(C3:C1000,"FVTPL",F3:F1000)', '=SUMIF(C3:C1000,"FVTPL",G3:G1000)', '0'],
-    ['FVOCI Instruments', '=SUMIF(C3:C1000,"FVOCI",F3:F1000)', '0', '=SUMIF(C3:C1000,"FVOCI",H3:H1000)'],
+    ['FVTPL Instruments', '=SUMIF(C3:C250,"FVTPL",F3:F250)', '=SUMIF(C3:C250,"FVTPL",G3:G250)', '0'],
+    ['FVOCI Instruments', '=SUMIF(C3:C250,"FVOCI",F3:F250)', '0', '=SUMIF(C3:C250,"FVOCI",H3:H250)'],
     ['Total Fair Value Movement', '=SUM(D15:D16)', '=SUM(E15:E16)', '=SUM(F15:F16)']
   ];
   
@@ -874,8 +896,18 @@ function createECLImpairmentSheet(ss) {
   formatSubHeader(sheet, 2, 1, headers, '#d32f2f');
   
   // ECL calculation formulas (extended to 100 rows)
-  for (let i = 0; i < 100; i++) {
-    const row = 3 + i;
+  // OPTIMIZED: Batch operations to reduce API calls from ~1300 to ~5
+  const numRows = 100;
+  const startRow = 3;
+  const numCols = 12;
+
+  // Create 2D arrays for batch operations
+  const formulaArray = [];
+  const backgroundArray = Array(numRows).fill(null).map(() => Array(numCols).fill(null));
+
+  // Populate arrays in memory (fast)
+  for (let i = 0; i < numRows; i++) {
+    const row = startRow + i;
     const formulas = [
       `=IF(ISBLANK(Instruments_Register!A${row}),"",Instruments_Register!A${row})`,
       `=IF(ISBLANK(Instruments_Register!A${row}),"",Instruments_Register!B${row})`,
@@ -905,20 +937,24 @@ function createECLImpairmentSheet(ss) {
       `=IF(ISBLANK(Instruments_Register!A${row}),"",I${row})`
     ];
 
-    formulas.forEach((formula, col) => {
-      sheet.getRange(row, col + 1).setFormula(formula);
-    });
+    formulaArray.push(formulas);
 
-    // Mark Opening Provision (Column J) as input cell
-    formatInputCell(sheet.getRange(row, 10), '#ffebee');
+    // Mark Opening Provision (Column J, index 9) as input cell
+    backgroundArray[i][9] = '#ffebee';
   }
 
-  formatCurrency(sheet.getRange('D3:D1000'));
-  formatPercentage(sheet.getRange('F3:G1000'));
-  formatCurrency(sheet.getRange('H3:L1000'));
-  
-  // Conditional formatting for stages
-  const stageRange = sheet.getRange('E3:E1000');
+  // Write all formulas and backgrounds in batch (fast - only 2 API calls!)
+  const dataRange = sheet.getRange(startRow, 1, numRows, numCols);
+  dataRange.setFormulas(formulaArray);
+  dataRange.setBackgrounds(backgroundArray);
+
+  // Batch format entire column ranges (reduced from :1000 to :250 for performance)
+  formatCurrency(sheet.getRange('D3:D250'));
+  formatPercentage(sheet.getRange('F3:G250'));
+  formatCurrency(sheet.getRange('H3:L250'));
+
+  // Conditional formatting for stages (reduced range for performance)
+  const stageRange = sheet.getRange('E3:E250');
   
   const stage1Rule = SpreadsheetApp.newConditionalFormatRule()
     .whenTextEqualTo('Stage 1')
@@ -966,10 +1002,10 @@ function createECLImpairmentSheet(ss) {
   sheet.getRange(summaryRow + 1, 9).setValue('Coverage Ratio').setFontWeight('bold');
   
   const summaryData = [
-    ['Stage 1 - Performing', '=COUNTIF(E3:E1000,"Stage 1")', '=SUMIF(E3:E1000,"Stage 1",D3:D1000)', '=IF(C15>0,G15/C15,0)', '=SUMIF(E3:E1000,"Stage 1",J3:J1000)', '=SUMIF(E3:E1000,"Stage 1",K3:K1000)', '=SUMIF(E3:E1000,"Stage 1",L3:L1000)', '=IF(C15>0,G15/C15,0)'],
-    ['Stage 2 - Underperforming', '=COUNTIF(E3:E1000,"Stage 2")', '=SUMIF(E3:E1000,"Stage 2",D3:D1000)', '=IF(C16>0,G16/C16,0)', '=SUMIF(E3:E1000,"Stage 2",J3:J1000)', '=SUMIF(E3:E1000,"Stage 2",K3:K1000)', '=SUMIF(E3:E1000,"Stage 2",L3:L1000)', '=IF(C16>0,G16/C16,0)'],
-    ['Stage 3 - Credit Impaired', '=COUNTIF(E3:E1000,"Stage 3")', '=SUMIF(E3:E1000,"Stage 3",D3:D1000)', '=IF(C17>0,G17/C17,0)', '=SUMIF(E3:E1000,"Stage 3",J3:J1000)', '=SUMIF(E3:E1000,"Stage 3",K3:K1000)', '=SUMIF(E3:E1000,"Stage 3",L3:L1000)', '=IF(C17>0,G17/C17,0)'],
-    ['Simplified (Lifetime ECL)', '=COUNTIF(E3:E1000,"Simplified (Lifetime)")', '=SUMIF(E3:E1000,"Simplified (Lifetime)",D3:D1000)', '=IF(C18>0,G18/C18,0)', '=SUMIF(E3:E1000,"Simplified (Lifetime)",J3:J1000)', '=SUMIF(E3:E1000,"Simplified (Lifetime)",K3:K1000)', '=SUMIF(E3:E1000,"Simplified (Lifetime)",L3:L1000)', '=IF(C18>0,G18/C18,0)'],
+    ['Stage 1 - Performing', '=COUNTIF(E3:E250,"Stage 1")', '=SUMIF(E3:E250,"Stage 1",D3:D250)', '=IF(C15>0,G15/C15,0)', '=SUMIF(E3:E250,"Stage 1",J3:J250)', '=SUMIF(E3:E250,"Stage 1",K3:K250)', '=SUMIF(E3:E250,"Stage 1",L3:L250)', '=IF(C15>0,G15/C15,0)'],
+    ['Stage 2 - Underperforming', '=COUNTIF(E3:E250,"Stage 2")', '=SUMIF(E3:E250,"Stage 2",D3:D250)', '=IF(C16>0,G16/C16,0)', '=SUMIF(E3:E250,"Stage 2",J3:J250)', '=SUMIF(E3:E250,"Stage 2",K3:K250)', '=SUMIF(E3:E250,"Stage 2",L3:L250)', '=IF(C16>0,G16/C16,0)'],
+    ['Stage 3 - Credit Impaired', '=COUNTIF(E3:E250,"Stage 3")', '=SUMIF(E3:E250,"Stage 3",D3:D250)', '=IF(C17>0,G17/C17,0)', '=SUMIF(E3:E250,"Stage 3",J3:J250)', '=SUMIF(E3:E250,"Stage 3",K3:K250)', '=SUMIF(E3:E250,"Stage 3",L3:L250)', '=IF(C17>0,G17/C17,0)'],
+    ['Simplified (Lifetime ECL)', '=COUNTIF(E3:E250,"Simplified (Lifetime)")', '=SUMIF(E3:E250,"Simplified (Lifetime)",D3:D250)', '=IF(C18>0,G18/C18,0)', '=SUMIF(E3:E250,"Simplified (Lifetime)",J3:J250)', '=SUMIF(E3:E250,"Simplified (Lifetime)",K3:K250)', '=SUMIF(E3:E250,"Simplified (Lifetime)",L3:L250)', '=IF(C18>0,G18/C18,0)'],
     ['Total', '=SUM(B15:B18)', '=SUM(C15:C18)', '=IF(C19>0,G19/C19,0)', '=SUM(E15:E18)', '=SUM(F15:F18)', '=SUM(G15:G18)', '=IF(C19>0,G19/C19,0)']
   ];
   
@@ -1048,8 +1084,18 @@ function createAmortizationScheduleSheet(ss) {
   formatSubHeader(sheet, 2, 1, headers, '#4caf50');
   
   // Amortization calculations for Amortized Cost instruments only (extended to 100 rows)
-  for (let i = 0; i < 100; i++) {
-    const row = 3 + i;
+  // OPTIMIZED: Batch operations to reduce API calls from ~1100 to ~5
+  const numRows = 100;
+  const startRow = 3;
+  const numCols = 11;
+
+  // Create 2D arrays for batch operations
+  const formulaArray = [];
+  const backgroundArray = Array(numRows).fill(null).map(() => Array(numCols).fill(null));
+
+  // Populate arrays in memory (fast)
+  for (let i = 0; i < numRows; i++) {
+    const row = startRow + i;
     const formulas = [
       `=IF(ISBLANK(Instruments_Register!A${row}),"",Instruments_Register!A${row})`,
       `=IF(ISBLANK(Instruments_Register!A${row}),"",Instruments_Register!B${row})`,
@@ -1076,17 +1122,21 @@ function createAmortizationScheduleSheet(ss) {
       `=IF(ISBLANK(Instruments_Register!A${row}),"",IF(Classification_Matrix!F${row}="Amortized Cost",C${row}+F${row}-G${row}-I${row}+J${row},0))`
     ];
 
-    formulas.forEach((formula, col) => {
-      sheet.getRange(row, col + 1).setFormula(formula);
-    });
-    
-    // Mark "Other Adjustments" as input cell
-    formatInputCell(sheet.getRange(row, 10), '#e8f5e9');
+    formulaArray.push(formulas);
+
+    // Mark "Other Adjustments" (Column J, index 9) as input cell
+    backgroundArray[i][9] = '#e8f5e9';
   }
-  
-  formatCurrency(sheet.getRange('C3:C1000'));
-  formatPercentage(sheet.getRange('D3:D1000'));
-  formatCurrency(sheet.getRange('F3:K1000'));
+
+  // Write all formulas and backgrounds in batch (fast - only 2 API calls!)
+  const dataRange = sheet.getRange(startRow, 1, numRows, numCols);
+  dataRange.setFormulas(formulaArray);
+  dataRange.setBackgrounds(backgroundArray);
+
+  // Batch format currency and percentage ranges (reduced from :1000 to :250 for performance)
+  formatCurrency(sheet.getRange('C3:C250'));
+  formatPercentage(sheet.getRange('D3:D250'));
+  formatCurrency(sheet.getRange('F3:K250'));
   
   // Summary section
   const summaryRow = 13;
@@ -1096,12 +1146,12 @@ function createAmortizationScheduleSheet(ss) {
   sheet.getRange(summaryRow + 1, 3).setValue('Amount (₹)').setFontWeight('bold');
   
   const summaryData = [
-    ['Total Opening Amortized Cost', '=SUMIF(Classification_Matrix!F3:F1000,"Amortized Cost",C3:C1000)'],
-    ['Add: Interest Income (EIR basis)', '=SUM(F3:F1000)'],
-    ['Less: Cash Receipts', '=SUM(G3:G1000)'],
-    ['Less: Impairment Charge', '=SUM(I3:I1000)'],
-    ['Add/(Less): Other Adjustments', '=SUM(J3:J1000)'],
-    ['Total Closing Amortized Cost', '=SUMIF(Classification_Matrix!F3:F1000,"Amortized Cost",K3:K1000)'],
+    ['Total Opening Amortized Cost', '=SUMIF(Classification_Matrix!F3:F250,"Amortized Cost",C3:C250)'],
+    ['Add: Interest Income (EIR basis)', '=SUM(F3:F250)'],
+    ['Less: Cash Receipts', '=SUM(G3:G250)'],
+    ['Less: Impairment Charge', '=SUM(I3:I250)'],
+    ['Add/(Less): Other Adjustments', '=SUM(J3:J250)'],
+    ['Total Closing Amortized Cost', '=SUMIF(Classification_Matrix!F3:F250,"Amortized Cost",K3:K250)'],
     ['', ''],
     ['Verification (should be zero)', '=C15+C16-C17-C18+C19-C20']
   ];
@@ -1255,15 +1305,15 @@ function createPeriodEndEntriesSheet(ss) {
   sheet.getRange('A26').setValue('JE005');
   sheet.getRange('B26').setValue('Interest Income - Financial Assets');
   sheet.getRange('C26').setValue('Net premium amortization adjustment');
-  sheet.getRange('D26').setFormula('=IF(SUM(Amortization_Schedule!H3:H1000)<0,ABS(SUM(Amortization_Schedule!H3:H1000)),0)');
-  sheet.getRange('E26').setFormula('=IF(SUM(Amortization_Schedule!H3:H1000)>0,SUM(Amortization_Schedule!H3:H1000),0)');
+  sheet.getRange('D26').setFormula('=IF(SUM(Amortization_Schedule!H3:H250)<0,ABS(SUM(Amortization_Schedule!H3:H250)),0)');
+  sheet.getRange('E26').setFormula('=IF(SUM(Amortization_Schedule!H3:H250)>0,SUM(Amortization_Schedule!H3:H250),0)');
   sheet.getRange('F26').setValue('Ind AS 109.5.4.1 - EIR adjustment');
   
   sheet.getRange('A27').setValue('JE005');
   sheet.getRange('B27').setValue('   Financial Assets - Amortized Cost');
   sheet.getRange('C27').setValue('Net premium amortization adjustment');
-  sheet.getRange('D27').setFormula('=IF(SUM(Amortization_Schedule!H3:H1000)>0,SUM(Amortization_Schedule!H3:H1000),0)');
-  sheet.getRange('E27').setFormula('=IF(SUM(Amortization_Schedule!H3:H1000)<0,ABS(SUM(Amortization_Schedule!H3:H1000)),0)');
+  sheet.getRange('D27').setFormula('=IF(SUM(Amortization_Schedule!H3:H250)>0,SUM(Amortization_Schedule!H3:H250),0)');
+  sheet.getRange('E27').setFormula('=IF(SUM(Amortization_Schedule!H3:H250)<0,ABS(SUM(Amortization_Schedule!H3:H250)),0)');
   sheet.getRange('F27').setValue('Ind AS 109.5.4.1');
   
   // Summary of entries
@@ -1282,7 +1332,7 @@ function createPeriodEndEntriesSheet(ss) {
     ['JE002', 'FVOCI Fair Value', '=D11+D12', '=E11+E12', '0'],
     ['JE003', 'Interest Income (EIR)', '=D16', '=E17', '=Amortization_Schedule!C16'],
     ['JE004', 'ECL Provision', '=D21+D22', '=E21+E22', '=-ECL_Impairment!F18'],
-    ['JE005', 'Premium/Discount Amortization', '=D26+D27', '=E26+E27', '=-SUM(Amortization_Schedule!H3:H1000)'],
+    ['JE005', 'Premium/Discount Amortization', '=D26+D27', '=E26+E27', '=-SUM(Amortization_Schedule!H3:H250)'],
     ['TOTAL', '', '=SUM(D32:D36)', '=SUM(E32:E36)', '=SUM(F32:F36)']
   ];
   
@@ -1303,7 +1353,7 @@ function createPeriodEndEntriesSheet(ss) {
     row++;
   });
   
-  formatCurrency(sheet.getRange('D6:E1000'));
+  formatCurrency(sheet.getRange('D6:E250'));
   formatCurrency(sheet.getRange('D32:F37'));
   
   // Balancing check
@@ -1622,7 +1672,7 @@ function createAuditNotesSheet(ss) {
     ['1. Total Journal Entries Balance', '=Period_End_Entries!D37-Period_End_Entries!E37', '0', '=B5-C5', '=IF(ABS(D5)<100,"✓ Pass","✗ FAIL")', 'If fail, review journal entries'],
     ['2. Reconciliation: Opening + Movement = Closing', '=(Reconciliation!B11-Reconciliation!B20)+(Reconciliation!C11-Reconciliation!C20)-(Reconciliation!D11-Reconciliation!D20)', '0', '=B6-C6', '=IF(ABS(D6)<100,"✓ Pass","✗ FAIL")', 'If fail, check reconciliation formulas'],
     ['3. Amortized Cost Verification', '=Amortization_Schedule!C15+Amortization_Schedule!C16-Amortization_Schedule!C17-Amortization_Schedule!C18+Amortization_Schedule!C19-Amortization_Schedule!C20', '0', '=B7-C7', '=IF(ABS(D7)<100,"✓ Pass","✗ FAIL")', 'If fail, review amortization calculations'],
-    ['4. Classification Count Reconciliation', '=Classification_Matrix!C18', '=COUNTA(Instruments_Register!A3:A1000)-COUNTBLANK(Instruments_Register!A3:A1000)', '=B8-C8', '=IF(D8=0,"✓ Pass","✗ FAIL")', 'All instruments must be classified'],
+    ['4. Classification Count Reconciliation', '=Classification_Matrix!C18', '=COUNTA(Instruments_Register!A3:A250)-COUNTBLANK(Instruments_Register!A3:A250)', '=B8-C8', '=IF(D8=0,"✓ Pass","✗ FAIL")', 'All instruments must be classified'],
     ['5. ECL Coverage Check - Stage 3', '=ECL_Impairment!H17', '', '', '=IF(B9>0.5,"✓ Adequate","⚠ Review")', 'Stage 3 coverage should exceed 50%']
   ];
   
@@ -1805,7 +1855,7 @@ function setupNamedRanges(ss) {
     ss.setNamedRange('PD_Stage3', ss.getRange('Input_Variables!B12'));
     
     // Instruments
-    ss.setNamedRange('InstrumentsList', ss.getRange('Instruments_Register!A3:P1000'));
+    ss.setNamedRange('InstrumentsList', ss.getRange('Instruments_Register!A3:P250'));
     
     Logger.log('Named ranges created successfully.');
   } catch (error) {
