@@ -1844,16 +1844,19 @@ function setupNamedRanges(ss) {
 
 function applyFinalFormatting(ss) {
   const sheets = ss.getSheets();
-  
+
   sheets.forEach(sheet => {
-    // Set default font
+    // Set default font per 109 guide professional standards
     sheet.getDataRange().setFontFamily("Arial").setFontSize(10);
-    
+
+    // Hide gridlines for clean, professional sleek appearance
+    sheet.hideGridlines(true);
+
     // Auto-resize rows for better visibility
     sheet.autoResizeRows(1, sheet.getMaxRows());
   });
-  
-  Logger.log("Final formatting applied");
+
+  Logger.log("Final formatting applied - gridlines hidden for professional appearance");
 }
 
 // ============================================================================

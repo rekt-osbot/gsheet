@@ -86,13 +86,22 @@ function setupNamedRanges(ss) {
 function finalizeWorkbook(ss) {
   // Set Cover sheet as active
   ss.getSheetByName('Cover').activate();
-  
-  // Freeze header rows on all sheets
+
+  // Apply professional formatting to all sheets
   ss.getSheets().forEach(sheet => {
+    // Freeze header rows
     if (sheet.getMaxRows() > 3) {
       sheet.setFrozenRows(3);
     }
+
+    // Hide gridlines for clean, professional sleek appearance per 109 guide
+    sheet.hideGridlines(true);
+
+    // Set professional font
+    sheet.getDataRange().setFontFamily("Arial").setFontSize(10);
   });
+
+  Logger.log("Workbook finalized - gridlines hidden for professional appearance");
 }
 
 /**

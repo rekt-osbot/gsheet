@@ -46,10 +46,13 @@ function createIndAS109WorkingPapers() {
   
   // Set up named ranges
   setupNamedRanges(ss);
-  
-  // Final formatting
+
+  // Apply final professional formatting
+  finalizeWorkingPapers(ss);
+
+  // Activate Cover sheet
   ss.setActiveSheet(ss.getSheetByName('Cover'));
-  
+
   SpreadsheetApp.getUi().alert(
     'Ind AS 109 Working Papers Created Successfully!',
     '✓ All sheets created with formulas\n' +
@@ -1808,6 +1811,33 @@ function setupNamedRanges(ss) {
   } catch (error) {
     Logger.log('Error creating named ranges: ' + error);
   }
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// FINALIZATION FUNCTION
+// ═══════════════════════════════════════════════════════════════════════════
+
+function finalizeWorkingPapers(ss) {
+  /**
+   * Apply professional formatting to all sheets per 109 guide standards
+   * - Hide gridlines for clean, sleek professional appearance
+   * - Set consistent fonts and sizing
+   * - Freeze header rows
+   */
+  ss.getSheets().forEach(sheet => {
+    // Hide gridlines for professional clean appearance
+    sheet.hideGridlines(true);
+
+    // Set professional Arial font throughout
+    sheet.getDataRange().setFontFamily("Arial").setFontSize(10);
+
+    // Freeze top rows for better navigation
+    if (sheet.getMaxRows() > 3) {
+      sheet.setFrozenRows(3);
+    }
+  });
+
+  Logger.log('Working papers finalized - gridlines hidden for professional appearance');
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
