@@ -1889,9 +1889,9 @@ function setupNamedRanges(ss) {
     ss.setNamedRange("Opening_DTL", ss.getSheetByName("Assumptions").getRange("B29"));
     
     // Output ranges
-    ss.setNamedRange("Closing_DTA", ss.getSheetByName("Movement_Analysis").getRange("F30"));
-    ss.setNamedRange("Closing_DTL", ss.getSheetByName("Movement_Analysis").getRange("F31"));
-    ss.setNamedRange("Net_DTA_DTL", ss.getSheetByName("Movement_Analysis").getRange("F32"));
+    ss.setNamedRange("Closing_DTA", ss.getSheetByName("Movement_Analysis").getRange("F28"));
+    ss.setNamedRange("Closing_DTL", ss.getSheetByName("Movement_Analysis").getRange("F51"));
+    ss.setNamedRange("Net_DTA_DTL", ss.getSheetByName("Movement_Analysis").getRange("F54"));
     ss.setNamedRange("DeferredTaxExpense", ss.getSheetByName("PL_Reconciliation").getRange("C7"));
     ss.setNamedRange("EffectiveTaxRate", ss.getSheetByName("PL_Reconciliation").getRange("C16"));
     
