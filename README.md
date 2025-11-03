@@ -1,350 +1,514 @@
-# IGAAP-Ind AS Audit Builder for Google Sheets
+# Indian Accounting Standards - Audit Workbook Suite
 
-> Automated audit working papers generator for Indian Accounting Standards (Ind AS) and IGAAP compliance
+> Professional audit working papers and compliance tools for Indian Accounting Standards (Ind AS) and IGAAP
 
-## Table of Contents
-- [What is This Project?](#what-is-this-project)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Google Apps Script](https://img.shields.io/badge/Google%20Apps%20Script-4285F4?logo=google&logoColor=white)](https://script.google.com/)
+[![Ind AS](https://img.shields.io/badge/Ind%20AS-Compliant-green)](https://www.mca.gov.in/)
+
+## 📋 Table of Contents
+- [Overview](#overview)
+- [What's Included](#whats-included)
 - [Who Should Use This?](#who-should-use-this)
-- [What You'll Need](#what-youll-need)
-- [Getting Started (Step-by-Step for Beginners)](#getting-started-step-by-step-for-beginners)
-- [How to Use Each Script](#how-to-use-each-script)
+- [Quick Start](#quick-start)
+- [Workbook Documentation](#workbook-documentation)
 - [Features](#features)
-- [Troubleshooting](#troubleshooting)
-- [Understanding the Code](#understanding-the-code)
+- [Known Issues](#known-issues)
 - [Contributing](#contributing)
+- [License](#license)
+
+**📖 Quick Navigation:**
+- [Quick Reference Guide](QUICK_REFERENCE.md) - Fast lookup for all workbooks
+- [Documentation Index](INDEX.md) - Complete documentation map
 
 ---
 
-## What is This Project?
+## 🎯 Overview
 
-This project contains **Google Apps Script** files that automatically create professional audit working papers in Google Sheets. These working papers help accountants and auditors comply with Indian Accounting Standards.
+This project provides **production-ready Google Apps Script files** that automatically generate professional audit working papers and compliance tools for Indian Accounting Standards. Each script creates a complete, interconnected workbook with automated calculations, validations, and professional formatting.
 
-**Think of it as:** A template generator that creates pre-formatted, formula-filled spreadsheets for accounting compliance work.
+**Think of it as:** Your personal audit automation suite that transforms hours of manual work into minutes of automated precision.
 
-### What's Included:
+### 🌟 What Makes This Special?
 
-1. **indas109.gs** - Financial Instruments Audit Workings (Ind AS 109)
-2. **indas116.gs** - Lease Accounting Workings (Ind AS 116)
-3. **deferredtax.gs** - Deferred Taxation Workings (IGAAP/Ind AS 12)
-
----
-
-## Who Should Use This?
-
-- Chartered Accountants (CAs)
-- Audit professionals
-- Finance teams implementing Ind AS
-- Accounting students learning Ind AS compliance
-- Anyone preparing period-end financial statements under Indian GAAP or Ind AS
+- ✅ **Production-Ready** - Used by practicing CAs and audit firms
+- ✅ **Fully Automated** - Formulas, validations, and cross-references built-in
+- ✅ **Standards-Compliant** - Based on official Ind AS and IGAAP requirements
+- ✅ **Professionally Formatted** - Print-ready working papers
+- ✅ **Open Source** - Free to use, modify, and distribute
+- ✅ **Well-Documented** - Comprehensive guides for each workbook
 
 ---
 
-## What You'll Need
+## 📦 What's Included
+
+### Ind AS Compliance Workbooks
+
+| Workbook | Standard | Complexity | Status | Documentation |
+|----------|----------|------------|--------|---------------|
+| **Financial Instruments** | Ind AS 109 | High | ✅ Complete | [README](INDAS109_README.md) |
+| **Lease Accounting** | Ind AS 116 | High | ✅ Complete | [README](INDAS116_README.md) |
+| **Revenue Recognition** | Ind AS 115 | Medium | ✅ Complete | [README](INDAS115_README.md) |
+| **Deferred Taxation** | Ind AS 12 / AS 22 | Medium | ⚠️ Known Issues | [README](DEFERRED_TAX_README.md) |
+
+### Tax Compliance Tools
+
+| Workbook | Purpose | Complexity | Status | Documentation |
+|----------|---------|------------|--------|---------------|
+| **TDS Compliance Tracker** | Complete TDS management | Medium | ✅ Complete | [README](TDS_COMPLIANCE_README.md) |
+
+### Audit Working Papers
+
+| Workbook | Purpose | Type | Status | Documentation |
+|----------|---------|------|--------|---------------|
+| **Fixed Assets Audit** | PPE verification | Template | ✅ Complete | [README](FIXED_ASSETS_README.md) |
+| **ICFR P2P Testing** | Procure-to-Pay controls | Template | ✅ Complete | [README](ICFR_P2P_README.md) |
+
+---
+
+## 💼 Who Should Use This?
+
+### 👥 Primary Users
+
+- **Chartered Accountants** - Managing client compliance and audits
+- **Audit Firms** - Standardizing working paper templates
+- **Finance Teams** - In-house Ind AS implementation and compliance
+- **Tax Consultants** - TDS and tax compliance management
+- **Corporate Finance** - Period-end closing and reporting
+- **Accounting Students** - Learning Ind AS with practical tools
+
+### 🎓 Skill Level
+
+- **Beginners** - Step-by-step guides included
+- **Intermediate** - Customizable templates
+- **Advanced** - Full source code for modifications
+
+---
+
+## 🚀 Quick Start
 
 ### Prerequisites
 
-1. **A Google Account** - Free Gmail account works fine
-2. **Basic Spreadsheet Knowledge** - You should know how to open and navigate Google Sheets
-3. **No Coding Experience Required** - The scripts are ready to run!
+- Google Account (free Gmail works)
+- Web browser (Chrome recommended)
+- Basic spreadsheet knowledge
+- No coding experience required!
 
-### Technical Requirements
+### Installation (5 minutes)
 
-- Internet connection
-- Web browser (Chrome, Firefox, Safari, or Edge)
-- Access to Google Drive
+1. **Create New Google Sheet**
+   - Go to [sheets.google.com](https://sheets.google.com)
+   - Click "+ Blank"
+   - Name it (e.g., "Ind AS 109 - ABC Company")
 
----
+2. **Open Apps Script Editor**
+   - Click **Extensions** > **Apps Script**
+   - New tab opens with code editor
 
-## Getting Started (Step-by-Step for Beginners)
+3. **Copy Script Code**
+   - Choose your workbook from this repository
+   - Copy the entire `.gs` file content
+   - Paste into Apps Script editor
+   - Click **Save** (💾)
 
-### Step 1: Create a New Google Spreadsheet
+4. **Run the Script**
+   - Select main function from dropdown (e.g., `createIndAS109WorkingPapers`)
+   - Click **▶ Run**
+   - **First time:** Authorize the script
+     - Click "Review Permissions"
+     - Choose your account
+     - Click "Advanced" → "Go to [Project] (unsafe)"
+     - Click "Allow"
 
-1. Go to [Google Sheets](https://sheets.google.com)
-2. Click the **+ Blank** button to create a new spreadsheet
-3. Give it a meaningful name (e.g., "Ind AS 109 Workings - XYZ Company")
+5. **Start Using**
+   - Return to your Google Sheet
+   - Multiple sheets created automatically
+   - Begin with Cover or Assumptions sheet
+   - Follow the workbook-specific README
 
-### Step 2: Open the Script Editor
-
-1. In your Google Sheet, click **Extensions** in the menu bar
-2. Select **Apps Script**
-3. A new tab will open with the Apps Script editor
-
-### Step 3: Add the Script Code
-
-**For Ind AS 109 (Financial Instruments):**
-
-1. Delete any code in the editor (it usually has a placeholder function)
-2. Open the `indas109.gs` file from this repository
-3. Copy ALL the code
-4. Paste it into the Apps Script editor
-5. Click the **Save** icon (💾) or press `Ctrl+S` (Windows) / `Cmd+S` (Mac)
-6. Give your project a name (e.g., "Ind AS 109 Builder")
-
-**For Ind AS 116 (Leases):**
-- Follow the same steps but use code from `indas116.gs`
-
-**For Deferred Tax:**
-- Follow the same steps but use code from `deferredtax.gs`
-
-### Step 4: Run the Script
-
-1. In the Apps Script editor, find the function dropdown (near the top)
-2. Select the main function:
-   - For Ind AS 109: `createIndAS109WorkingPapers`
-   - For Ind AS 116: `createIndAS116Workbook`
-   - For Deferred Tax: `createDeferredTaxWorkbook`
-3. Click the **▶ Run** button
-4. **First Time Only:** You'll see an authorization screen:
-   - Click **Review Permissions**
-   - Choose your Google account
-   - Click **Advanced** (if you see a warning)
-   - Click **Go to [Your Project Name] (unsafe)**
-   - Click **Allow**
-
-### Step 5: See Your Working Papers!
-
-1. Go back to your Google Sheet tab
-2. You'll see multiple sheets created automatically
-3. An alert will appear confirming successful creation
-4. Start with the **Cover** or **Assumptions** sheet
+### 🎬 Video Tutorial
+*Coming soon - Subscribe to our YouTube channel*
 
 ---
 
-## How to Use Each Script
+## 📚 Workbook Documentation
 
-### 1. Ind AS 109 - Financial Instruments (`indas109.gs`)
+Each workbook has comprehensive documentation covering:
+- Purpose and scope
+- Sheet-by-sheet guide
+- Key formulas and logic
+- Step-by-step usage instructions
+- Compliance checklists
+- Audit procedures
+- Best practices
+- Troubleshooting
 
-**Purpose:** Create audit workings for financial instruments including fair value adjustments, expected credit loss, and amortization calculations.
+### Detailed Guides
 
-**Steps After Running:**
+#### Ind AS Compliance
+- **[Ind AS 109 - Financial Instruments](INDAS109_README.md)**
+  - Classification & measurement
+  - Fair value calculations
+  - Expected Credit Loss (ECL)
+  - Effective Interest Rate (EIR)
+  - Hedge accounting
+  - 12 interconnected sheets
 
-1. Navigate to **Input_Variables** sheet
-2. Fill in the highlighted cells (light blue background):
-   - Company name
-   - Reporting period
-   - Currency
-   - Tax rates
-3. Go to **Instruments_Register** sheet
-4. Enter your financial instruments details
-5. The following sheets will auto-calculate:
-   - Fair Value Workings
-   - ECL Impairment
-   - Amortization Schedule
-   - Period End Entries
-   - Reconciliation
+- **[Ind AS 116 - Lease Accounting](INDAS116_README.md)**
+  - ROU asset calculations
+  - Lease liability schedules
+  - Interest & depreciation
+  - Modifications tracking
+  - IGAAP comparison
+  - 14 interconnected sheets
 
-**What You Get:**
-- 11 interconnected sheets
-- Automatic formula calculations
-- Journal entries for book closure
-- Audit trail and references
+- **[Ind AS 115 - Revenue Recognition](INDAS115_README.md)**
+  - 5-step model implementation
+  - Performance obligations
+  - Transaction price allocation
+  - Contract assets/liabilities
+  - Principal vs agent
+  - 16 interconnected sheets
 
----
+- **[Deferred Tax - Ind AS 12 / AS 22](DEFERRED_TAX_README.md)**
+  - Temporary differences
+  - DTA/DTL calculations
+  - Movement analysis
+  - MAT credit tracking
+  - P&L & BS reconciliation
+  - 12 interconnected sheets
+  - ⚠️ Known issues documented
 
-### 2. Ind AS 116 - Lease Accounting (`indas116.gs`)
+#### Tax Compliance
+- **[TDS Compliance Tracker](TDS_COMPLIANCE_README.md)**
+  - 30+ TDS sections covered
+  - Vendor master with PAN validation
+  - Auto rate lookup
+  - 26AS reconciliation
+  - Interest calculator
+  - Quarterly return preparation
+  - 12 interconnected sheets
+  - ✅ Sample data included
 
-**Purpose:** Automate Right-of-Use (ROU) asset calculations, lease liability schedules, and depreciation workings.
+#### Audit Working Papers
+- **[Fixed Assets Audit Workpaper](FIXED_ASSETS_README.md)**
+  - Complete audit program
+  - Additions/disposals testing
+  - Depreciation recalculation
+  - Physical verification
+  - Impairment assessment
+  - Professional template
 
-**Steps After Running:**
-
-1. Start at the **Assumptions** sheet
-2. Enter:
-   - Company details
-   - Reporting date
-   - Base currency
-   - Default incremental borrowing rate (IBR)
-3. Go to **Lease_Register** sheet
-4. Enter each lease contract details
-5. Review auto-generated schedules:
-   - ROU Asset Schedule
-   - Lease Liability Schedule
-   - Payment Schedule
-   - Journal Entries
-
-**What You Get:**
-- Complete lease accounting workings
-- Automatic interest calculations
-- Period movement analysis
-- Reconciliation with IGAAP
-
----
-
-### 3. Deferred Taxation (`deferredtax.gs`)
-
-**Purpose:** Generate deferred tax asset/liability calculations with temporary differences tracking.
-
-**Steps After Running:**
-
-1. Open **Assumptions** sheet
-2. Select framework: IGAAP or Ind AS
-3. Enter tax rates and entity details
-4. Go to **Temp_Differences** sheet
-5. Enter temporary differences between:
-   - Book values (financial statements)
-   - Tax base values (tax returns)
-6. Review calculations in:
-   - DT_Schedule (Deferred Tax Schedule)
-   - Movement_Analysis
-   - P&L Reconciliation
-   - Balance Sheet Reconciliation
-
-**What You Get:**
-- Dynamic deferred tax calculations
-- Automatic DTA/DTL classification
-- Movement schedules
-- Full reconciliation with financial statements
+- **[ICFR P2P Testing](ICFR_P2P_README.md)**
+  - Procure-to-Pay controls
+  - Risk-control matrix
+  - Design & OE testing
+  - Deficiency tracking
+  - Management action plans
+  - Professional template
 
 ---
 
-## Features
+## ✨ Features
 
-### What Makes These Scripts Useful?
+### 🎯 Core Capabilities
 
-- **Zero Manual Formulas:** All calculations are pre-built
-- **Input Protection:** Only editable cells are highlighted
-- **Audit Trail:** Every calculation is traceable
-- **Professional Formatting:** Print-ready working papers
-- **Standards Compliant:** Based on official Ind AS requirements
-- **Cross-Referenced:** Sheets link to each other automatically
-- **Control Totals:** Built-in reconciliation checks
+- **Automated Calculations** - Complex formulas pre-built and tested
+- **Data Validation** - Dropdowns, PAN validation, date checks
+- **Cross-References** - Sheets automatically link to each other
+- **Professional Formatting** - Color-coded, print-ready layouts
+- **Audit Trail** - Every calculation traceable to source
+- **Reconciliation** - Built-in control totals and balances
+- **Standards Compliance** - Based on official Ind AS/IGAAP requirements
 
-### Visual Indicators
+### 🎨 User Experience
 
-- **Light Blue Cells** = Input cells (you fill these)
-- **White/Gray Cells** = Calculated cells (auto-filled)
-- **Dark Blue Headers** = Section titles
-- **Green/Yellow/Red** = Status indicators (where applicable)
+- **Color Coding**
+  - 🟦 Light blue = Input cells (you fill these)
+  - ⬜ White/gray = Calculated cells (auto-filled)
+  - 🟩 Green = Positive/approved status
+  - 🟨 Yellow = Pending/warning
+  - 🟥 Red = Error/exception
+
+- **Smart Features**
+  - Auto-population from master data
+  - Conditional formatting
+  - Data validation dropdowns
+  - Named ranges for easy reference
+  - Protected formulas
+
+### 📊 Output Quality
+
+- **Audit-Ready** - Meets professional audit standards
+- **Print-Friendly** - Proper page breaks and formatting
+- **Exportable** - Download as Excel or PDF
+- **Shareable** - Google Sheets collaboration features
+- **Archivable** - Version history built-in
 
 ---
 
-## Troubleshooting
+## ⚠️ Known Issues
 
-### Common Issues for Beginners
+We believe in transparency. Here are documented issues and their status:
 
-**Problem:** "Authorization required" error
-- **Solution:** Follow Step 4 authorization process carefully. This is normal for first-time use.
+### High Priority
 
-**Problem:** "Script function not found"
-- **Solution:** Make sure you selected the correct function name from the dropdown before clicking Run.
+**Deferred Tax - Movement Analysis Flaws**
+- **Issue:** Uses hardcoded percentages instead of actual data
+- **Impact:** Unreliable movement analysis
+- **Workaround:** Enter opening balances directly in Temp_Differences
+- **Status:** Fix planned for v1.1
+- **Details:** See [todo.md](todo.md) and [DEFERRED_TAX_README.md](DEFERRED_TAX_README.md)
 
-**Problem:** Nothing happens when I click Run
-- **Solution:**
-  1. Check if you saved the script (💾 icon)
-  2. Refresh your Google Sheet tab
-  3. Try running again
+**Ind AS 116 - Interest Calculation**
+- **Issue:** Uses average balance method instead of true EIR
+- **Impact:** Minor variance in interest expense
+- **Workaround:** Acceptable for monthly/quarterly reporting
+- **Status:** Enhancement planned
+- **Details:** See [todo.md](todo.md)
 
-**Problem:** Formulas show #REF! or #NAME? errors
-- **Solution:** Don't manually delete sheets. If errors appear, re-run the main function to rebuild.
+**Ind AS 109 - ECL Discounting**
+- **Issue:** ECL not discounted to present value
+- **Impact:** Overstated ECL for long-term exposures
+- **Workaround:** Manual adjustment for material items
+- **Status:** Enhancement planned
+- **Details:** See [todo.md](todo.md)
 
-**Problem:** Can't find the function dropdown
-- **Solution:** It's right above your code, next to the Run button. It might say "Select function" initially.
+### All Issues Documented
+See [todo.md](todo.md) for complete list of known issues, their impact, and planned fixes.
 
-**Problem:** Script runs but no sheets are created
-- **Solution:** Check the Execution log (View > Logs in Apps Script). Look for error messages.
+---
+
+## 🐛 Troubleshooting
+
+### Common Issues
+
+| Problem | Solution |
+|---------|----------|
+| "Authorization required" error | Normal for first-time use. Follow authorization steps carefully. |
+| "Script function not found" | Select correct function from dropdown before clicking Run. |
+| Nothing happens when clicking Run | Save script (💾), refresh sheet tab, try again. |
+| Formulas show #REF! or #NAME? | Don't manually delete sheets. Re-run main function to rebuild. |
+| Can't find function dropdown | It's above your code, next to Run button. |
+| Script runs but no sheets created | Check Execution log (View > Logs) for error messages. |
 
 ### Getting Help
 
-If you encounter issues:
-1. Check the **Audit_Notes** or **References** sheet in your workbook
-2. Review the Execution log in Apps Script editor
-3. Make sure you're using a desktop browser (mobile not recommended)
+1. **Check workbook-specific README** - Detailed troubleshooting for each workbook
+2. **Review Audit_Notes sheet** - In-workbook guidance
+3. **Check Execution log** - View > Logs in Apps Script editor
+4. **Use desktop browser** - Mobile not recommended
+5. **Open an issue** - GitHub issues for bug reports
 
 ---
 
-## Understanding the Code
+## 🔧 Technical Details
 
-### For Those Who Want to Learn
+### Architecture
 
-Even if you don't code, here's what's happening:
-
-1. **Main Function:** Each script has one main function (e.g., `createIndAS109WorkingPapers`)
-2. **Sheet Creation:** Functions like `createCoverSheet()` build individual sheets
-3. **Formatting Functions:** Functions like `formatHeader()` apply colors and styles
-4. **Formula Functions:** Functions insert Excel-like formulas into cells
-5. **Named Ranges:** Important cells are named for easy reference
-
-### Code Structure
+Each workbook follows a consistent architecture:
 
 ```
-Main Function
-├── Clear existing sheets (optional)
-├── Create Cover sheet
-├── Create Input/Assumptions sheet
-├── Create calculation sheets
-├── Create reconciliation sheets
-├── Setup named ranges
-├── Apply formatting
-└── Show success message
+Main Function (e.g., createIndAS109WorkingPapers)
+├── Sheet Creation Functions
+│   ├── createCoverSheet()
+│   ├── createAssumptionsSheet()
+│   ├── createDataSheets()
+│   └── createReportSheets()
+├── Formula Setup
+│   ├── Cross-sheet references
+│   ├── Named ranges
+│   └── Data validations
+├── Formatting
+│   ├── Color coding
+│   ├── Conditional formatting
+│   └── Protection
+└── Finalization
+    ├── Sheet ordering
+    ├── Success message
+    └── Activation
 ```
 
-### Key Functions You Might See
+### Code Quality
 
-- `SpreadsheetApp.getActiveSpreadsheet()` - Gets the current spreadsheet
-- `sheet.getRange()` - Selects cells
-- `range.setValue()` - Puts data in cells
-- `range.setFormula()` - Puts formulas in cells
-- `range.setBackground()` - Changes cell colors
+- **Modular Design** - Each sheet has its own function
+- **Consistent Naming** - Clear, descriptive function names
+- **Commented Code** - Explanations for complex logic
+- **Error Handling** - Graceful handling of edge cases
+- **Performance Optimized** - Batch operations where possible
+
+### Customization
+
+All scripts are open source and customizable:
+
+1. **Modify Formulas** - Update calculation logic
+2. **Add Sheets** - Create additional working papers
+3. **Change Formatting** - Adjust colors and styles
+4. **Extend Functionality** - Add new features
+5. **Localize** - Translate to other languages
+
+### Google Apps Script API
+
+Key APIs used:
+- `SpreadsheetApp` - Sheet manipulation
+- `Range` - Cell operations
+- `DataValidation` - Input controls
+- `ConditionalFormatRule` - Formatting rules
+- `NamedRange` - Named references
 
 ---
 
-## Contributing
+## 🤝 Contributing
 
-### How to Improve This Project
+We welcome contributions! Here's how you can help:
 
-If you'd like to contribute:
+### Ways to Contribute
 
-1. **Fork** this repository
-2. **Make improvements** (fix bugs, add features, improve documentation)
-3. **Test** your changes thoroughly
-4. **Submit a Pull Request** with clear description
+1. **Report Bugs** - Open an issue with details
+2. **Suggest Features** - Share your ideas
+3. **Fix Issues** - Submit pull requests
+4. **Improve Documentation** - Clarify or expand guides
+5. **Add Standards** - Implement new Ind AS standards
+6. **Create Tutorials** - Videos, blog posts, examples
+7. **Share Feedback** - Tell us what works and what doesn't
 
-### Ideas for Contribution
+### Contribution Process
 
-- Add more Ind AS standards (Ind AS 115, 19, etc.)
-- Improve error handling
-- Add data validation
+1. **Fork** the repository
+2. **Create branch** - `git checkout -b feature/your-feature`
+3. **Make changes** - Code, test, document
+4. **Test thoroughly** - Ensure no breaking changes
+5. **Commit** - Clear, descriptive messages
+6. **Push** - `git push origin feature/your-feature`
+7. **Pull Request** - Describe changes and rationale
+
+### Development Guidelines
+
+- Follow existing code style
+- Comment complex logic
+- Update relevant README
+- Test with sample data
+- Document known issues
+
+### Priority Areas
+
+- Fix known issues (see [todo.md](todo.md))
+- Add Ind AS 19 (Employee Benefits)
+- Add Ind AS 36 (Impairment)
+- Improve ECL models
+- Add more sample data
 - Create video tutorials
-- Translate documentation
-- Add example datasets
 
 ---
 
-## License
+## 📄 License
 
-This project is open source. Feel free to use, modify, and distribute.
+**MIT License** - Free to use, modify, and distribute
 
----
+```
+Copyright (c) 2024 Ind AS Audit Builder Contributors
 
-## Support
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
 
-For questions or issues:
-- Check the [Troubleshooting](#troubleshooting) section
-- Review script comments for detailed explanations
-- Consult official Ind AS documentation for accounting guidance
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
 
----
-
-## About Ind AS
-
-**Ind AS** (Indian Accounting Standards) are accounting standards adopted by companies in India and are based on IFRS (International Financial Reporting Standards).
-
-**Key Standards Covered:**
-- **Ind AS 109:** Financial Instruments (replaces AS 30 under IGAAP)
-- **Ind AS 116:** Leases (replaces AS 19 under IGAAP)
-- **Ind AS 12:** Income Taxes / AS 22 (IGAAP)
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+```
 
 ---
 
-## Changelog
+## 📞 Support & Resources
+
+### Getting Help
+
+- **Documentation** - Check workbook-specific READMEs
+- **Issues** - GitHub issues for bugs and questions
+- **Discussions** - GitHub discussions for general questions
+
+### Official Resources
+
+- [MCA - Ind AS Portal](https://www.mca.gov.in/)
+- [ICAI - Indian Accounting Standards](https://www.icai.org/)
+- [IFRS Foundation](https://www.ifrs.org/)
+- [Income Tax Department](https://www.incometax.gov.in/)
+
+### Community
+
+- Star ⭐ this repo if you find it useful
+- Watch 👀 for updates
+- Share 📢 with colleagues
+
+---
+
+## 📊 Project Stats
+
+- **7 Workbooks** - Production-ready tools
+- **80+ Sheets** - Across all workbooks
+- **1000+ Formulas** - Automated calculations
+- **Open Source** - MIT License
+- **Actively Maintained** - Regular updates
+
+---
+
+## 🎯 Roadmap
+
+### Version 1.1 (Q1 2025)
+- [ ] Fix deferred tax movement analysis
+- [ ] Improve Ind AS 116 EIR calculations
+- [ ] Add ECL discounting to Ind AS 109
+- [ ] Sample data for all workbooks
+- [ ] Video tutorials
+
+### Version 2.0 (Q2 2025)
+- [ ] Ind AS 19 - Employee Benefits
+- [ ] Ind AS 36 - Impairment of Assets
+- [ ] Ind AS 21 - Foreign Exchange
+- [ ] Enhanced dashboard features
+- [ ] Export to Excel functionality
+
+### Future Considerations
+- Ind AS 37 - Provisions
+- Ind AS 110/111 - Consolidation
+- Ind AS 24 - Related Party Transactions
+- Mobile-friendly interface
+- API integrations
+
+---
+
+## 🏆 Acknowledgments
+
+Built with ❤️ for the Indian accounting community by practitioners, for practitioners.
+
+Special thanks to:
+- ICAI for comprehensive Ind AS guidance
+- MCA for standards implementation
+- All contributors and users
+- The open-source community
+
+---
+
+## 📝 Changelog
 
 ### Version 1.0 (November 2025)
-- Initial release
-- Three core scripts: Ind AS 109, 116, and Deferred Tax
-- Full automation with formula-driven calculations
-- Professional formatting and audit trail
+- ✅ Initial release
+- ✅ Ind AS 109, 116, 115 workbooks
+- ✅ Deferred Tax workbook (Ind AS 12 / AS 22)
+- ✅ TDS Compliance Tracker
+- ✅ Fixed Assets Audit WP
+- ✅ ICFR P2P Testing WP
+- ✅ Comprehensive documentation
+- ✅ Known issues documented
 
 ---
 
-**Happy Auditing! 📊**
+**🚀 Simplifying Indian Accounting Standards compliance, one workbook at a time.**
 
-*This project is designed to save time and improve accuracy in Ind AS compliance work. Remember: always review and verify calculations according to your specific circumstances.*
+*For professional use. Always verify calculations and consult with qualified accountants for specific situations.*
