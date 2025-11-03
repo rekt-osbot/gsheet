@@ -203,9 +203,9 @@ function createCoverSheet(ss) {
   
   const metrics = [
     ["Metric", "Current Year", "Prior Year", "Movement", "% Change"],
-    ["Deferred Tax Assets (DTA)", "=Movement_Analysis!F30", "=Movement_Analysis!C30", "=Movement_Analysis!I30", "=IF(Movement_Analysis!C30<>0,Movement_Analysis!I30/Movement_Analysis!C30,\"-\")"],
-    ["Deferred Tax Liabilities (DTL)", "=Movement_Analysis!F31", "=Movement_Analysis!C31", "=Movement_Analysis!I31", "=IF(Movement_Analysis!C31<>0,Movement_Analysis!I31/Movement_Analysis!C31,\"-\")"],
-    ["Net DTA/(DTL)", "=Movement_Analysis!F32", "=Movement_Analysis!C32", "=Movement_Analysis!I32", "=IF(Movement_Analysis!C32<>0,Movement_Analysis!I32/Movement_Analysis!C32,\"-\")"],
+    ["Deferred Tax Assets (DTA)", "=Movement_Analysis!F65", "=Movement_Analysis!C65", "=Movement_Analysis!I65", "=IF(Movement_Analysis!C65<>0,Movement_Analysis!I65/Movement_Analysis!C65,\"-\")"],
+    ["Deferred Tax Liabilities (DTL)", "=Movement_Analysis!F66", "=Movement_Analysis!C66", "=Movement_Analysis!I66", "=IF(Movement_Analysis!C66<>0,Movement_Analysis!I66/Movement_Analysis!C66,\"-\")"],
+    ["Net DTA/(DTL)", "=Movement_Analysis!F67", "=Movement_Analysis!C67", "=Movement_Analysis!I67", "=IF(Movement_Analysis!C67<>0,Movement_Analysis!I67/Movement_Analysis!C67,\"-\")"],
     ["", "", "", "", ""],
     ["Deferred Tax Expense/(Income)", "=PL_Reconciliation!C8", "", "", ""],
     ["Effective Tax Rate", "=PL_Reconciliation!C15", "", "", ""]
@@ -508,9 +508,10 @@ function createInputVariablesSheet(ss) {
     ["Temp_Differences", "D7:D50", "Tax Base", "Tax base of the asset/liability", "Number", "1,000,000"],
     ["Temp_Differences", "E7:E50", "Book Base", "Carrying amount per books", "Number", "850,000"],
     ["Temp_Differences", "G7:G50", "Nature", "Whether creates DTA or DTL", "Auto-calc", "DTL"],
-    ["Temp_Differences", "H7:H50", "Additions", "New temporary differences in current year", "Number", "50,000"],
-    ["Temp_Differences", "I7:I50", "Reversals", "Reversals of prior period differences", "Number", "30,000"],
-    ["Temp_Differences", "J7:J50", "Rate Change Impact", "Impact of tax rate changes", "Number", "0"],
+    ["Temp_Differences", "H7:H50", "Opening Temp Difference", "Opening temporary difference balance for movement analysis", "Number", "250,000"],
+    ["Temp_Differences", "I7:I50", "Additions", "New temporary differences in current year", "Number", "50,000"],
+    ["Temp_Differences", "J7:J50", "Reversals", "Reversals of prior period differences", "Number", "30,000"],
+    ["Temp_Differences", "K7:K50", "Rate Change Impact", "Impact of tax rate changes", "Number", "0"],
     ["", "", "", "", "", ""],
     ["NOTE", "", "Yellow cells = Primary inputs", "", "", ""],
     ["NOTE", "", "Light blue cells = Secondary inputs", "", "", ""],
@@ -548,10 +549,10 @@ function createTempDifferencesSheet(ss) {
   }
   
   sheet.clear();
-  setColumnWidths(sheet, [40, 250, 150, 120, 120, 120, 80, 120, 120, 120, 150]);
+  setColumnWidths(sheet, [40, 250, 150, 120, 120, 120, 80, 120, 120, 120, 120, 150]);
   
   // Header
-  sheet.getRange("A1:K1").merge()
+  sheet.getRange("A1:L1").merge()
     .setValue("TEMPORARY DIFFERENCES INPUT SCHEDULE")
     .setFontSize(16)
     .setFontWeight("bold")
@@ -559,7 +560,7 @@ function createTempDifferencesSheet(ss) {
     .setBackground(COLORS.HEADER_BG)
     .setFontColor(COLORS.HEADER_TEXT);
   
-  sheet.getRange("A2:K2").merge()
+  sheet.getRange("A2:L2").merge()
     .setValue("Enter all temporary differences between book and tax basis of assets and liabilities")
     .setFontSize(10)
     .setFontStyle("italic")
@@ -568,7 +569,7 @@ function createTempDifferencesSheet(ss) {
     .setFontColor(COLORS.HEADER_TEXT);
   
   // Instructions
-  sheet.getRange("A4:K4").merge()
+  sheet.getRange("A4:L4").merge()
     .setValue("INSTRUCTIONS: Enter temporary differences line by line. System will auto-calculate DTA/DTL. Yellow cells are inputs.")
     .setFontSize(10)
     .setFontWeight("bold")
@@ -577,10 +578,23 @@ function createTempDifferencesSheet(ss) {
   
   // Column headers
   const headers = [
-    ["Sr.", "Temporary Difference Item", "Category", "Tax Base (A)", "Book Base (B)", "Temp Diff (C=B-A)", "Nature", "Additions (CY)", "Reversals (CY)", "Rate Change Impact", "Remarks"]
+    [
+      "Sr.",
+      "Temporary Difference Item",
+      "Category",
+      "Tax Base (A)",
+      "Book Base (B)",
+      "Temp Diff (C=B-A)",
+      "Nature",
+      "Opening Temp Diff (Prior)",
+      "Additions (CY)",
+      "Reversals (CY)",
+      "Rate Change Impact",
+      "Remarks"
+    ]
   ];
-  sheet.getRange(6, 1, 1, 11).setValues(headers);
-  sheet.getRange("A6:K6").setBackground(COLORS.HEADER_BG)
+  sheet.getRange(6, 1, 1, 12).setValues(headers);
+  sheet.getRange("A6:L6").setBackground(COLORS.HEADER_BG)
     .setFontColor(COLORS.HEADER_TEXT)
     .setFontWeight("bold")
     .setHorizontalAlignment("center")
@@ -596,6 +610,7 @@ function createTempDifferencesSheet(ss) {
       4500000,
       "=E7-D7",
       "=IF(F7>0,\"DTL\",IF(F7<0,\"DTA\",\"-\"))",
+      250000,
       200000,
       150000,
       0,
@@ -609,6 +624,7 @@ function createTempDifferencesSheet(ss) {
       300000,
       "=E8-D8",
       "=IF(F8>0,\"DTL\",IF(F8<0,\"DTA\",\"-\"))",
+      120000,
       50000,
       0,
       0,
@@ -622,8 +638,9 @@ function createTempDifferencesSheet(ss) {
       450000,
       "=E9-D9",
       "=IF(F9>0,\"DTL\",IF(F9<0,\"DTA\",\"-\"))",
-      75000,
-      25000,
+      60000,
+      80000,
+      30000,
       0,
       "Deductible on payment basis"
     ],
@@ -635,6 +652,7 @@ function createTempDifferencesSheet(ss) {
       125000,
       "=E10-D10",
       "=IF(F10>0,\"DTL\",IF(F10<0,\"DTA\",\"-\"))",
+      50000,
       125000,
       100000,
       0,
@@ -648,14 +666,15 @@ function createTempDifferencesSheet(ss) {
       1500000,
       "=E11-D11",
       "=IF(F11>0,\"DTL\",IF(F11<0,\"DTA\",\"-\"))",
+      900000,
       0,
       500000,
       0,
       "DTA subject to probability assessment"
     ]
   ];
-  
-  sheet.getRange(7, 1, sampleData.length, 11).setValues(sampleData);
+
+  sheet.getRange(7, 1, sampleData.length, 12).setValues(sampleData);
   
   // Add empty rows with formulas for rows 12-50
   for (let row = 12; row <= 50; row++) {
@@ -688,12 +707,12 @@ function createTempDifferencesSheet(ss) {
   sheet.getRange("B7:B50").setBackground(COLORS.INPUT_BG);
   sheet.getRange("C7:C50").setBackground(COLORS.INPUT_ALT_BG);
   sheet.getRange("D7:E50").setBackground(COLORS.INPUT_BG);
-  sheet.getRange("H7:J50").setBackground(COLORS.INPUT_BG);
-  sheet.getRange("K7:K50").setBackground("#ffffff");
+  sheet.getRange("H7:K50").setBackground(COLORS.INPUT_BG);
+  sheet.getRange("L7:L50").setBackground("#ffffff");
   
   // Number formatting
   sheet.getRange("D7:F50").setNumberFormat("#,##0");
-  sheet.getRange("H7:J50").setNumberFormat("#,##0");
+  sheet.getRange("H7:K50").setNumberFormat("#,##0");
   
   // Totals row
   const totalRow = 52;
@@ -721,9 +740,14 @@ function createTempDifferencesSheet(ss) {
     .setFontWeight("bold")
     .setNumberFormat("#,##0")
     .setBackground(COLORS.TOTAL_BG);
+
+  sheet.getRange(`K${totalRow}`).setFormula(`=SUM(K7:K51)`)
+    .setFontWeight("bold")
+    .setNumberFormat("#,##0")
+    .setBackground(COLORS.TOTAL_BG);
   
   // Borders
-  sheet.getRange("A6:K52").setBorder(true, true, true, true, true, true, COLORS.BORDER_COLOR, SpreadsheetApp.BorderStyle.SOLID);
+  sheet.getRange("A6:L52").setBorder(true, true, true, true, true, true, COLORS.BORDER_COLOR, SpreadsheetApp.BorderStyle.SOLID);
   
   // Add cell notes for guidance
   sheet.getRange("D7").setNote("Tax Base:\nThe amount attributed to this item for tax purposes.\n\nFor assets: Tax WDV or NIL if fully written off\nFor liabilities: Tax-deductible amount");
@@ -732,9 +756,13 @@ function createTempDifferencesSheet(ss) {
   
   sheet.getRange("F7").setNote("Temporary Difference:\nDifference between book base and tax base.\n\nPositive = Taxable temporary difference (creates DTL)\nNegative = Deductible temporary difference (creates DTA)");
   
-  sheet.getRange("H7").setNote("Additions:\nNew temporary differences arising in the current year that will reverse in future periods.");
-  
-  sheet.getRange("I7").setNote("Reversals:\nReversal of temporary differences from prior years that reversed in the current year.");
+  sheet.getRange("H7").setNote("Opening Temp Difference:\nCarry-forward temporary difference balance as at the start of the current year. This should tie to prior year closing balance for the item.");
+
+  sheet.getRange("I7").setNote("Additions:\nNew temporary differences arising in the current year that will reverse in future periods.");
+
+  sheet.getRange("J7").setNote("Reversals:\nReversal of temporary differences from prior years that reversed in the current year.");
+
+  sheet.getRange("K7").setNote("Rate Change Impact:\nImpact on deferred tax due to changes in enacted tax rates or laws affecting this temporary difference.");
   
   // Freeze rows only (columns removed to avoid splitting merged cells)
   sheet.setFrozenRows(6);
@@ -824,7 +852,7 @@ function createDTScheduleSheet(ss) {
     sheet.getRange(row, 9).setFormula(`=IF(E${row}<>"",E${row},"")`);
     
     // Remarks
-    sheet.getRange(row, 10).setFormula(`=Temp_Differences!K${srcRow}`);
+    sheet.getRange(row, 10).setFormula(`=Temp_Differences!L${srcRow}`);
   }
   
   // Subtotals row
@@ -957,10 +985,10 @@ function createMovementAnalysisSheet(ss) {
   if (!sheet) {
     sheet = ss.insertSheet("Movement_Analysis", 5);
   }
-  
+
   sheet.clear();
   setColumnWidths(sheet, [40, 250, 120, 120, 120, 120, 120, 120, 120]);
-  
+
   // Header
   sheet.getRange("A1:I1").merge()
     .setValue("DEFERRED TAX MOVEMENT ANALYSIS")
@@ -969,7 +997,7 @@ function createMovementAnalysisSheet(ss) {
     .setHorizontalAlignment("center")
     .setBackground(COLORS.HEADER_BG)
     .setFontColor(COLORS.HEADER_TEXT);
-  
+
   sheet.getRange("A2:I2").merge()
     .setValue("Reconciliation of opening to closing balances of Deferred Tax Assets and Liabilities")
     .setFontSize(10)
@@ -977,7 +1005,7 @@ function createMovementAnalysisSheet(ss) {
     .setHorizontalAlignment("center")
     .setBackground(COLORS.SUBHEADER_BG)
     .setFontColor(COLORS.HEADER_TEXT);
-  
+
   // Column headers
   const headers = [
     ["Sr.", "Particular", "Opening Balance", "Additions (CY)", "Reversals (CY)", "Closing Balance", "Recognized in P&L", "Recognized in OCI/Equity", "Movement"]
@@ -988,160 +1016,188 @@ function createMovementAnalysisSheet(ss) {
     .setFontWeight("bold")
     .setHorizontalAlignment("center")
     .setWrapStrategy(SpreadsheetApp.WrapStrategy.WRAP);
-  
+
+  const dtaHeaderRow = 7;
+  const dtaDataStartRow = dtaHeaderRow + 1;
+  const dtaDataRows = 20;
+  const dtaSubtotalRow = dtaDataStartRow + dtaDataRows;
+  const dtlHeaderRow = dtaSubtotalRow + 2;
+  const dtlDataStartRow = dtlHeaderRow + 1;
+  const dtlDataRows = 20;
+  const dtlSubtotalRow = dtlDataStartRow + dtlDataRows;
+  const netHeaderRow = dtlSubtotalRow + 2;
+  const netDataRow = netHeaderRow + 1;
+  const nettingHeaderRow = netDataRow + 2;
+  const applyNettingRow = nettingHeaderRow + 1;
+  const nettingTableStartRow = applyNettingRow + 1;
+  const nettingRowsCount = 4;
+  const finalHeaderRow = nettingTableStartRow + nettingRowsCount + 1;
+  const finalDataStartRow = finalHeaderRow + 2;
+  const finalRowsCount = 3;
+  const journalHeaderRow = finalDataStartRow + finalRowsCount + 3;
+  const journalTableHeaderRow = journalHeaderRow + 2;
+
   // DTA Section
-  sheet.getRange("A7:I7").merge()
+  sheet.getRange(`A${dtaHeaderRow}:I${dtaHeaderRow}`).merge()
     .setValue("DEFERRED TAX ASSETS")
     .setFontWeight("bold")
     .setFontSize(11)
     .setBackground(COLORS.SECTION_BG);
-  
-  const dtaItems = [
-    [1, "Provision for Doubtful Debts", "=Assumptions!B28*0.2", "=SUMIF(Temp_Differences!G7:G50,\"DTA\",Temp_Differences!H7:H50)*Assumptions!B14*0.2", "=SUMIF(Temp_Differences!G7:G50,\"DTA\",Temp_Differences!I7:I50)*Assumptions!B14*0.2", "=C8+D8-E8", "=F8-C8", 0, "=I8"],
-    [2, "Employee Benefits Provisions", "=Assumptions!B28*0.3", "=SUMIF(Temp_Differences!G7:G50,\"DTA\",Temp_Differences!H7:H50)*Assumptions!B14*0.3", "=SUMIF(Temp_Differences!G7:G50,\"DTA\",Temp_Differences!I7:I50)*Assumptions!B14*0.3", "=C9+D9-E9", "=F9-C9", 0, "=I9"],
-    [3, "Disallowances u/s 43B", "=Assumptions!B28*0.25", "=SUMIF(Temp_Differences!G7:G50,\"DTA\",Temp_Differences!H7:H50)*Assumptions!B14*0.25", "=SUMIF(Temp_Differences!G7:G50,\"DTA\",Temp_Differences!I7:I50)*Assumptions!B14*0.25", "=C10+D10-E10", "=F10-C10", 0, "=I10"],
-    [4, "Carry Forward Losses (Subject to Recognition)", "=Assumptions!B28*0.25", "=IF(Assumptions!B34=\"Yes\",SUMIF(Temp_Differences!C7:C50,\"Tax Losses\",Temp_Differences!H7:H50)*Assumptions!B14,0)", "=SUMIF(Temp_Differences!C7:C50,\"Tax Losses\",Temp_Differences!I7:I50)*Assumptions!B14", "=C11+D11-E11", "=F11-C11", 0, "=I11"]
-  ];
-  
-  sheet.getRange(8, 1, dtaItems.length, 9).setValues(dtaItems);
-  
+
+  const dtaOffset = dtaDataStartRow - 1;
+  sheet.getRange(dtaDataStartRow, 1, dtaDataRows, 1).setFormulaR1C1(`=IF(RC[1]="","",ROW()-${dtaOffset})`);
+  sheet.getRange(dtaDataStartRow, 2, dtaDataRows, 1).setFormulaR1C1(`=IFERROR(INDEX(FILTER(Temp_Differences!R7C2:R1000C2,Temp_Differences!R7C2:R1000C2<>"",Temp_Differences!R7C7:R1000C7="DTA"),ROW()-${dtaOffset}),"")`);
+  sheet.getRange(dtaDataStartRow, 3, dtaDataRows, 1).setFormulaR1C1(`=IF(RC[-1]="","",IFERROR(INDEX(FILTER(Temp_Differences!R7C8:R1000C8,Temp_Differences!R7C2:R1000C2<>"",Temp_Differences!R7C7:R1000C7="DTA"),ROW()-${dtaOffset}),0))`);
+  sheet.getRange(dtaDataStartRow, 4, dtaDataRows, 1).setFormulaR1C1(`=IF(RC[-2]="","",IFERROR(INDEX(FILTER(Temp_Differences!R7C9:R1000C9,Temp_Differences!R7C2:R1000C2<>"",Temp_Differences!R7C7:R1000C7="DTA"),ROW()-${dtaOffset}),0))`);
+  sheet.getRange(dtaDataStartRow, 5, dtaDataRows, 1).setFormulaR1C1(`=IF(RC[-3]="","",IFERROR(INDEX(FILTER(Temp_Differences!R7C10:R1000C10,Temp_Differences!R7C2:R1000C2<>"",Temp_Differences!R7C7:R1000C7="DTA"),ROW()-${dtaOffset}),0))`);
+  sheet.getRange(dtaDataStartRow, 8, dtaDataRows, 1).setFormulaR1C1(`=IF(RC[-6]="","",IFERROR(INDEX(FILTER(Temp_Differences!R7C11:R1000C11,Temp_Differences!R7C2:R1000C2<>"",Temp_Differences!R7C7:R1000C7="DTA"),ROW()-${dtaOffset}),0))`);
+  sheet.getRange(dtaDataStartRow, 7, dtaDataRows, 1).setFormulaR1C1('=IF(RC[-5]="","",RC[-3]-RC[-2])');
+  sheet.getRange(dtaDataStartRow, 6, dtaDataRows, 1).setFormulaR1C1('=IF(RC[-4]="","",RC[-3]+RC[-2]-RC[-1]+IF(RC[2]="",0,RC[2]))');
+  sheet.getRange(dtaDataStartRow, 9, dtaDataRows, 1).setFormulaR1C1('=IF(RC[-8]="","",RC[-2]+RC[-1])');
+
   // DTA Subtotal
-  sheet.getRange("A12:B12").merge()
+  sheet.getRange(`A${dtaSubtotalRow}:B${dtaSubtotalRow}`).merge()
     .setValue("Subtotal - DTA")
     .setFontWeight("bold")
     .setBackground(COLORS.CALC_BG);
-  
   for (let col = 3; col <= 9; col++) {
     const colLetter = String.fromCharCode(64 + col);
-    sheet.getRange(12, col).setFormula(`=SUM(${colLetter}8:${colLetter}11)`)
+    sheet.getRange(dtaSubtotalRow, col).setFormula(`=SUM(${colLetter}${dtaDataStartRow}:${colLetter}${dtaSubtotalRow - 1})`)
       .setFontWeight("bold")
       .setBackground(COLORS.CALC_BG);
   }
-  
+
   // DTL Section
-  sheet.getRange("A14:I14").merge()
+  sheet.getRange(`A${dtlHeaderRow}:I${dtlHeaderRow}`).merge()
     .setValue("DEFERRED TAX LIABILITIES")
     .setFontWeight("bold")
     .setFontSize(11)
     .setBackground(COLORS.SECTION_BG);
-  
-  const dtlItems = [
-    [5, "Depreciation Differences", "=Assumptions!B29*0.8", "=SUMIF(Temp_Differences!G7:G50,\"DTL\",Temp_Differences!H7:H50)*Assumptions!B14*0.8", "=SUMIF(Temp_Differences!G7:G50,\"DTL\",Temp_Differences!I7:I50)*Assumptions!B14*0.8", "=C15+D15-E15", "=F15-C15", 0, "=I15"],
-    [6, "Other Timing Differences", "=Assumptions!B29*0.2", "=SUMIF(Temp_Differences!G7:G50,\"DTL\",Temp_Differences!H7:H50)*Assumptions!B14*0.2", "=SUMIF(Temp_Differences!G7:G50,\"DTL\",Temp_Differences!I7:I50)*Assumptions!B14*0.2", "=C16+D16-E16", "=F16-C16", 0, "=I16"]
-  ];
-  
-  sheet.getRange(15, 1, dtlItems.length, 9).setValues(dtlItems);
-  
-  // DTL Subtotal
-  sheet.getRange("A17:B17").merge()
+
+  const dtlOffset = dtlDataStartRow - 1;
+  sheet.getRange(dtlDataStartRow, 1, dtlDataRows, 1).setFormulaR1C1(`=IF(RC[1]="","",ROW()-${dtlOffset})`);
+  sheet.getRange(dtlDataStartRow, 2, dtlDataRows, 1).setFormulaR1C1(`=IFERROR(INDEX(FILTER(Temp_Differences!R7C2:R1000C2,Temp_Differences!R7C2:R1000C2<>"",Temp_Differences!R7C7:R1000C7="DTL"),ROW()-${dtlOffset}),"")`);
+  sheet.getRange(dtlDataStartRow, 3, dtlDataRows, 1).setFormulaR1C1(`=IF(RC[-1]="","",IFERROR(INDEX(FILTER(Temp_Differences!R7C8:R1000C8,Temp_Differences!R7C2:R1000C2<>"",Temp_Differences!R7C7:R1000C7="DTL"),ROW()-${dtlOffset}),0))`);
+  sheet.getRange(dtlDataStartRow, 4, dtlDataRows, 1).setFormulaR1C1(`=IF(RC[-2]="","",IFERROR(INDEX(FILTER(Temp_Differences!R7C9:R1000C9,Temp_Differences!R7C2:R1000C2<>"",Temp_Differences!R7C7:R1000C7="DTL"),ROW()-${dtlOffset}),0))`);
+  sheet.getRange(dtlDataStartRow, 5, dtlDataRows, 1).setFormulaR1C1(`=IF(RC[-3]="","",IFERROR(INDEX(FILTER(Temp_Differences!R7C10:R1000C10,Temp_Differences!R7C2:R1000C2<>"",Temp_Differences!R7C7:R1000C7="DTL"),ROW()-${dtlOffset}),0))`);
+  sheet.getRange(dtlDataStartRow, 8, dtlDataRows, 1).setFormulaR1C1(`=IF(RC[-6]="","",IFERROR(INDEX(FILTER(Temp_Differences!R7C11:R1000C11,Temp_Differences!R7C2:R1000C2<>"",Temp_Differences!R7C7:R1000C7="DTL"),ROW()-${dtlOffset}),0))`);
+  sheet.getRange(dtlDataStartRow, 7, dtlDataRows, 1).setFormulaR1C1('=IF(RC[-5]="","",RC[-3]-RC[-2])');
+  sheet.getRange(dtlDataStartRow, 6, dtlDataRows, 1).setFormulaR1C1('=IF(RC[-4]="","",RC[-3]+RC[-2]-RC[-1]+IF(RC[2]="",0,RC[2]))');
+  sheet.getRange(dtlDataStartRow, 9, dtlDataRows, 1).setFormulaR1C1('=IF(RC[-8]="","",RC[-2]+RC[-1])');
+
+  sheet.getRange(`A${dtlSubtotalRow}:B${dtlSubtotalRow}`).merge()
     .setValue("Subtotal - DTL")
     .setFontWeight("bold")
     .setBackground(COLORS.CALC_BG);
-  
   for (let col = 3; col <= 9; col++) {
     const colLetter = String.fromCharCode(64 + col);
-    sheet.getRange(17, col).setFormula(`=SUM(${colLetter}15:${colLetter}16)`)
+    sheet.getRange(dtlSubtotalRow, col).setFormula(`=SUM(${colLetter}${dtlDataStartRow}:${colLetter}${dtlSubtotalRow - 1})`)
       .setFontWeight("bold")
       .setBackground(COLORS.CALC_BG);
   }
-  
+
   // Net Position
-  sheet.getRange("A19:I19").merge()
+  sheet.getRange(`A${netHeaderRow}:I${netHeaderRow}`).merge()
     .setValue("NET POSITION")
     .setFontWeight("bold")
     .setFontSize(11)
     .setBackground(COLORS.SECTION_BG);
-  
+
   const netRows = [
-    ["", "Net DTA/(DTL) - Before Netting", "=C12-C17", "=D12-D17", "=E12-E17", "=F12-F17", "=G12-G17", "=H12-H17", "=I12-I17"]
+    ["", "Net DTA/(DTL) - Before Netting", `=C${dtaSubtotalRow}-C${dtlSubtotalRow}`, `=D${dtaSubtotalRow}-D${dtlSubtotalRow}`, `=E${dtaSubtotalRow}-E${dtlSubtotalRow}`, `=F${dtaSubtotalRow}-F${dtlSubtotalRow}`, `=G${dtaSubtotalRow}-G${dtlSubtotalRow}`, `=H${dtaSubtotalRow}-H${dtlSubtotalRow}`, `=I${dtaSubtotalRow}-I${dtlSubtotalRow}`]
   ];
-  
-  sheet.getRange(20, 1, netRows.length, 9).setValues(netRows);
-  sheet.getRange("A20:B20").merge().setFontWeight("bold");
-  
+
+  sheet.getRange(netDataRow, 1, netRows.length, 9).setValues(netRows);
+  sheet.getRange(`A${netDataRow}:B${netDataRow}`).merge().setFontWeight("bold");
+
   // Netting section (if applicable)
-  sheet.getRange("A22:I22").merge()
+  sheet.getRange(`A${nettingHeaderRow}:I${nettingHeaderRow}`).merge()
     .setValue("NETTING OF DTA AND DTL (If Applicable per Framework)")
     .setFontWeight("bold")
     .setFontSize(11)
     .setBackground(COLORS.SECTION_BG);
-  
-  sheet.getRange("A23:B23").merge()
+
+  sheet.getRange(`A${applyNettingRow}:B${applyNettingRow}`).merge()
     .setValue("Apply Netting?")
     .setFontWeight("bold");
-  sheet.getRange("C23").setFormula("=Assumptions!B36")
+  sheet.getRange(`C${applyNettingRow}`).setFormula("=Assumptions!B36")
     .setFontWeight("bold")
     .setFontColor("#d32f2f");
-  
+
   const nettingRows = [
-    ["", "DTA (Gross)", "=IF(C23=\"Yes\",C12,C12)", "", "", "=IF(C23=\"Yes\",F12,F12)", "", "", ""],
-    ["", "DTL (Gross)", "=IF(C23=\"Yes\",C17,C17)", "", "", "=IF(C23=\"Yes\",F17,F17)", "", "", ""],
-    ["", "Amount Netted", "=IF(C23=\"Yes\",MIN(C24,C25),0)", "", "", "=IF(C23=\"Yes\",MIN(F24,F25),0)", "", "", ""],
+    ["", "DTA (Gross)", `=C${dtaSubtotalRow}`, "", "", `=F${dtaSubtotalRow}`, "", "", ""],
+    ["", "DTL (Gross)", `=C${dtlSubtotalRow}`, "", "", `=F${dtlSubtotalRow}`, "", "", ""],
+    ["", "Amount Netted", `=IF($C${applyNettingRow}="Yes",MIN(C${nettingTableStartRow},C${nettingTableStartRow + 1}),0)`, "", "", `=IF($C${applyNettingRow}="Yes",MIN(F${nettingTableStartRow},F${nettingTableStartRow + 1}),0)`, "", "", ""],
     ["", "", "", "", "", "", "", "", ""]
   ];
-  
-  sheet.getRange(24, 1, nettingRows.length, 9).setValues(nettingRows);
-  sheet.getRange("A24:B27").mergeAcross().setFontWeight("bold");
-  
+
+  sheet.getRange(nettingTableStartRow, 1, nettingRows.length, 9).setValues(nettingRows);
+  sheet.getRange(`A${nettingTableStartRow}:B${nettingTableStartRow + nettingRows.length - 1}`).mergeAcross().setFontWeight("bold");
+
   // Final Presentation
-  sheet.getRange("A28:I28").merge()
+  sheet.getRange(`A${finalHeaderRow}:I${finalHeaderRow}`).merge()
     .setValue("FINAL PRESENTATION (Balance Sheet)")
     .setFontWeight("bold")
     .setFontSize(12)
     .setHorizontalAlignment("center")
     .setBackground(COLORS.GRAND_TOTAL_BG);
-  
+
   const finalRows = [
-    ["", "Deferred Tax Assets", "=C12", "", "", "=F12", "", "", "=F30-C30"],
-    ["", "Deferred Tax Liabilities", "=C17", "", "", "=F17", "", "", "=F31-C31"],
-    ["", "Net DTA/(DTL)", "=C30-C31", "", "", "=F30-F31", "=G30-G31", "=H30-H31", "=F32-C32"]
+    ["", "Deferred Tax Assets", `=C${dtaSubtotalRow}`, "", "", `=F${dtaSubtotalRow}`, "", "", `=I${dtaSubtotalRow}`],
+    ["", "Deferred Tax Liabilities", `=C${dtlSubtotalRow}`, "", "", `=F${dtlSubtotalRow}`, "", "", `=I${dtlSubtotalRow}`],
+    ["", "Net DTA/(DTL)", `=C${netDataRow}`, "", "", `=F${netDataRow}`, `=G${netDataRow}`, `=H${netDataRow}`, `=I${netDataRow}`]
   ];
-  
-  sheet.getRange(30, 1, finalRows.length, 9).setValues(finalRows);
-  sheet.getRange("A30:B32").merge().setFontWeight("bold").setBackground(COLORS.GRAND_TOTAL_BG);
-  sheet.getRange("C30:I32").setFontWeight("bold").setBackground(COLORS.GRAND_TOTAL_BG);
-  
+
+  sheet.getRange(finalDataStartRow, 1, finalRows.length, 9).setValues(finalRows);
+  sheet.getRange(`A${finalDataStartRow}:B${finalDataStartRow + finalRows.length - 1}`).merge().setFontWeight("bold").setBackground(COLORS.GRAND_TOTAL_BG);
+  sheet.getRange(`C${finalDataStartRow}:I${finalDataStartRow + finalRows.length - 1}`).setFontWeight("bold").setBackground(COLORS.GRAND_TOTAL_BG);
+
   // Journal Entry section
-  sheet.getRange("A35:I35").merge()
+  sheet.getRange(`A${journalHeaderRow}:I${journalHeaderRow}`).merge()
     .setValue("PERIOD CLOSURE JOURNAL ENTRY")
     .setFontSize(14)
     .setFontWeight("bold")
     .setHorizontalAlignment("center")
     .setBackground(COLORS.HEADER_BG)
     .setFontColor(COLORS.HEADER_TEXT);
-  
+
   const jeHeaders = [["Particulars", "Debit (₹)", "Credit (₹)"]];
-  sheet.getRange(37, 2, 1, 3).setValues(jeHeaders);
-  sheet.getRange("B37:D37").setBackground(COLORS.HEADER_BG)
+  sheet.getRange(journalTableHeaderRow, 2, 1, 3).setValues(jeHeaders);
+  sheet.getRange(`B${journalTableHeaderRow}:D${journalTableHeaderRow}`).setBackground(COLORS.HEADER_BG)
     .setFontColor(COLORS.HEADER_TEXT)
     .setFontWeight("bold");
-  
+
+  const debitCell = `I${finalDataStartRow}`;
+  const creditCell = `I${finalDataStartRow + 1}`;
+  const netCell = `I${finalDataStartRow + 2}`;
+
   const jeEntries = [
-    ["Deferred Tax Asset A/c                              Dr.", "=IF(I30>0,I30,\"\")", ""],
-    ["     To Deferred Tax Expense A/c", "", "=IF(I30>0,I30,\"\")"],
+    ["Deferred Tax Asset A/c                              Dr.", `=IF(${netCell}>0,${netCell},"")`, ""],
+    ["     To Deferred Tax Expense A/c", "", `=IF(${netCell}>0,${netCell},"")`],
     ["(Being DTA created/increased during the year)", "", ""],
     ["", "", ""],
-    ["Deferred Tax Expense A/c                           Dr.", "=IF(I31>0,I31,\"\")", ""],
-    ["     To Deferred Tax Liability A/c", "", "=IF(I31>0,I31,\"\")"],
+    ["Deferred Tax Expense A/c                           Dr.", `=IF(${creditCell}>0,${creditCell},"")`, ""],
+    ["     To Deferred Tax Liability A/c", "", `=IF(${creditCell}>0,${creditCell},"")`],
     ["(Being DTL created/increased during the year)", "", ""],
     ["", "", ""],
-    ["TOTAL", "=SUM(C38,C42)", "=SUM(D39,D43)"]
+    ["TOTAL", "=SUM(C${journalTableHeaderRow + 1},C${journalTableHeaderRow + 5})", "=SUM(D${journalTableHeaderRow + 2},D${journalTableHeaderRow + 6})"]
   ];
-  
-  sheet.getRange(38, 2, jeEntries.length, 3).setValues(jeEntries);
-  sheet.getRange("B46:D46").setBackground(COLORS.TOTAL_BG).setFontWeight("bold");
-  
+
+  sheet.getRange(journalTableHeaderRow + 1, 2, jeEntries.length, 3).setValues(jeEntries);
+  sheet.getRange(`B${journalTableHeaderRow + jeEntries.length}:D${journalTableHeaderRow + jeEntries.length}`).setBackground(COLORS.TOTAL_BG).setFontWeight("bold");
+
   // Number formatting
-  sheet.getRange("C8:I32").setNumberFormat("#,##0");
-  sheet.getRange("C38:D46").setNumberFormat("#,##0");
-  
+  sheet.getRange(`C${dtaDataStartRow}:I${finalDataStartRow + finalRows.length - 1}`).setNumberFormat("#,##0");
+  sheet.getRange(`C${journalTableHeaderRow + 1}:D${journalTableHeaderRow + jeEntries.length}`).setNumberFormat("#,##0");
+
   // Borders
-  sheet.getRange("A5:I32").setBorder(true, true, true, true, true, true, COLORS.BORDER_COLOR, SpreadsheetApp.BorderStyle.SOLID);
-  sheet.getRange("B37:D46").setBorder(true, true, true, true, true, true, COLORS.BORDER_COLOR, SpreadsheetApp.BorderStyle.SOLID);
-  
+  sheet.getRange(`A5:I${finalDataStartRow + finalRows.length - 1}`).setBorder(true, true, true, true, true, true, COLORS.BORDER_COLOR, SpreadsheetApp.BorderStyle.SOLID);
+  sheet.getRange(`B${journalTableHeaderRow}:D${journalTableHeaderRow + jeEntries.length}`).setBorder(true, true, true, true, true, true, COLORS.BORDER_COLOR, SpreadsheetApp.BorderStyle.SOLID);
+
   // Freeze rows only (columns removed to avoid splitting merged cells)
   sheet.setFrozenRows(5);
 }
+
 
 // ============================================================================
 // P&L RECONCILIATION SHEET
@@ -1183,7 +1239,7 @@ function createPLReconciliationSheet(ss) {
   const taxComponents = [
     ["Particular", "Amount (₹)", "Notes"],
     ["Current Tax Expense", "=Assumptions!B26", "As per tax computation"],
-    ["Deferred Tax Expense/(Income)", "=Movement_Analysis!G32", "Net change in deferred tax"],
+    ["Deferred Tax Expense/(Income)", "=Movement_Analysis!G67", "Net change in deferred tax"],
     ["", "", ""],
     ["Total Tax Expense (Current + Deferred)", "=C6+C7", "Total charge to P&L"]
   ];
@@ -1344,10 +1400,10 @@ function createBSReconciliationSheet(ss) {
   const bsPresentation = [
     ["Line Item", "Current Year (₹)", "Prior Year (₹)", "Note Reference"],
     ["NON-CURRENT ASSETS", "", "", ""],
-    ["Deferred Tax Assets (Net)", "=Movement_Analysis!F30", "=Movement_Analysis!C30", "Note X - Deferred Taxation"],
+    ["Deferred Tax Assets (Net)", "=Movement_Analysis!F65", "=Movement_Analysis!C65", "Note X - Deferred Taxation"],
     ["", "", "", ""],
     ["NON-CURRENT LIABILITIES", "", "", ""],
-    ["Deferred Tax Liabilities (Net)", "=Movement_Analysis!F31", "=Movement_Analysis!C31", "Note X - Deferred Taxation"],
+    ["Deferred Tax Liabilities (Net)", "=Movement_Analysis!F66", "=Movement_Analysis!C66", "Note X - Deferred Taxation"],
     ["", "", "", ""],
     ["NET DEFERRED TAX POSITION", "=C7-C10", "=D7-D10", ""]
   ];
@@ -1370,7 +1426,7 @@ function createBSReconciliationSheet(ss) {
   
   const scheduleRecon = [
     ["Source", "DTA (₹)", "DTL (₹)", "Net DTA/(DTL) (₹)"],
-    ["Per Movement Analysis Schedule", "=Movement_Analysis!F30", "=Movement_Analysis!F31", "=Movement_Analysis!F32"],
+    ["Per Movement Analysis Schedule", "=Movement_Analysis!F65", "=Movement_Analysis!F66", "=Movement_Analysis!F67"],
     ["Per Balance Sheet (above)", "=C7", "=C10", "=C12"],
     ["", "", "", ""],
     ["Difference (Should be NIL)", "=C17-C18", "=D17-D18", "=E17-E18"]
@@ -1403,9 +1459,9 @@ function createBSReconciliationSheet(ss) {
   
   const nettingDisclosure = [
     ["Netting Status", "Amount (₹)", "Framework Compliance"],
-    ["DTA (Gross before netting)", "=Movement_Analysis!C24", ""],
-    ["DTL (Gross before netting)", "=Movement_Analysis!C25", ""],
-    ["Amount Netted", "=Movement_Analysis!C26", ""],
+    ["DTA (Gross before netting)", "=Movement_Analysis!C58", ""],
+    ["DTL (Gross before netting)", "=Movement_Analysis!C59", ""],
+    ["Amount Netted", "=Movement_Analysis!C60", ""],
     ["", "", ""],
     ["Netting Applied?", "=Assumptions!B36", ""],
     ["Framework", "=Assumptions!B7", ""],
@@ -1450,7 +1506,7 @@ function createBSReconciliationSheet(ss) {
     ["  - Depreciation differences", "=Movement_Analysis!F15", "=Movement_Analysis!C15"],
     ["  - Other timing differences", "=Movement_Analysis!F16", "=Movement_Analysis!C16"],
     ["", "", ""],
-    ["Net Deferred Tax Asset/(Liability)", "=Movement_Analysis!F32", "=Movement_Analysis!C32"]
+    ["Net Deferred Tax Asset/(Liability)", "=Movement_Analysis!F67", "=Movement_Analysis!C67"]
   ];
   
   sheet.getRange(44, 2, noteTemplate.length, 3).setValues(noteTemplate);
@@ -1672,15 +1728,15 @@ function createAuditNotesSheet(ss) {
   const controlTotals = [
     ["Control Check", "Amount/Status", "Expected", "Status", "Comments"],
     ["", "", "", "", ""],
-    ["DTA per Movement Schedule", "=Movement_Analysis!F30", "=BS_Reconciliation!C7", "=IF(C7=D7,\"✓ OK\",\"⚠ MISMATCH\")", "Must match BS presentation"],
-    ["DTL per Movement Schedule", "=Movement_Analysis!F31", "=BS_Reconciliation!C10", "=IF(C8=D8,\"✓ OK\",\"⚠ MISMATCH\")", "Must match BS presentation"],
-    ["Net DTA/(DTL)", "=Movement_Analysis!F32", "=BS_Reconciliation!C12", "=IF(C9=D9,\"✓ OK\",\"⚠ MISMATCH\")", "Must match BS presentation"],
+    ["DTA per Movement Schedule", "=Movement_Analysis!F65", "=BS_Reconciliation!C7", "=IF(C7=D7,\"✓ OK\",\"⚠ MISMATCH\")", "Must match BS presentation"],
+    ["DTL per Movement Schedule", "=Movement_Analysis!F66", "=BS_Reconciliation!C10", "=IF(C8=D8,\"✓ OK\",\"⚠ MISMATCH\")", "Must match BS presentation"],
+    ["Net DTA/(DTL)", "=Movement_Analysis!F67", "=BS_Reconciliation!C12", "=IF(C9=D9,\"✓ OK\",\"⚠ MISMATCH\")", "Must match BS presentation"],
     ["", "", "", "", ""],
-    ["Deferred Tax Expense per Movement", "=Movement_Analysis!G32", "=PL_Reconciliation!C7", "=IF(C11=D11,\"✓ OK\",\"⚠ MISMATCH\")", "Must match P&L reconciliation"],
+    ["Deferred Tax Expense per Movement", "=Movement_Analysis!G67", "=PL_Reconciliation!C7", "=IF(C11=D11,\"✓ OK\",\"⚠ MISMATCH\")", "Must match P&L reconciliation"],
     ["", "", "", "", ""],
     ["Total Tax Expense Check", "=PL_Reconciliation!C9", "=PL_Reconciliation!C6+PL_Reconciliation!C7", "=IF(C13=D13,\"✓ OK\",\"⚠ MISMATCH\")", "Current + Deferred"],
     ["", "", "", "", ""],
-    ["Opening + Movement = Closing?", "=Movement_Analysis!F32", "=Movement_Analysis!C32+Movement_Analysis!I32", "=IF(C15=D15,\"✓ OK\",\"⚠ MISMATCH\")", "Movement reconciliation check"]
+    ["Opening + Movement = Closing?", "=Movement_Analysis!F67", "=Movement_Analysis!C67+Movement_Analysis!I67", "=IF(C15=D15,\"✓ OK\",\"⚠ MISMATCH\")", "Movement reconciliation check"]
   ];
   
   sheet.getRange(5, 1, controlTotals.length, 5).setValues(controlTotals);
@@ -1833,9 +1889,9 @@ function setupNamedRanges(ss) {
     ss.setNamedRange("Opening_DTL", ss.getSheetByName("Assumptions").getRange("B29"));
     
     // Output ranges
-    ss.setNamedRange("Closing_DTA", ss.getSheetByName("Movement_Analysis").getRange("F30"));
-    ss.setNamedRange("Closing_DTL", ss.getSheetByName("Movement_Analysis").getRange("F31"));
-    ss.setNamedRange("Net_DTA_DTL", ss.getSheetByName("Movement_Analysis").getRange("F32"));
+    ss.setNamedRange("Closing_DTA", ss.getSheetByName("Movement_Analysis").getRange("F28"));
+    ss.setNamedRange("Closing_DTL", ss.getSheetByName("Movement_Analysis").getRange("F51"));
+    ss.setNamedRange("Net_DTA_DTL", ss.getSheetByName("Movement_Analysis").getRange("F54"));
     ss.setNamedRange("DeferredTaxExpense", ss.getSheetByName("PL_Reconciliation").getRange("C7"));
     ss.setNamedRange("EffectiveTaxRate", ss.getSheetByName("PL_Reconciliation").getRange("C16"));
     
