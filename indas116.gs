@@ -1133,37 +1133,77 @@ function createLeaseLiabilityScheduleSheet(ss) {
     sheet.getRange('F' + row).setFormula(
       `=IF('Lease Register'!A${dataRow}<>"", ` +
       `IF('Lease Register'!O${dataRow}="No", ` +
-      `'Lease Register'!H${dataRow}*` +
-      `DATEDIF(MAX('Lease Register'!E${dataRow},Assumptions!$C$20), ` +
-      `MIN('Lease Register'!F${dataRow},Assumptions!$C$21), "M"), 0), "")`
+      `LET(` +
+      `  periodStart, Assumptions!$C$20,` +
+      `  periodEnd, Assumptions!$C$21,` +
+      `  leaseStart, 'Lease Register'!E${dataRow},` +
+      `  leaseEnd, 'Lease Register'!F${dataRow},` +
+      `  payment, IF('Lease Register'!H${dataRow}="",0,'Lease Register'!H${dataRow}),` +
+      `  startMonth, MAX(EOMONTH(periodStart, -1)+1, EOMONTH(leaseStart, -1)+1),` +
+      `  endMonth, MIN(EOMONTH(periodEnd, 0), EOMONTH(leaseEnd, 0)),` +
+      `  months, IF(endMonth<startMonth, 0, DATEDIF(startMonth, endMonth, "M")+1),` +
+      `  payment*months` +
+      `), 0), "")`
     );
-    
-    // Interest Expense - IMPROVED but still simplified
-    // CORRECTED: Using average balance method for better accuracy
-    // Proper effective interest method would require monthly breakdown
-    // Formula: ((Opening + Closing pre-interest) / 2) × IBR × (Months / 12)
-    // Closing pre-interest = Opening + Additions - Payments
-    // This is more accurate than using only opening balance
+
+    // Interest Expense - Effective interest method based on month-by-month compounding
     sheet.getRange('G' + row).setFormula(
       `=IF('Lease Register'!A${dataRow}<>"", ` +
       `IF('Lease Register'!O${dataRow}="No", ` +
-      `((D${row}+E${row})+(D${row}+E${row}-F${row}))/2*'Lease Register'!K${dataRow}*` +
-      `DATEDIF(MAX('Lease Register'!E${dataRow},Assumptions!$C$20), ` +
-      `MIN('Lease Register'!F${dataRow},Assumptions!$C$21), "M")/12, 0), "")`
+      `LET(` +
+      `  periodStart, Assumptions!$C$20,` +
+      `  periodEnd, Assumptions!$C$21,` +
+      `  leaseStart, 'Lease Register'!E${dataRow},` +
+      `  leaseEnd, 'Lease Register'!F${dataRow},` +
+      `  payment, IF('Lease Register'!H${dataRow}="",0,'Lease Register'!H${dataRow}),` +
+      `  base, D${row}+E${row},` +
+      `  startMonth, MAX(EOMONTH(periodStart, -1)+1, EOMONTH(leaseStart, -1)+1),` +
+      `  endMonth, MIN(EOMONTH(periodEnd, 0), EOMONTH(leaseEnd, 0)),` +
+      `  months, IF(endMonth<startMonth, 0, DATEDIF(startMonth, endMonth, "M")+1),` +
+      `  closing, H${row},` +
+      `  IF(closing="", 0, closing - base + payment*months)` +
+      `), 0), "")`
     );
-    
-    // Closing Liability
-    sheet.getRange('H' + row).setFormula(`=IF(A${row}<>"", D${row}+E${row}+G${row}-F${row}, "")`);
-    
-    // Current Portion - IMPROVED calculation
-    // CORRECTED: More accurate approximation than MIN(Closing, 12 × Monthly Payment)
-    // Current portion = Principal repayment in next 12 months
-    // Approximation: Next 12 months payments - Avg interest on reducing balance
-    // Formula: MIN(Closing, 12×Payment - H×IBR×0.5)
-    // The 0.5 factor approximates average balance over 12 months
+
+    // Closing Liability using month-by-month amortization
+    sheet.getRange('H' + row).setFormula(
+      `=IF('Lease Register'!A${dataRow}<>"", ` +
+      `IF('Lease Register'!O${dataRow}="No", ` +
+      `LET(` +
+      `  periodStart, Assumptions!$C$20,` +
+      `  periodEnd, Assumptions!$C$21,` +
+      `  leaseStart, 'Lease Register'!E${dataRow},` +
+      `  leaseEnd, 'Lease Register'!F${dataRow},` +
+      `  payment, IF('Lease Register'!H${dataRow}="",0,'Lease Register'!H${dataRow}),` +
+      `  rate, IF('Lease Register'!K${dataRow}="",0,'Lease Register'!K${dataRow})/12,` +
+      `  base, D${row}+E${row},` +
+      `  startMonth, MAX(EOMONTH(periodStart, -1)+1, EOMONTH(leaseStart, -1)+1),` +
+      `  endMonth, MIN(EOMONTH(periodEnd, 0), EOMONTH(leaseEnd, 0)),` +
+      `  months, IF(endMonth<startMonth, 0, DATEDIF(startMonth, endMonth, "M")+1),` +
+      `  growth, (1+rate)^months,` +
+      `  closingCalc, IF(months=0, base, IF(rate=0, MAX(0, base - payment*months), MAX(0, base*growth - payment*(growth-1)/rate))),` +
+      `  closingCalc` +
+      `), ""), "")`
+    );
+
+    // Current Portion derived from next 12 months amortization
     sheet.getRange('I' + row).setFormula(
       `=IF('Lease Register'!A${dataRow}<>"", ` +
-      `MIN(H${row}, MAX(0, 'Lease Register'!H${dataRow}*12 - H${row}*'Lease Register'!K${dataRow}*0.5)), "")`
+      `IF('Lease Register'!O${dataRow}="No", ` +
+      `LET(` +
+      `  closing, H${row},` +
+      `  rate, IF('Lease Register'!K${dataRow}="",0,'Lease Register'!K${dataRow})/12,` +
+      `  payment, IF('Lease Register'!H${dataRow}="",0,'Lease Register'!H${dataRow}),` +
+      `  periodEnd, Assumptions!$C$21,` +
+      `  leaseEnd, 'Lease Register'!F${dataRow},` +
+      `  nextStart, EOMONTH(periodEnd, 0)+1,` +
+      `  lastMonth, EOMONTH(leaseEnd, 0),` +
+      `  remainingMonths, IF(lastMonth<nextStart, 0, DATEDIF(nextStart, lastMonth, "M")+1),` +
+      `  monthsToUse, MIN(12, remainingMonths),` +
+      `  futureGrowth, (1+rate)^monthsToUse,` +
+      `  futureBalance, IF(monthsToUse=0, closing, IF(rate=0, MAX(0, closing - payment*monthsToUse), MAX(0, closing*futureGrowth - payment*(futureGrowth-1)/rate))),` +
+      `  IF(closing="", "", MAX(0, closing - futureBalance))` +
+      `), 0), "")`
     );
     
     // Non-Current Portion
@@ -1193,9 +1233,9 @@ function createLeaseLiabilityScheduleSheet(ss) {
   const notes = [
     ['• Initial Measurement:', 'Lease Liability = PV of future lease payments using IBR (Ind AS 116 Para 26)'],
     ['• Subsequent Measurement:', 'Liability increases by interest, decreases by payments (Para 36)'],
-    ['• Interest Calculation (IMPROVED):', 'Interest = Average Balance × IBR × (Months/12). Uses average of opening and closing liability for more accurate effective interest method approximation.'],
-    ['• Effective Interest Method:', 'True EIM requires monthly calculations. This workbook uses average balance method as practical approximation.'],
-    ['• Current vs Non-Current (IMPROVED):', 'Current portion = Principal repayment in next 12 months. Calculated as (Next 12 months payments - Interest on avg balance). More accurate than simple MIN(Closing, 12×Payment) proxy.'],
+    ['• Interest Calculation (EIR):', 'Interest is derived through monthly compounding using the effective interest method per Ind AS 116 Para 36.'],
+    ['• Effective Interest Method:', 'The schedule applies a full period-by-period amortization model (no averaging approximations).'],
+    ['• Current vs Non-Current:', 'Current portion equals the principal scheduled within the next 12 months based on the amortization schedule.'],
     ['• Journal Entries:', 'Dr. Lease Liability / Cr. Cash (payment)'],
     ['', 'Dr. Interest Expense / Cr. Lease Liability (interest accretion)']
   ];
