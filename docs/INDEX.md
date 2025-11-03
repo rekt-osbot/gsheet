@@ -16,7 +16,7 @@
 ### Ind AS Compliance Workbooks
 
 #### Ind AS 109 - Financial Instruments
-- **File:** `indas109.gs`
+- **File:** `scripts/indas109.gs`
 - **Documentation:** [INDAS109_README.md](INDAS109_README.md)
 - **Function:** `createIndAS109WorkingPapers()`
 - **Sheets:** 12
@@ -32,7 +32,7 @@
   - Reconciliation
 
 #### Ind AS 116 - Lease Accounting
-- **File:** `indas116.gs`
+- **File:** `scripts/indas116.gs`
 - **Documentation:** [INDAS116_README.md](INDAS116_README.md)
 - **Function:** `createIndAS116Workbook()`
 - **Sheets:** 14
@@ -48,7 +48,7 @@
   - Disclosure schedules
 
 #### Ind AS 115 - Revenue Recognition
-- **File:** `indas115.gs`
+- **File:** `scripts/indas115.gs`
 - **Documentation:** [INDAS115_README.md](INDAS115_README.md)
 - **Function:** `createIndAS115Workbook()`
 - **Sheets:** 16
@@ -67,12 +67,12 @@
   - Warranties
 
 #### Deferred Tax (Ind AS 12 / AS 22)
-- **File:** `deferredtax.gs`
+- **File:** `scripts/deferredtax.gs`
 - **Documentation:** [DEFERRED_TAX_README.md](DEFERRED_TAX_README.md)
 - **Function:** `createDeferredTaxWorkbook()`
 - **Sheets:** 12
 - **Complexity:** ⭐⭐⭐ Medium-High
-- **Status:** ⚠️ Known issues (see todo.md)
+- **Status:** ✅ Complete (all issues resolved)
 - **Topics Covered:**
   - Temporary differences
   - DTA/DTL calculations
@@ -88,7 +88,7 @@
 ### Tax Compliance Tools
 
 #### TDS Compliance Tracker
-- **File:** `tds_compliance.gs`
+- **File:** `scripts/tds_compliance.gs`
 - **Documentation:** [TDS_COMPLIANCE_README.md](TDS_COMPLIANCE_README.md)
 - **Function:** `createTDSComplianceWorkbook()`
 - **Sample Data:** `populateSampleData()`
@@ -112,7 +112,7 @@
 ### Audit Working Papers
 
 #### Fixed Assets Audit Workpaper
-- **File:** `far_wp.gs`
+- **File:** `scripts/far_wp.gs`
 - **Documentation:** [FIXED_ASSETS_README.md](FIXED_ASSETS_README.md)
 - **Function:** `createFixedAssetsWorkpaper()`
 - **Sheets:** 14
@@ -132,7 +132,7 @@
   - Audit conclusions
 
 #### ICFR Procure-to-Pay Testing
-- **File:** `ifc_p2p.gs`
+- **File:** `scripts/ifc_p2p.gs`
 - **Documentation:** [ICFR_P2P_README.md](ICFR_P2P_README.md)
 - **Function:** `createICFRP2PWorkpaper()`
 - **Sheets:** 13
@@ -290,19 +290,19 @@
 
 ## 🔄 Version History & Updates
 
-### Current Version: 1.0 (November 2024)
+### Current Version: 1.0.1 (November 2025)
 
 **Included:**
 - 7 complete workbooks
 - 7 comprehensive READMEs
 - Quick reference guide
-- Known issues documented
+- All known issues resolved
 
 **Status:**
-- ✅ Ind AS 109 - Stable
-- ✅ Ind AS 116 - Stable
+- ✅ Ind AS 109 - Stable (all issues resolved)
+- ✅ Ind AS 116 - Stable (all issues resolved)
 - ✅ Ind AS 115 - Stable
-- ⚠️ Deferred Tax - Known issues
+- ✅ Deferred Tax - Stable (all issues resolved)
 - ✅ TDS Compliance - Stable with sample data
 - ✅ Fixed Assets - Stable
 - ✅ ICFR P2P - Stable
@@ -381,3 +381,4 @@ See [todo.md](todo.md) for detailed roadmap
 **This index is your map to all documentation. Bookmark it for easy navigation!**
 
 *Last updated: November 2025*
+*Version: 1.0.1*
