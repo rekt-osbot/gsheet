@@ -1876,17 +1876,7 @@ function finalizeWorkingPapers(ss) {
 // MENU FUNCTIONS
 // ═══════════════════════════════════════════════════════════════════════════
 
-function onOpen() {
-  const ui = SpreadsheetApp.getUi();
-  ui.createMenu('📊 Ind AS 109 Tools')
-      .addItem('🚀 Create Working Papers', 'createIndAS109WorkingPapers')
-      .addSeparator()
-      .addItem('🔄 Refresh All Formulas', 'refreshFormulas')
-      .addItem('📋 Export Journal Entries', 'exportJournalEntries')
-      .addSeparator()
-      .addItem('📖 Help & Documentation', 'showHelp')
-      .addToUi();
-}
+// onOpen() is handled by common/utilities.gs - auto-detects workbook type
 
 function refreshFormulas() {
   SpreadsheetApp.getActiveSpreadsheet().toast('Recalculating all formulas...', 'Refresh', 3);

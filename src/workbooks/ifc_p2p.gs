@@ -1082,34 +1082,12 @@ function createDashboard(ss) {
 /**
  * Creates a custom menu when the spreadsheet opens
  */
-function onOpen() {
-  const ui = SpreadsheetApp.getUi();
-  ui.createMenu('🔍 ICFR Workpaper')
-    .addItem('📋 Create P2P Workpaper', 'createP2PWorkpaper')
-    .addSeparator()
-    .addItem('ℹ️ About', 'showAbout')
-    .addToUi();
-}
+// onOpen() is handled by common/utilities.gs - auto-detects workbook type
 
 /**
  * Shows information about the workpaper
  */
-function showAbout() {
-  const ui = SpreadsheetApp.getUi();
-  ui.alert(
-    'ICFR Workpaper Builder - P2P Process',
-    'This workpaper automates ICFR documentation for Procure-to-Pay controls.\n\n' +
-    'Features:\n' +
-    '• 18 pre-built P2P controls with RCM\n' +
-    '• Test of Design template\n' +
-    '• Test of Operating Effectiveness template\n' +
-    '• Auto-updating Dashboard with metrics\n' +
-    '• Ind AS references and assertions\n\n' +
-    'Compliant with: COSO 2013, Ind AS, IGAAP\n\n' +
-    'Version 1.0',
-    ui.ButtonSet.OK
-  );
-}
+// showAbout() is handled by common/utilities.gs
 
 /**
  * Run this function to set up the workpaper

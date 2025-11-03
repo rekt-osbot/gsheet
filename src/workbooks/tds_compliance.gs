@@ -1549,19 +1549,7 @@ function populate26ASSample(ss) {
   }
 }
 
-/**
- * Helper function to create a menu for easy access
- */
-function onOpen() {
-  const ui = SpreadsheetApp.getUi();
-  ui.createMenu('TDS Compliance')
-    .addItem('Create New Workbook', 'createTDSComplianceWorkbook')
-    .addItem('Populate Sample Data', 'populateSampleData')
-    .addSeparator()
-    .addItem('Refresh Dashboard', 'refreshDashboard')
-    .addItem('Export for Return Filing', 'exportForReturnFiling')
-    .addToUi();
-}
+// onOpen() is handled by common/utilities.gs
 
 /**
  * Refresh Dashboard (recalculate all formulas)

@@ -7,11 +7,13 @@
     "checkJs": false,
     "allowJs": true
   },
-  "files": [
-    "indas116.gs"
+  "include": [
+    "src/**/*.gs",
+    "build.js"
   ],
   "exclude": [
-    "node_modules"
+    "node_modules",
+    "dist"
   ],
   "typeAcquisition": {
     "include": [

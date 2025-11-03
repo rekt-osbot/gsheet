@@ -1,7 +1,7 @@
 /**
  * @name far_wp
  * @version 1.0.1
- * @built 2025-11-03T11:45:47.348Z
+ * @built 2025-11-03T12:27:00.902Z
  * @description Standalone script. Do not edit directly - edit source files in src/ folder.
  * 
  * This file is auto-generated from:
@@ -1346,15 +1346,7 @@ const COLS = {
 /**
  * Creates custom menu when spreadsheet opens
  */
-function onOpen() {
-  const ui = SpreadsheetApp.getUi();
-  ui.createMenu('Audit Tools')
-    .addItem('Setup Fixed Assets Workpaper', 'setupFixedAssetsWorkpaper')
-    .addSeparator()
-    .addItem('Add Sample Data', 'addSampleData')
-    .addItem('Clear All Data (Keep Format)', 'clearAllData')
-    .addSeparator()
-    .addItem('Export to PDF', 'exportToPDF')
+// onOpen() is handled by common/utilities.gs - auto-detects workbook type
     .addToUi();
 }
 

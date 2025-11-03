@@ -1909,15 +1909,7 @@ function applyFinalFormatting(ss) {
 // MENU FUNCTIONS
 // ============================================================================
 
-function onOpen() {
-  const ui = SpreadsheetApp.getUi();
-  ui.createMenu('🔧 DT Audit Builder')
-    .addItem('🆕 Create New Workbook', 'createDeferredTaxWorkbook')
-    .addSeparator()
-    .addItem('📊 Refresh All Formulas', 'refreshAllFormulas')
-    .addItem('🔄 Recalculate Control Totals', 'recalculateControls')
-    .addSeparator()
-    .addItem('📝 Add New Temp Difference Row', 'addTempDiffRow')
+// onOpen() is handled by common/utilities.gs - auto-detects workbook type
     .addSeparator()
     .addItem('ℹ️ Help & Instructions', 'showHelp')
     .addToUi();

@@ -2053,9 +2053,7 @@ function goToAuditNotes() {
  * ON OPEN TRIGGER - Create menu automatically
  * ============================================================================
  */
-function onOpen() {
-  createCustomMenu();
-}
+// onOpen() is handled by common/utilities.gs
 
 /**
  * ============================================================================

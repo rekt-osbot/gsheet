@@ -1,7 +1,7 @@
 /**
  * @name deferredtax
  * @version 1.0.1
- * @built 2025-11-03T11:45:47.343Z
+ * @built 2025-11-03T12:27:00.894Z
  * @description Standalone script. Do not edit directly - edit source files in src/ folder.
  * 
  * This file is auto-generated from:
@@ -3217,15 +3217,7 @@ function applyFinalFormatting(ss) {
 // MENU FUNCTIONS
 // ============================================================================
 
-function onOpen() {
-  const ui = SpreadsheetApp.getUi();
-  ui.createMenu('🔧 DT Audit Builder')
-    .addItem('🆕 Create New Workbook', 'createDeferredTaxWorkbook')
-    .addSeparator()
-    .addItem('📊 Refresh All Formulas', 'refreshAllFormulas')
-    .addItem('🔄 Recalculate Control Totals', 'recalculateControls')
-    .addSeparator()
-    .addItem('📝 Add New Temp Difference Row', 'addTempDiffRow')
+// onOpen() is handled by common/utilities.gs - auto-detects workbook type
     .addSeparator()
     .addItem('ℹ️ Help & Instructions', 'showHelp')
     .addToUi();

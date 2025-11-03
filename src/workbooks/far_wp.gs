@@ -38,15 +38,7 @@ const COLS = {
 /**
  * Creates custom menu when spreadsheet opens
  */
-function onOpen() {
-  const ui = SpreadsheetApp.getUi();
-  ui.createMenu('Audit Tools')
-    .addItem('Setup Fixed Assets Workpaper', 'setupFixedAssetsWorkpaper')
-    .addSeparator()
-    .addItem('Add Sample Data', 'addSampleData')
-    .addItem('Clear All Data (Keep Format)', 'clearAllData')
-    .addSeparator()
-    .addItem('Export to PDF', 'exportToPDF')
+// onOpen() is handled by common/utilities.gs - auto-detects workbook type
     .addToUi();
 }
 

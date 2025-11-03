@@ -1,7 +1,7 @@
 /**
  * @name tds_compliance
  * @version 1.0.1
- * @built 2025-11-03T11:45:47.364Z
+ * @built 2025-11-03T12:27:00.930Z
  * @description Standalone script. Do not edit directly - edit source files in src/ folder.
  * 
  * This file is auto-generated from:
@@ -2857,19 +2857,7 @@ function populate26ASSample(ss) {
   }
 }
 
-/**
- * Helper function to create a menu for easy access
- */
-function onOpen() {
-  const ui = SpreadsheetApp.getUi();
-  ui.createMenu('TDS Compliance')
-    .addItem('Create New Workbook', 'createTDSComplianceWorkbook')
-    .addItem('Populate Sample Data', 'populateSampleData')
-    .addSeparator()
-    .addItem('Refresh Dashboard', 'refreshDashboard')
-    .addItem('Export for Return Filing', 'exportForReturnFiling')
-    .addToUi();
-}
+// onOpen() is handled by common/utilities.gs
 
 /**
  * Refresh Dashboard (recalculate all formulas)

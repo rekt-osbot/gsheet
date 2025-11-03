@@ -1,7 +1,7 @@
 /**
  * @name indas115
  * @version 1.0.1
- * @built 2025-11-03T11:45:47.358Z
+ * @built 2025-11-03T12:27:00.919Z
  * @description Standalone script. Do not edit directly - edit source files in src/ folder.
  * 
  * This file is auto-generated from:
@@ -3361,9 +3361,7 @@ function goToAuditNotes() {
  * ON OPEN TRIGGER - Create menu automatically
  * ============================================================================
  */
-function onOpen() {
-  createCustomMenu();
-}
+// onOpen() is handled by common/utilities.gs
 
 /**
  * ============================================================================

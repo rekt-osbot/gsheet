@@ -1,7 +1,7 @@
 /**
  * @name indas116
  * @version 1.0.1
- * @built 2025-11-03T11:45:47.361Z
+ * @built 2025-11-03T12:27:00.924Z
  * @description Standalone script. Do not edit directly - edit source files in src/ folder.
  * 
  * This file is auto-generated from:
@@ -3236,15 +3236,7 @@ function createAuditTrailSheet(ss) {
  * ═══════════════════════════════════════════════════════════════════════════
  */
 
-function onOpen() {
-  const ui = SpreadsheetApp.getUi();
-  ui.createMenu('📊 Ind AS 116 Builder')
-    .addItem('🔨 Create Ind AS 116 Workbook', 'createIndAS116Workbook')
-    .addSeparator()
-    .addItem('📖 User Guide', 'showUserGuide')
-    .addItem('ℹ️ About', 'showAbout')
-    .addToUi();
-}
+// onOpen() is handled by common/utilities.gs - auto-detects workbook type
 
 function showUserGuide() {
   const html = HtmlService.createHtmlOutput(`
@@ -3262,24 +3254,4 @@ function showUserGuide() {
   SpreadsheetApp.getUi().showModalDialog(html, 'User Guide');
 }
 
-function showAbout() {
-  const html = HtmlService.createHtmlOutput(`
-    <h2>Ind AS 116 Audit Builder</h2>
-    <p><strong>Version:</strong> 1.0</p>
-    <p><strong>Standard:</strong> Ind AS 116 - Leases</p>
-    <p><strong>Effective:</strong> 1 April 2019</p>
-    <br>
-    <p>This tool creates production-ready lease accounting workings compliant with Ind AS 116.</p>
-    <p>Features:</p>
-    <ul>
-      <li>Automated ROU asset and lease liability calculations</li>
-      <li>Period book closure journal entries</li>
-      <li>IGAAP vs Ind AS 116 reconciliation</li>
-      <li>Built-in control totals and audit checks</li>
-    </ul>
-    <br>
-    <p><em>For audit and professional use</em></p>
-  `).setWidth(500).setHeight(400);
-  
-  SpreadsheetApp.getUi().showModalDialog(html, 'About Ind AS 116 Builder');
-}
+// showAbout() is handled by common/utilities.gs

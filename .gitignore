@@ -1,5 +1,8 @@
-# Node modules
+# Dependencies
 node_modules/
+
+# Build outputs
+dist/
 
 # OS files
 .DS_Store
@@ -14,4 +17,7 @@ Thumbs.db
 # Logs
 *.log
 npm-debug.log*
+
+# Claude
+.claude/
 .aidigestignore
