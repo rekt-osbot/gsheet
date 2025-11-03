@@ -917,7 +917,7 @@ function createECLImpairmentSheet(ss) {
       // CORRECTED: Implements simplified approach per Ind AS 109.5.5.15 for trade receivables
       // Simplified approach = Lifetime ECL from day 1 (no Stage 1/12-month bucket)
       // B$16 = DPD Threshold Stage 3 (90 days), B$15 = DPD Threshold Stage 2 (30 days)
-      `=IF(ISBLANK(Instruments_Register!A${row}),"",IF(Classification_Matrix!F${row}="Amortized Cost",IF(Instruments_Register!S${row}="Yes",IF(C${row}>=Input_Variables!$B$16,"Stage 3","Simplified (Lifetime)"),IF(C${row}>=Input_Variables!$B$16,"Stage 3",IF(C${row}>=Input_Variables!$B$15,"Stage 2","Stage 1"))),"N/A"))`,
+      `=IF(ISBLANK(Instruments_Register!A${row}),"",IF(Classification_Matrix!F${row}="Amortized Cost",IF(OR(Instruments_Register!S${row}="Yes",Instruments_Register!C${row}="Receivable"),IF(C${row}>=Input_Variables!$B$16,"Stage 3","Simplified (Lifetime)"),IF(C${row}>=Input_Variables!$B$16,"Stage 3",IF(C${row}>=Input_Variables!$B$15,"Stage 2","Stage 1"))),"N/A"))`,
       // PD based on stage
       // Simplified (Lifetime) uses lifetime PD (same as Stage 2)
       `=IF(ISBLANK(Instruments_Register!A${row}),"",IF(E${row}="Stage 1",Input_Variables!$B$10,IF(OR(E${row}="Stage 2",E${row}="Simplified (Lifetime)"),Input_Variables!$B$11,IF(E${row}="Stage 3",Input_Variables!$B$12,0))))`,
@@ -925,8 +925,8 @@ function createECLImpairmentSheet(ss) {
       `=IF(ISBLANK(Instruments_Register!A${row}),"",IF(Instruments_Register!L${row}="Secured",Input_Variables!$B$13,Input_Variables!$B$14))`,
       // EAD (Exposure at Default) - typically equal to carrying amount
       `=IF(ISBLANK(Instruments_Register!A${row}),"",D${row})`,
-      // ECL = EAD × PD × LGD
-      `=IF(ISBLANK(Instruments_Register!A${row}),"",IF(E${row}<>"N/A",H${row}*F${row}*G${row},0))`,
+      // ECL = EAD × PD × LGD discounted using effective interest rate
+      `=IF(ISBLANK(Instruments_Register!A${row}),"",IF(E${row}<>"N/A",LET(discountRate,IF(Instruments_Register!I${row}="",RiskFreeRate,Instruments_Register!I${row}),remainingYears,IF(E${row}="Stage 1",1,IF(Instruments_Register!F${row}="",1,MAX(0,(Instruments_Register!F${row}-ReportingDate)/Input_Variables!$B$7))),discountFactor,IF(discountRate=0,1,(1+discountRate)^(-remainingYears)),H${row}*F${row}*G${row}*discountFactor),0))`,
       // Opening provision - INPUT CELL (should be closing provision from prior period)
       // CORRECTED: Changed from arbitrary 50% to input cell for proper period-to-period continuity
       // Users must enter opening ECL provision from prior period's closing balance
@@ -1033,7 +1033,8 @@ function createECLImpairmentSheet(ss) {
                  'Where:\n' +
                  '• EAD (Exposure at Default) = Gross carrying amount of financial asset\n' +
                  '• PD (Probability of Default) = Likelihood of default occurring (12-month for Stage 1, lifetime for Stage 2 & 3)\n' +
-                 '• LGD (Loss Given Default) = % of EAD that will be lost if default occurs\n\n' +
+                 '• LGD (Loss Given Default) = % of EAD that will be lost if default occurs\n' +
+                 '• Discounting: Expected losses are discounted using the instrument\'s EIR to present value (Ind AS 109.B5.5.29)\n\n' +
                  'Stage Transfer Criteria:\n' +
                  '• Stage 1 → Stage 2: Significant increase in credit risk (typically DPD > 30 days)\n' +
                  '• Stage 2 → Stage 3: Objective evidence of impairment (typically DPD > 90 days or NPA classification)\n' +
