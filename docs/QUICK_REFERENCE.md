@@ -1,263 +1,321 @@
-# Quick Reference Guide
+# Quick Reference Card
 
-> Fast lookup for all workbooks in the Ind AS Audit Builder Suite
+## Common Tasks
 
-## 📋 Workbook Selection Guide
-
-### Choose Your Workbook
-
-| If you need to... | Use this workbook | File | Function to run |
-|-------------------|-------------------|------|-----------------|
-| Account for financial instruments | Ind AS 109 | `indas109.gs` | `createIndAS109WorkingPapers()` |
-| Account for leases | Ind AS 116 | `indas116.gs` | `createIndAS116Workbook()` |
-| Recognize revenue | Ind AS 115 | `indas115.gs` | `createIndAS115Workbook()` |
-| Calculate deferred tax | Deferred Tax | `deferredtax.gs` | `createDeferredTaxWorkbook()` |
-| Manage TDS compliance | TDS Tracker | `tds_compliance.gs` | `createTDSComplianceWorkbook()` |
-| Audit fixed assets | Fixed Assets WP | `far_wp.gs` | `createFixedAssetsWorkpaper()` |
-| Test P2P controls | ICFR P2P | `ifc_p2p.gs` | `createICFRP2PWorkpaper()` |
-
----
-
-## 🎯 Complexity & Time Estimates
-
-| Workbook | Complexity | Setup Time | Learning Curve | Best For |
-|----------|------------|------------|----------------|----------|
-| TDS Compliance | ⭐⭐ Medium | 30 min | Easy | Tax teams, CAs |
-| Fixed Assets WP | ⭐⭐ Medium | 20 min | Easy | Auditors |
-| ICFR P2P | ⭐⭐ Medium | 30 min | Medium | Internal audit |
-| Deferred Tax | ⭐⭐⭐ Medium-High | 45 min | Medium | Finance teams |
-| Ind AS 115 | ⭐⭐⭐ Medium-High | 60 min | Medium | Revenue accounting |
-| Ind AS 116 | ⭐⭐⭐⭐ High | 60 min | Medium-High | Lease accounting |
-| Ind AS 109 | ⭐⭐⭐⭐⭐ Very High | 90 min | High | Treasury, finance |
-
----
-
-## 📊 Feature Comparison
-
-| Feature | 109 | 116 | 115 | DT | TDS | FA | P2P |
-|---------|-----|-----|-----|----|----|----|----|
-| Auto calculations | ✅ | ✅ | ✅ | ✅ | ✅ | ⚠️ | ⚠️ |
-| Sample data | ❌ | ❌ | ❌ | ❌ | ✅ | ❌ | ❌ |
-| Journal entries | ✅ | ✅ | ✅ | ✅ | ❌ | ❌ | ❌ |
-| Reconciliation | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ❌ |
-| Audit program | ❌ | ❌ | ❌ | ❌ | ❌ | ✅ | ✅ |
-| Known issues | ⚠️ | ⚠️ | ✅ | ⚠️ | ✅ | ✅ | ✅ |
-
-Legend: ✅ Full support | ⚠️ Partial/Issues | ❌ Not applicable
-
----
-
-## 🚀 Quick Start Commands
-
-### Installation (All Workbooks)
-
-```
-1. Open Google Sheets → New Blank Sheet
-2. Extensions → Apps Script
-3. Copy relevant .gs file content
-4. Paste into editor
-5. Save (Ctrl+S / Cmd+S)
-6. Select main function from dropdown
-7. Click Run ▶
-8. Authorize (first time only)
-9. Return to sheet
+### Build the Project
+```bash
+npm run build
 ```
 
-### Sample Data (TDS Only)
+### Use Column Constants
+```javascript
+// ❌ Don't
+sheet.getRange(row, 7).setValue(value);
+
+// ✅ Do
+sheet.getRange(row, COLS.TEMP_DIFF.NATURE).setValue(value);
+```
+
+### Use Common Utilities
+```javascript
+// Available in all workbooks (from src/common/)
+clearExistingSheets(ss);
+setColumnWidths(sheet, [100, 200, 150]);
+protectSheet(sheet, true);
+formatHeader(sheet, row, startCol, endCol, text);
+formatCurrency(range);
+formatPercentage(range);
+formatDate(range);
+```
+
+### Use Color Constants
+```javascript
+// Available in all workbooks (from src/common/formatting.gs)
+COLORS.HEADER_BG        // "#1a237e" - Dark blue
+COLORS.HEADER_TEXT      // "#ffffff" - White
+COLORS.SUBHEADER_BG     // "#3949ab" - Medium blue
+COLORS.INPUT_BG         // "#fff9c4" - Light yellow
+COLORS.INPUT_ALT_BG     // "#b3e5fc" - Light blue
+COLORS.CALC_BG          // "#e8eaf6" - Light purple-grey
+COLORS.SECTION_BG       // "#c5cae9" - Light blue-grey
+COLORS.TOTAL_BG         // "#ffccbc" - Light orange
+COLORS.GRAND_TOTAL_BG   // "#ff8a65" - Orange
+COLORS.WARNING_BG       // "#ffebee" - Light red
+COLORS.SUCCESS_BG       // "#c8e6c9" - Light green
+COLORS.INFO_BG          // "#e1f5fe" - Very light blue
+COLORS.BORDER_COLOR     // "#757575" - Grey
+```
+
+### Set Workbook Type
+```javascript
+// In your main workbook creation function
+function createMyWorkbook() {
+  setWorkbookType('MY_WORKBOOK_TYPE');
+  // ... rest of code
+}
+```
+
+## File Structure
 
 ```
-After creating TDS workbook:
-1. Extensions → Apps Script
-2. Select: populateSampleData
-3. Click Run ▶
-4. Review Dashboard
+gsheet-audit-workpapers/
+├── src/
+│   ├── common/              # Shared utilities (DON'T duplicate these!)
+│   │   ├── utilities.gs     # Sheet management, menu creation
+│   │   ├── formatting.gs    # Colors, formatting functions
+│   │   ├── dataValidation.gs
+│   │   ├── conditionalFormatting.gs
+│   │   ├── sheetBuilders.gs
+│   │   └── namedRanges.gs
+│   └── workbooks/           # Workbook-specific code
+│       ├── deferredtax.gs
+│       ├── indas109.gs
+│       ├── indas115.gs
+│       ├── indas116.gs
+│       ├── far_wp.gs
+│       ├── ifc_p2p.gs
+│       └── tds_compliance.gs
+├── dist/                    # Generated standalone files (DON'T edit!)
+├── docs/                    # Documentation
+└── build.js                 # Build script
 ```
 
----
+## Workbook Types
 
-## 📐 Key Formulas by Workbook
+| Type | Function Name | Menu Name |
+|------|---------------|-----------|
+| `DEFERRED_TAX` | `createDeferredTaxWorkbook()` | Deferred Tax Tools |
+| `INDAS109` | `createIndAS109WorkingPapers()` | Ind AS 109 Tools |
+| `INDAS115` | `buildIndAS115Workpaper()` | Ind AS 115 Tools |
+| `INDAS116` | `createIndAS116Workbook()` | Ind AS 116 Tools |
+| `FIXED_ASSETS` | `setupFixedAssetsWorkpaper()` | Fixed Assets Tools |
+| `TDS_COMPLIANCE` | `createTDSComplianceWorkbook()` | TDS Tools |
+| `ICFR_P2P` | `createICFRP2PWorkbook()` | ICFR Tools |
+
+## Column Constants by Workbook
+
+### Deferred Tax
+```javascript
+COLS.TEMP_DIFF.SR_NO
+COLS.TEMP_DIFF.ITEM
+COLS.TEMP_DIFF.CATEGORY
+COLS.TEMP_DIFF.TAX_BASE
+COLS.TEMP_DIFF.BOOK_BASE
+COLS.TEMP_DIFF.TEMP_DIFF
+COLS.TEMP_DIFF.NATURE
+COLS.TEMP_DIFF.OPENING
+COLS.TEMP_DIFF.ADDITIONS
+COLS.TEMP_DIFF.REVERSALS
+COLS.TEMP_DIFF.RATE_CHANGE
+COLS.TEMP_DIFF.REMARKS
+```
 
 ### Ind AS 109
-```
-Fair Value Gain/Loss = Current FV - Previous FV
-ECL = EAD × PD × LGD
-Interest Income = Opening Carrying Amount × EIR
-```
-
-### Ind AS 116
-```
-ROU Asset = Lease Liability + Initial Costs - Incentives
-Interest Expense = Opening Liability × IBR × Time
-Depreciation = ROU Asset / Lease Term
+```javascript
+COLS.INSTRUMENTS_REGISTER.ID
+COLS.INSTRUMENTS_REGISTER.NAME
+COLS.INSTRUMENTS_REGISTER.TYPE
+COLS.INSTRUMENTS_REGISTER.COUNTERPARTY
+COLS.INSTRUMENTS_REGISTER.ISSUE_DATE
+COLS.INSTRUMENTS_REGISTER.MATURITY_DATE
+COLS.INSTRUMENTS_REGISTER.FACE_VALUE
+COLS.INSTRUMENTS_REGISTER.COUPON_RATE
+COLS.INSTRUMENTS_REGISTER.EIR
+COLS.INSTRUMENTS_REGISTER.OPENING_BALANCE
+// ... (see COLUMN_CONSTANTS_GUIDE.md for full list)
 ```
 
 ### Ind AS 115
-```
-Allocated Amount = Transaction Price × (SSP of PO / Total SSP)
-Revenue = Transaction Price × % Complete
-Contract Asset = Revenue Recognized - Cash Received
-```
+```javascript
+COLS.CONTRACT_REGISTER.SR_NO
+COLS.CONTRACT_REGISTER.CONTRACT_ID
+COLS.CONTRACT_REGISTER.CUSTOMER
+COLS.CONTRACT_REGISTER.CONTRACT_DATE
+COLS.CONTRACT_REGISTER.DESCRIPTION
+// ... (see COLUMN_CONSTANTS_GUIDE.md for full list)
 
-### Deferred Tax
-```
-Temporary Difference = Book Value - Tax Base
-DTA = Deductible Difference × Tax Rate
-DTL = Taxable Difference × Tax Rate
-```
-
-### TDS
-```
-TDS Amount = IF(Gross > Threshold, Gross × Rate%, 0)
-Interest = TDS Amount × 1% × (Delay Days / 30)
+COLS.REVENUE_RECOGNITION.SR_NO
+COLS.REVENUE_RECOGNITION.CONTRACT_ID
+COLS.REVENUE_RECOGNITION.CUSTOMER
+// ... (see COLUMN_CONSTANTS_GUIDE.md for full list)
 ```
 
----
+### Ind AS 116
+```javascript
+COLS.LEASE_REGISTER.ID
+COLS.LEASE_REGISTER.DESCRIPTION
+COLS.LEASE_REGISTER.LESSOR
+COLS.LEASE_REGISTER.COMMENCEMENT_DATE
+// ... (see COLUMN_CONSTANTS_GUIDE.md for full list)
 
-## 🎨 Color Coding (All Workbooks)
+COLS.ROU_ASSET.LEASE_ID
+COLS.ROU_ASSET.OPENING_BALANCE
+COLS.ROU_ASSET.ADDITIONS
+COLS.ROU_ASSET.DEPRECIATION
+COLS.ROU_ASSET.CLOSING_BALANCE
+```
 
-| Color | Meaning | Action |
-|-------|---------|--------|
-| 🟦 Light Blue | Input cell | Fill with your data |
-| ⬜ White/Gray | Calculated | Auto-filled, don't edit |
-| 🟩 Green | Positive/OK | Review and confirm |
-| 🟨 Yellow | Warning/Pending | Needs attention |
-| 🟥 Red | Error/Exception | Fix immediately |
-| 🟦 Dark Blue | Header | Section title |
+### Fixed Assets
+```javascript
+COLS.ROLL_FORWARD.ASSET_CLASS
+COLS.ROLL_FORWARD.OPENING_GROSS
+COLS.ROLL_FORWARD.ADDITIONS
+COLS.ROLL_FORWARD.DISPOSALS
+COLS.ROLL_FORWARD.TRANSFERS
+COLS.ROLL_FORWARD.CLOSING_GROSS
+COLS.ROLL_FORWARD.OPENING_ACCUM_DEP
+COLS.ROLL_FORWARD.DEPRECIATION
+COLS.ROLL_FORWARD.DISPOSAL_DEP
+COLS.ROLL_FORWARD.CLOSING_ACCUM_DEP
+COLS.ROLL_FORWARD.OPENING_NBV
+COLS.ROLL_FORWARD.CLOSING_NBV
+```
 
----
+### ICFR P2P
+```javascript
+COLS.RCM.CONTROL_ID
+COLS.RCM.PROCESS
+COLS.RCM.RISK
+COLS.RCM.CONTROL_ACTIVITY
+COLS.RCM.CONTROL_TYPE
+COLS.RCM.FREQUENCY
+COLS.RCM.OWNER
+COLS.RCM.KEY_CONTROL
 
-## 📋 Common Input Fields
+COLS.TEST_OF_DESIGN.CONTROL_ID
+COLS.TEST_OF_DESIGN.CONTROL_DESC
+COLS.TEST_OF_DESIGN.DESIGN_PROCEDURE
+COLS.TEST_OF_DESIGN.EVIDENCE
+COLS.TEST_OF_DESIGN.CONCLUSION
+COLS.TEST_OF_DESIGN.TESTER
+COLS.TEST_OF_DESIGN.DATE
+```
 
-### All Workbooks Need
-- Entity name
-- Reporting period
-- Currency
-- Preparer name
+## Common Patterns
 
-### Financial Workbooks Need
-- Tax rates
-- Discount rates
-- Accounting policies
+### Creating a New Sheet
+```javascript
+function createMySheet(ss) {
+  const sheet = ss.insertSheet('My_Sheet');
+  
+  // Set column widths
+  setColumnWidths(sheet, [100, 200, 150, 120]);
+  
+  // Create header
+  formatHeader(sheet, 1, 1, 4, 'MY SHEET TITLE', COLORS.HEADER_BG);
+  
+  // Create sub-header
+  const headers = ['Column 1', 'Column 2', 'Column 3', 'Column 4'];
+  formatSubHeader(sheet, 2, 1, headers, COLORS.SUBHEADER_BG);
+  
+  // Add data with formulas
+  for (let row = 3; row <= 50; row++) {
+    sheet.getRange(row, COLS.MY_SHEET.ID).setValue(row - 2);
+    sheet.getRange(row, COLS.MY_SHEET.NAME).setBackground(COLORS.INPUT_BG);
+    sheet.getRange(row, COLS.MY_SHEET.VALUE).setFormula(`=B${row}*2`);
+  }
+  
+  // Freeze header rows
+  sheet.setFrozenRows(2);
+}
+```
 
-### Audit Workbooks Need
-- Audit team
-- Materiality
-- Sample sizes
+### Adding Data Validation
+```javascript
+const rule = SpreadsheetApp.newDataValidation()
+  .requireValueInList(['Option 1', 'Option 2', 'Option 3'], true)
+  .setAllowInvalid(false)
+  .setHelpText('Select one option')
+  .build();
 
----
+sheet.getRange(3, COLS.MY_SHEET.STATUS, 50, 1).setDataValidation(rule);
+```
 
-## 🔍 Troubleshooting Quick Fixes
+### Formatting Ranges
+```javascript
+// Currency
+formatCurrency(sheet.getRange(3, COLS.MY_SHEET.AMOUNT, 50, 1));
 
-| Problem | Quick Fix |
-|---------|-----------|
-| Authorization error | Normal first time - follow prompts |
-| Function not found | Select from dropdown before Run |
-| Nothing happens | Save script, refresh sheet, retry |
-| #REF! errors | Don't delete sheets manually |
-| Slow performance | Reduce data range, use filters |
-| Formula errors | Check input cells are filled |
+// Percentage
+formatPercentage(sheet.getRange(3, COLS.MY_SHEET.RATE, 50, 1));
 
----
+// Date
+formatDate(sheet.getRange(3, COLS.MY_SHEET.DATE, 50, 1));
 
-## 📚 Documentation Links
+// Input cells
+sheet.getRange(3, COLS.MY_SHEET.INPUT, 50, 1)
+  .setBackground(COLORS.INPUT_BG);
+```
 
-- [Main README](README.md) - Project overview
-- [Ind AS 109](INDAS109_README.md) - Financial instruments
-- [Ind AS 116](INDAS116_README.md) - Leases
-- [Ind AS 115](INDAS115_README.md) - Revenue
-- [Deferred Tax](DEFERRED_TAX_README.md) - Income taxes
-- [TDS Compliance](TDS_COMPLIANCE_README.md) - TDS management
-- [Fixed Assets](FIXED_ASSETS_README.md) - PPE audit
-- [ICFR P2P](ICFR_P2P_README.md) - Controls testing
-- [Known Issues](todo.md) - Bug tracker
+## Dos and Don'ts
 
----
+### ✅ Do
+- Use column constants instead of numbers
+- Use common utilities from `src/common/`
+- Call `setWorkbookType()` in main function
+- Run `npm run build` after changes
+- Document complex formulas
+- Test thoroughly before deploying
 
-## 🎓 Learning Path
+### ❌ Don't
+- Edit files in `dist/` folder (they're auto-generated)
+- Duplicate utility functions in workbook files
+- Use magic numbers for columns/rows
+- Forget to update column constants when adding columns
+- Skip the build step
+- Deploy without testing
 
-### Beginner
-1. Start with **TDS Compliance** (easiest, sample data included)
-2. Try **Fixed Assets WP** (audit template)
-3. Move to **Deferred Tax** (calculations)
+## Troubleshooting
 
-### Intermediate
-4. **Ind AS 115** (revenue recognition)
-5. **ICFR P2P** (controls testing)
+### Build Fails
+```bash
+# Check for syntax errors
+npm run build
 
-### Advanced
-6. **Ind AS 116** (lease accounting)
-7. **Ind AS 109** (financial instruments)
+# If errors, check the error message for file and line number
+```
 
----
+### Menu Not Showing
+```javascript
+// Make sure you called setWorkbookType()
+function createMyWorkbook() {
+  setWorkbookType('MY_WORKBOOK_TYPE');  // Add this!
+  // ...
+}
+```
 
-## 💡 Pro Tips
+### Column Constants Not Working
+```javascript
+// Make sure COLS is defined at top of workbook file
+const COLS = {
+  MY_SHEET: {
+    ID: 1,
+    NAME: 2,
+    // ...
+  }
+};
+```
 
-### Efficiency
-- Use Ctrl+F (Cmd+F) to find sheets quickly
-- Freeze rows/columns for easier navigation
-- Use filters on large data sheets
-- Create bookmarks for frequently used sheets
+### Function Not Found
+```javascript
+// Make sure you're using common utilities, not redefining them
+// ❌ Don't redefine
+function clearExistingSheets(ss) { ... }
 
-### Accuracy
-- Always start with Assumptions/Cover sheet
-- Fill input cells completely before reviewing calculations
-- Use Reconciliation sheets to verify totals
-- Check Audit_Notes for guidance
+// ✅ Just use it (it's in src/common/utilities.gs)
+clearExistingSheets(ss);
+```
 
-### Collaboration
-- Share with "Can comment" for review
-- Use comments for questions
-- Version history for tracking changes
-- Download backup copies regularly
+## Getting Help
 
-### Customization
-- Copy workbook before modifying
-- Document changes in Audit_Notes
-- Test formulas after changes
-- Keep original as template
+1. **Code Improvements**: See `docs/CODE_IMPROVEMENTS.md`
+2. **Column Constants**: See `docs/COLUMN_CONSTANTS_GUIDE.md`
+3. **Full Summary**: See `REFACTORING_SUMMARY.md`
+4. **Build System**: See `docs/BUILD_SYSTEM.md`
 
----
+## Version Info
 
-## 📞 Quick Support
-
-| Issue Type | Where to Look |
-|------------|---------------|
-| How to use | Workbook-specific README |
-| Formula error | Audit_Notes sheet in workbook |
-| Known bug | [todo.md](todo.md) |
-| Feature request | GitHub Issues |
-| General question | GitHub Discussions |
-
----
-
-## 🔄 Update Frequency
-
-| Workbook | Status | Last Updated | Next Update |
-|----------|--------|--------------|-------------|
-| Ind AS 109 | Stable | Nov 2024 | Q1 2025 |
-| Ind AS 116 | Stable | Nov 2024 | Q1 2025 |
-| Ind AS 115 | Stable | Nov 2024 | Q2 2025 |
-| Deferred Tax | Issues | Nov 2024 | Q1 2025 (fix) |
-| TDS Compliance | Stable | Nov 2024 | Q2 2025 |
-| Fixed Assets | Stable | Nov 2024 | Q2 2025 |
-| ICFR P2P | Stable | Nov 2024 | Q2 2025 |
-
----
-
-## 📊 Workbook Stats
-
-| Workbook | Sheets | Formulas | Input Cells | Complexity |
-|----------|--------|----------|-------------|------------|
-| Ind AS 109 | 12 | 200+ | 50+ | Very High |
-| Ind AS 116 | 14 | 180+ | 40+ | High |
-| Ind AS 115 | 16 | 150+ | 60+ | High |
-| Deferred Tax | 12 | 120+ | 30+ | Medium |
-| TDS Compliance | 12 | 250+ | 100+ | Medium |
-| Fixed Assets | 14 | 80+ | 50+ | Medium |
-| ICFR P2P | 13 | 50+ | 80+ | Medium |
-
----
-
-**Keep this guide handy for quick reference!**
-
-*Last updated: November 2025*
+- **Current Version**: 1.0.0
+- **Last Updated**: November 2025
+- **Build System**: Node.js + npm
+- **Target Platform**: Google Apps Script

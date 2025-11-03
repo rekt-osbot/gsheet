@@ -13,24 +13,26 @@
  * 8. Wait for completion message
  */
 
-// Global styling constants
-const COLORS = {
-  header: '#1f4e78',
-  subheader: '#4472c4',
-  sectionHeader: '#5b9bd5',
-  totalRow: '#d9e2f3',
-  referenceCell: '#fff2cc',
-  dataEntry: '#ffffff',
-  alternateRow: '#f2f2f2',
-  preparer: '#e7e6e6',
-  reviewer: '#c6e0b4'
-};
+// ============================================================================
+// WORKBOOK-SPECIFIC CONFIGURATION
+// ============================================================================
 
-const FONT_SIZES = {
-  title: 14,
-  header: 11,
-  normal: 10,
-  small: 9
+// Column mappings for Fixed Assets workbook
+const COLS = {
+  ROLL_FORWARD: {
+    ASSET_CLASS: 1,
+    OPENING_GROSS: 2,
+    ADDITIONS: 3,
+    DISPOSALS: 4,
+    TRANSFERS: 5,
+    CLOSING_GROSS: 6,
+    OPENING_ACCUM_DEP: 7,
+    DEPRECIATION: 8,
+    DISPOSAL_DEP: 9,
+    CLOSING_ACCUM_DEP: 10,
+    OPENING_NBV: 11,
+    CLOSING_NBV: 12
+  }
 };
 
 /**
@@ -65,6 +67,9 @@ function setupFixedAssetsWorkpaper() {
   }
   
   const ss = SpreadsheetApp.getActiveSpreadsheet();
+  
+  // Set workbook type for menu detection
+  setWorkbookType('FIXED_ASSETS');
   
   // Show progress
   ui.alert('Setting up workpaper...', 'This may take 15-30 seconds. Please wait.', ui.ButtonSet.OK);

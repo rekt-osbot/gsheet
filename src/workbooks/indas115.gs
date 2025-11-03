@@ -31,6 +31,9 @@
 function buildIndAS115Workpaper() {
   const ss = SpreadsheetApp.getActiveSpreadsheet();
   
+  // Set workbook type for menu detection
+  setWorkbookType('INDAS115');
+  
   // Show progress to user
   SpreadsheetApp.getActiveSpreadsheet().toast('Building Ind AS 115 Workpaper...', 'Progress', -1);
   
@@ -62,20 +65,42 @@ function buildIndAS115Workpaper() {
   SpreadsheetApp.getActiveSpreadsheet().toast('✓ Ind AS 115 Workpaper Complete!', 'Success', 5);
 }
 
-/**
- * Clear existing sheets (optional safety measure)
- */
-function clearExistingSheets(ss) {
-  const sheetsToKeep = [];
-  const allSheets = ss.getSheets();
-  
-  // Keep at least one sheet to avoid errors
-  if (allSheets.length > 1) {
-    for (let i = allSheets.length - 1; i > 0; i--) {
-      ss.deleteSheet(allSheets[i]);
-    }
+// ============================================================================
+// WORKBOOK-SPECIFIC CONFIGURATION
+// ============================================================================
+
+// Column mappings for Ind AS 115 workbook
+const COLS = {
+  CONTRACT_REGISTER: {
+    SR_NO: 1,
+    CONTRACT_ID: 2,
+    CUSTOMER: 3,
+    CONTRACT_DATE: 4,
+    DESCRIPTION: 5,
+    CONTRACT_VALUE: 6,
+    GST_AMOUNT: 7,
+    TOTAL_VALUE: 8,
+    START_DATE: 9,
+    END_DATE: 10,
+    DURATION: 11,
+    PATTERN: 12,
+    NUM_PO: 13,
+    STATUS: 14,
+    NOTES: 15
+  },
+  REVENUE_RECOGNITION: {
+    SR_NO: 1,
+    CONTRACT_ID: 2,
+    CUSTOMER: 3,
+    STEP1_IDENTIFIED: 4,
+    STEP2_PO: 5,
+    STEP3_PRICE: 6,
+    STEP4_ALLOCATED: 7,
+    STEP5_RECOGNIZED: 8,
+    CALC_BASIS: 9,
+    PROGRESS_PCT: 10
   }
-}
+};
 
 /**
  * ============================================================================

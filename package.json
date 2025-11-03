@@ -1,0 +1,19 @@
+{
+  "name": "gsheet-audit-workpapers",
+  "version": "1.0.1",
+  "description": "IGAAP-Ind AS Audit Workpaper Builder - Modular Development with Build System",
+  "main": "build.js",
+  "scripts": {
+    "build": "node build.js",
+    "watch": "node build.js --watch"
+  },
+  "keywords": [
+    "audit",
+    "google-sheets",
+    "apps-script",
+    "ind-as",
+    "igaap"
+  ],
+  "author": "IGAAP-Ind AS Audit Builder",
+  "license": "MIT"
+}

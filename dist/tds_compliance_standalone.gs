@@ -1,4 +1,1312 @@
 /**
+ * @name tds_compliance
+ * @version 1.0.1
+ * @built 2025-11-03T11:45:47.364Z
+ * @description Standalone script. Do not edit directly - edit source files in src/ folder.
+ * 
+ * This file is auto-generated from:
+ * - Common utilities (src/common/*.gs)
+ * - Workbook-specific code (src/workbooks/tds_compliance.gs)
+ * 
+ * To make changes:
+ * 1. Edit source files in src/ folder
+ * 2. Run: npm run build
+ * 3. Copy the generated file from dist/ folder to Google Apps Script
+ */
+
+/**
+ * ════════════════════════════════════════════════════════════════════════════
+ * COMMON UTILITY FUNCTIONS
+ * ════════════════════════════════════════════════════════════════════════════
+ * Shared utility functions used across all workbooks
+ */
+
+// ============================================================================
+// SHEET MANAGEMENT
+// ============================================================================
+
+function clearExistingSheets(ss) {
+  const sheets = ss.getSheets();
+  
+  // If there's only one sheet, just clear it instead of deleting
+  if (sheets.length === 1) {
+    sheets[0].clear();
+    sheets[0].setName('_temp_sheet_');
+    return;
+  }
+  
+  // Keep at least one sheet - delete all except the last one
+  for (let i = sheets.length - 1; i >= 0; i--) {
+    if (sheets.length > 1) {  // Always keep at least one sheet
+      ss.deleteSheet(sheets[i]);
+    }
+  }
+  
+  // Rename the remaining sheet to a temporary name
+  if (ss.getSheets().length === 1) {
+    ss.getSheets()[0].setName('_temp_sheet_');
+  }
+}
+
+// ============================================================================
+// MENU CREATION
+// ============================================================================
+
+function onOpen() {
+  const ui = SpreadsheetApp.getUi();
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  
+  // Try to get workbook type from script properties first (most reliable)
+  const scriptProps = PropertiesService.getScriptProperties();
+  let workbookType = scriptProps.getProperty('WORKBOOK_TYPE');
+  
+  // Fallback: detect from spreadsheet name if property not set
+  if (!workbookType) {
+    const sheetName = ss.getName();
+    if (sheetName.includes('Deferred Tax') || sheetName.includes('DT')) {
+      workbookType = 'DEFERRED_TAX';
+    } else if (sheetName.includes('109')) {
+      workbookType = 'INDAS109';
+    } else if (sheetName.includes('115')) {
+      workbookType = 'INDAS115';
+    } else if (sheetName.includes('116')) {
+      workbookType = 'INDAS116';
+    } else if (sheetName.includes('Fixed Asset') || sheetName.includes('FAR')) {
+      workbookType = 'FIXED_ASSETS';
+    } else if (sheetName.includes('TDS')) {
+      workbookType = 'TDS_COMPLIANCE';
+    } else if (sheetName.includes('P2P') || sheetName.includes('ICFR')) {
+      workbookType = 'ICFR_P2P';
+    }
+  }
+  
+  // Map workbook types to menu configurations
+  const workbookConfig = {
+    'DEFERRED_TAX': { menuName: 'Deferred Tax Tools', functionName: 'createDeferredTaxWorkbook' },
+    'INDAS109': { menuName: 'Ind AS 109 Tools', functionName: 'createIndAS109WorkingPapers' },
+    'INDAS115': { menuName: 'Ind AS 115 Tools', functionName: 'buildIndAS115Workpaper' },
+    'INDAS116': { menuName: 'Ind AS 116 Tools', functionName: 'createIndAS116Workbook' },
+    'FIXED_ASSETS': { menuName: 'Fixed Assets Tools', functionName: 'setupFixedAssetsWorkpaper' },
+    'TDS_COMPLIANCE': { menuName: 'TDS Tools', functionName: 'createTDSWorkbook' },
+    'ICFR_P2P': { menuName: 'ICFR Tools', functionName: 'createICFRP2PWorkbook' }
+  };
+  
+  const config = workbookConfig[workbookType] || { menuName: 'Audit Tools', functionName: 'createWorkbook' };
+  
+  ui.createMenu(config.menuName)
+    .addItem('Create/Refresh Workbook', config.functionName)
+    .addSeparator()
+    .addItem('About', 'showAbout')
+    .addToUi();
+}
+
+/**
+ * Set the workbook type property - call this from each workbook creation function
+ */
+function setWorkbookType(type) {
+  PropertiesService.getScriptProperties().setProperty('WORKBOOK_TYPE', type);
+}
+
+function showAbout() {
+  const ui = SpreadsheetApp.getUi();
+  ui.alert(
+    'IGAAP-Ind AS Audit Builder',
+    'Automated audit workpaper generation tool\n\n' +
+    'Version: 1.0\n' +
+    'Created: November 2025\n\n' +
+    'This tool generates comprehensive audit workpapers compliant with ' +
+    'Indian Accounting Standards (Ind AS) and IGAAP.',
+    ui.ButtonSet.OK
+  );
+}
+
+
+/**
+ * ════════════════════════════════════════════════════════════════════════════
+ * COMMON FORMATTING UTILITIES
+ * ════════════════════════════════════════════════════════════════════════════
+ * Shared color schemes and formatting functions used across all workbooks
+ */
+
+// ============================================================================
+// COLOR SCHEME
+// ============================================================================
+
+const COLORS = {
+  HEADER_BG: "#1a237e",           // Dark blue
+  HEADER_TEXT: "#ffffff",          // White
+  SUBHEADER_BG: "#3949ab",        // Medium blue
+  INPUT_BG: "#fff9c4",            // Light yellow
+  INPUT_ALT_BG: "#b3e5fc",        // Light blue
+  CALC_BG: "#e8eaf6",             // Light purple-grey
+  SECTION_BG: "#c5cae9",          // Light blue-grey
+  TOTAL_BG: "#ffccbc",            // Light orange
+  GRAND_TOTAL_BG: "#ff8a65",      // Orange
+  WARNING_BG: "#ffebee",          // Light red
+  SUCCESS_BG: "#c8e6c9",          // Light green
+  INFO_BG: "#e1f5fe",             // Very light blue
+  BORDER_COLOR: "#757575"         // Grey
+};
+
+const FONT_SIZES = {
+  title: 14,
+  header: 11,
+  normal: 10,
+  small: 9
+};
+
+// ============================================================================
+// FORMATTING HELPER FUNCTIONS
+// ============================================================================
+
+function formatHeader(sheet, row, startCol, endCol, text, bgColor = '#1a237e') {
+  const range = sheet.getRange(row, startCol, 1, endCol - startCol + 1);
+  range.merge()
+       .setValue(text)
+       .setBackground(bgColor)
+       .setFontColor('#ffffff')
+       .setFontWeight('bold')
+       .setFontSize(12)
+       .setHorizontalAlignment('center')
+       .setVerticalAlignment('middle');
+  sheet.setRowHeight(row, 35);
+}
+
+function formatSubHeader(sheet, row, startCol, values, bgColor = '#283593') {
+  values.forEach((value, index) => {
+    sheet.getRange(row, startCol + index)
+         .setValue(value)
+         .setBackground(bgColor)
+         .setFontColor('#ffffff')
+         .setFontWeight('bold')
+         .setHorizontalAlignment('center')
+         .setVerticalAlignment('middle')
+         .setWrap(true);
+  });
+  sheet.setRowHeight(row, 30);
+}
+
+function formatInputCell(range, bgColor = '#e3f2fd') {
+  range.setBackground(bgColor)
+       .setBorder(true, true, true, true, true, true, '#1976d2', SpreadsheetApp.BorderStyle.SOLID_MEDIUM);
+}
+
+function formatCurrency(range) {
+  range.setNumberFormat('₹#,##0.00');
+}
+
+function formatPercentage(range) {
+  range.setNumberFormat('0.00%');
+}
+
+function formatDate(range) {
+  range.setNumberFormat('dd-mmm-yyyy');
+}
+
+function setColumnWidths(sheet, widths) {
+  widths.forEach((width, index) => {
+    sheet.setColumnWidth(index + 1, width);
+  });
+}
+
+function protectSheet(sheet, warningOnly = true) {
+  const protection = sheet.protect();
+  if (warningOnly) {
+    protection.setWarningOnly(true);
+  }
+}
+
+
+/**
+ * ════════════════════════════════════════════════════════════════════════════
+ * DATA VALIDATION HELPERS
+ * ════════════════════════════════════════════════════════════════════════════
+ * Common data validation builders to ensure consistency
+ */
+
+// ============================================================================
+// COMMON VALIDATION LISTS
+// ============================================================================
+
+const VALIDATION_LISTS = {
+  YES_NO: ['Yes', 'No'],
+  YES_NO_NA: ['Yes', 'No', 'N/A'],
+  PASS_FAIL: ['Pass', 'Fail'],
+  PASS_FAIL_NOTE: ['Pass', 'Fail', 'Note'],
+  PASS_FAIL_NA: ['Pass', 'Fail', 'N/A'],
+  CHECK_MARKS: ['✓', '✗', 'N/A'],
+  STATUS_ACTIVE: ['Active', 'Inactive', 'Pending'],
+  STATUS_COMPLETE: ['Complete', 'In Progress', 'Not Started', 'N/A'],
+  STATUS_OPEN: ['Open', 'Closed', 'Pending', 'Noted'],
+  EFFECTIVENESS: ['Effective', 'Partially Effective', 'Ineffective', 'Not Tested'],
+  OPERATING_EFFECTIVENESS: ['Operating Effectively', 'Operating Partially', 'Not Operating Effectively', 'Not Tested'],
+  CONDITION_PHYSICAL: ['Good', 'Fair', 'Poor', 'N/A'],
+  LOCATION_STATUS: ['✓ Yes', '✗ No', 'Unable to locate'],
+  
+  // Ind AS specific
+  SPPI_TEST: ['Pass', 'Fail', 'Not Applicable'],
+  BUSINESS_MODEL: ['Hold to Collect', 'Hold to Collect & Sell', 'Other (Trading)'],
+  CREDIT_RATING: ['AAA', 'AA+', 'AA', 'AA-', 'A+', 'A', 'A-', 'BBB+', 'BBB', 'BBB-', 'BB', 'B', 'C', 'D', 'Not Rated'],
+  SECURITY_TYPE: ['Secured', 'Unsecured', 'Equity', 'Sovereign', 'Units', 'Not Applicable'],
+  INSTRUMENT_TYPE: ['Loan', 'Bond', 'Debenture', 'Equity', 'Mutual Fund', 'G-Sec', 'T-Bill', 'Receivable', 'Derivative', 'Other'],
+  COUPON_FREQUENCY: ['Annual', 'Semi-Annual', 'Quarterly', 'Monthly', 'Not Applicable'],
+  PAYMENT_FREQUENCY: ['Monthly', 'Quarterly', 'Half-Yearly', 'Annual'],
+  REVENUE_PATTERN: ['Point in Time', 'Over Time', 'Mixed'],
+  CONTRACT_STATUS: ['Active', 'Completed', 'Terminated', 'On Hold'],
+  LEASE_CATEGORY: ['Property', 'Vehicles', 'Equipment', 'IT Equipment', 'Other'],
+  EXEMPTION_TYPE: ['No', 'Low Value', 'Short-term', 'Both'],
+  
+  // TDS specific
+  ENTITY_TYPE: ['Company', 'Individual', 'HUF', 'Firm', 'AOP/BOI', 'Trust', 'Government', 'Non-Resident'],
+  TDS_QUARTER: ['Q1', 'Q2', 'Q3', 'Q4'],
+  TDS_RETURN_TYPE: ['24Q (Salary)', '26Q (Non-Salary)'],
+  PAYMENT_STATUS: ['Paid', 'Pending', 'Late Payment'],
+  RECONCILIATION_STATUS: ['Matched', 'Variance', 'Pending'],
+  
+  // ICFR specific
+  RISK_CATEGORY: ['High', 'Medium', 'Low'],
+  CONTROL_TYPE: ['Preventive', 'Detective', 'Corrective'],
+  CONTROL_FREQUENCY: ['Each Transaction', 'Daily', 'Weekly', 'Monthly', 'Quarterly', 'Annually'],
+  TOD_TOE_STATUS: ['PASS', 'REVIEW', 'FAIL'],
+  
+  // Fixed Assets specific
+  REPAIR_TYPE: ['Repair', 'Improvement', 'Betterment', 'Other'],
+  CAPITALIZATION_DECISION: ['Capitalize', 'Expense', 'Review Required']
+};
+
+// ============================================================================
+// VALIDATION BUILDERS
+// ============================================================================
+
+/**
+ * Create a simple dropdown validation from a list
+ * @param {Array<string>} values - List of valid values
+ * @param {boolean} allowInvalid - Whether to allow invalid values (default: false)
+ * @param {string} helpText - Optional help text
+ * @returns {DataValidation}
+ */
+function createDropdownValidation(values, allowInvalid = false, helpText = '') {
+  const validation = SpreadsheetApp.newDataValidation()
+    .requireValueInList(values, true)
+    .setAllowInvalid(allowInvalid);
+  
+  if (helpText) {
+    validation.setHelpText(helpText);
+  }
+  
+  return validation.build();
+}
+
+/**
+ * Create a Yes/No dropdown validation
+ * @param {string} helpText - Optional help text
+ * @returns {DataValidation}
+ */
+function createYesNoValidation(helpText = '') {
+  return createDropdownValidation(VALIDATION_LISTS.YES_NO, false, helpText);
+}
+
+/**
+ * Create a date validation
+ * @param {string} helpText - Optional help text
+ * @returns {DataValidation}
+ */
+function createDateValidation(helpText = 'Enter date in DD-MMM-YYYY format') {
+  return SpreadsheetApp.newDataValidation()
+    .requireDate()
+    .setAllowInvalid(false)
+    .setHelpText(helpText)
+    .build();
+}
+
+/**
+ * Create a number validation with optional range
+ * @param {number} min - Minimum value (optional)
+ * @param {number} max - Maximum value (optional)
+ * @param {string} helpText - Optional help text
+ * @returns {DataValidation}
+ */
+function createNumberValidation(min = null, max = null, helpText = '') {
+  let validation = SpreadsheetApp.newDataValidation();
+  
+  if (min !== null && max !== null) {
+    validation = validation.requireNumberBetween(min, max);
+    helpText = helpText || `Enter a number between ${min} and ${max}`;
+  } else if (min !== null) {
+    validation = validation.requireNumberGreaterThanOrEqualTo(min);
+    helpText = helpText || `Enter a number >= ${min}`;
+  } else if (max !== null) {
+    validation = validation.requireNumberLessThanOrEqualTo(max);
+    helpText = helpText || `Enter a number <= ${max}`;
+  } else {
+    validation = validation.requireNumberBetween(-999999999, 999999999);
+  }
+  
+  return validation
+    .setAllowInvalid(false)
+    .setHelpText(helpText)
+    .build();
+}
+
+/**
+ * Create a percentage validation (0-100%)
+ * @param {string} helpText - Optional help text
+ * @returns {DataValidation}
+ */
+function createPercentageValidation(helpText = 'Enter percentage (0-100%)') {
+  return createNumberValidation(0, 1, helpText);
+}
+
+/**
+ * Apply validation to a range using a predefined list
+ * @param {Range} range - The range to apply validation to
+ * @param {string} listName - Name of the validation list from VALIDATION_LISTS
+ * @param {string} helpText - Optional help text
+ */
+function applyValidationList(range, listName, helpText = '') {
+  const values = VALIDATION_LISTS[listName];
+  if (!values) {
+    Logger.log('Warning: Validation list "' + listName + '" not found');
+    return;
+  }
+  
+  const validation = createDropdownValidation(values, false, helpText);
+  range.setDataValidation(validation);
+}
+
+/**
+ * Apply multiple validations at once
+ * @param {Sheet} sheet - The sheet to apply validations to
+ * @param {Array<Object>} validations - Array of {range, type, options}
+ * 
+ * Example:
+ * applyMultipleValidations(sheet, [
+ *   {range: 'B5:B10', type: 'YES_NO'},
+ *   {range: 'C5:C10', type: 'date'},
+ *   {range: 'D5:D10', type: 'number', min: 0, max: 100}
+ * ]);
+ */
+function applyMultipleValidations(sheet, validations) {
+  validations.forEach(v => {
+    const range = typeof v.range === 'string' ? sheet.getRange(v.range) : v.range;
+    
+    if (VALIDATION_LISTS[v.type]) {
+      // Predefined list
+      applyValidationList(range, v.type, v.helpText || '');
+    } else if (v.type === 'date') {
+      range.setDataValidation(createDateValidation(v.helpText || ''));
+    } else if (v.type === 'number') {
+      range.setDataValidation(createNumberValidation(v.min, v.max, v.helpText || ''));
+    } else if (v.type === 'percentage') {
+      range.setDataValidation(createPercentageValidation(v.helpText || ''));
+    } else if (v.type === 'custom' && v.values) {
+      range.setDataValidation(createDropdownValidation(v.values, v.allowInvalid || false, v.helpText || ''));
+    }
+  });
+}
+
+// ============================================================================
+// COMMON VALIDATION PATTERNS
+// ============================================================================
+
+/**
+ * Apply standard Ind AS 109 instrument validations
+ * @param {Sheet} sheet - The sheet to apply validations to
+ * @param {string} startRow - Starting row (e.g., '3')
+ * @param {string} endRow - Ending row (e.g., '250')
+ */
+function applyIndAS109Validations(sheet, startRow, endRow) {
+  applyMultipleValidations(sheet, [
+    {range: `C${startRow}:C${endRow}`, type: 'INSTRUMENT_TYPE'},
+    {range: `L${startRow}:L${endRow}`, type: 'SECURITY_TYPE'},
+    {range: `M${startRow}:M${endRow}`, type: 'CREDIT_RATING'},
+    {range: `O${startRow}:O${endRow}`, type: 'SPPI_TEST'},
+    {range: `P${startRow}:P${endRow}`, type: 'BUSINESS_MODEL'},
+    {range: `Q${startRow}:Q${endRow}`, type: 'YES_NO'},
+    {range: `R${startRow}:R${endRow}`, type: 'YES_NO'},
+    {range: `S${startRow}:S${endRow}`, type: 'COUPON_FREQUENCY'},
+    {range: `T${startRow}:T${endRow}`, type: 'YES_NO_NA'}
+  ]);
+}
+
+/**
+ * Apply standard Ind AS 115 contract validations
+ * @param {Sheet} sheet - The sheet to apply validations to
+ * @param {string} startRow - Starting row
+ * @param {string} endRow - Ending row
+ */
+function applyIndAS115Validations(sheet, startRow, endRow) {
+  applyMultipleValidations(sheet, [
+    {range: `L${startRow}:L${endRow}`, type: 'REVENUE_PATTERN'},
+    {range: `N${startRow}:N${endRow}`, type: 'CONTRACT_STATUS'}
+  ]);
+}
+
+/**
+ * Apply standard Ind AS 116 lease validations
+ * @param {Sheet} sheet - The sheet to apply validations to
+ * @param {string} startRow - Starting row
+ * @param {string} endRow - Ending row
+ */
+function applyIndAS116Validations(sheet, startRow, endRow) {
+  applyMultipleValidations(sheet, [
+    {range: `D${startRow}:D${endRow}`, type: 'LEASE_CATEGORY'},
+    {range: `I${startRow}:I${endRow}`, type: 'PAYMENT_FREQUENCY'},
+    {range: `J${startRow}:J${endRow}`, type: 'EXEMPTION_TYPE'}
+  ]);
+}
+
+/**
+ * Apply standard TDS validations
+ * @param {Sheet} sheet - The sheet to apply validations to
+ * @param {string} startRow - Starting row
+ * @param {string} endRow - Ending row
+ */
+function applyTDSValidations(sheet, startRow, endRow) {
+  applyMultipleValidations(sheet, [
+    {range: `E${startRow}:E${endRow}`, type: 'ENTITY_TYPE'},
+    {range: `K${startRow}:K${endRow}`, type: 'YES_NO'}
+  ]);
+}
+
+
+/**
+ * ════════════════════════════════════════════════════════════════════════════
+ * CONDITIONAL FORMATTING HELPERS
+ * ════════════════════════════════════════════════════════════════════════════
+ * Common conditional formatting rules for consistency
+ */
+
+// ============================================================================
+// COLOR DEFINITIONS FOR CONDITIONAL FORMATTING
+// ============================================================================
+
+const CF_COLORS = {
+  GREEN: '#c8e6c9',      // Success/Pass/Positive
+  LIGHT_GREEN: '#d9ead3',
+  YELLOW: '#fff9c4',     // Warning/Review/Partial
+  LIGHT_YELLOW: '#fff3cd',
+  RED: '#ffcdd2',        // Error/Fail/Negative
+  LIGHT_RED: '#f4cccc',
+  DARK_RED: '#cc0000',
+  BLUE: '#bbdefb',       // Info
+  LIGHT_BLUE: '#e1f5fe',
+  PURPLE: '#e1bee7',     // Special
+  ORANGE: '#ffe0b2'      // Alert
+};
+
+// ============================================================================
+// RULE BUILDERS
+// ============================================================================
+
+/**
+ * Create a text equals rule
+ * @param {string} text - Text to match
+ * @param {string} backgroundColor - Background color
+ * @param {string} fontColor - Font color (optional)
+ * @returns {ConditionalFormatRule}
+ */
+function createTextEqualsRule(text, backgroundColor, fontColor = null) {
+  const rule = SpreadsheetApp.newConditionalFormatRule()
+    .whenTextEqualTo(text)
+    .setBackground(backgroundColor);
+  
+  if (fontColor) {
+    rule.setFontColor(fontColor);
+  }
+  
+  return rule.build();
+}
+
+/**
+ * Create a text contains rule
+ * @param {string} text - Text to search for
+ * @param {string} backgroundColor - Background color
+ * @param {string} fontColor - Font color (optional)
+ * @returns {ConditionalFormatRule}
+ */
+function createTextContainsRule(text, backgroundColor, fontColor = null) {
+  const rule = SpreadsheetApp.newConditionalFormatRule()
+    .whenTextContains(text)
+    .setBackground(backgroundColor);
+  
+  if (fontColor) {
+    rule.setFontColor(fontColor);
+  }
+  
+  return rule.build();
+}
+
+/**
+ * Create a number comparison rule
+ * @param {string} comparison - 'greater', 'less', 'equal', 'notEqual', 'between', 'notBetween'
+ * @param {number} value1 - First value
+ * @param {number} value2 - Second value (for between/notBetween)
+ * @param {string} backgroundColor - Background color
+ * @param {string} fontColor - Font color (optional)
+ * @returns {ConditionalFormatRule}
+ */
+function createNumberRule(comparison, value1, value2, backgroundColor, fontColor = null) {
+  let rule = SpreadsheetApp.newConditionalFormatRule();
+  
+  switch(comparison) {
+    case 'greater':
+      rule = rule.whenNumberGreaterThan(value1);
+      break;
+    case 'less':
+      rule = rule.whenNumberLessThan(value1);
+      break;
+    case 'equal':
+      rule = rule.whenNumberEqualTo(value1);
+      break;
+    case 'notEqual':
+      rule = rule.whenNumberNotEqualTo(value1);
+      break;
+    case 'between':
+      rule = rule.whenNumberBetween(value1, value2);
+      break;
+    case 'notBetween':
+      rule = rule.whenNumberNotBetween(value1, value2);
+      break;
+  }
+  
+  rule = rule.setBackground(backgroundColor);
+  
+  if (fontColor) {
+    rule.setFontColor(fontColor);
+  }
+  
+  return rule.build();
+}
+
+/**
+ * Create a formula-based rule
+ * @param {string} formula - Formula to evaluate (e.g., '=$A1>0')
+ * @param {string} backgroundColor - Background color
+ * @param {string} fontColor - Font color (optional)
+ * @returns {ConditionalFormatRule}
+ */
+function createFormulaRule(formula, backgroundColor, fontColor = null) {
+  const rule = SpreadsheetApp.newConditionalFormatRule()
+    .whenFormulaSatisfied(formula)
+    .setBackground(backgroundColor);
+  
+  if (fontColor) {
+    rule.setFontColor(fontColor);
+  }
+  
+  return rule.build();
+}
+
+// ============================================================================
+// COMMON RULE SETS
+// ============================================================================
+
+/**
+ * Apply Pass/Fail conditional formatting
+ * @param {Range} range - Range to apply formatting to
+ * @returns {Array<ConditionalFormatRule>}
+ */
+function createPassFailRules(range) {
+  const passRule = createTextContainsRule('Pass', CF_COLORS.GREEN);
+  const failRule = createTextContainsRule('FAIL', CF_COLORS.RED);
+  
+  passRule.setRanges([range]);
+  failRule.setRanges([range]);
+  
+  return [passRule, failRule];
+}
+
+/**
+ * Apply Pass/Review/Fail conditional formatting
+ * @param {Range} range - Range to apply formatting to
+ * @returns {Array<ConditionalFormatRule>}
+ */
+function createPassReviewFailRules(range) {
+  const passRule = createTextEqualsRule('PASS', CF_COLORS.GREEN);
+  const reviewRule = createTextEqualsRule('REVIEW', CF_COLORS.YELLOW);
+  const failRule = createTextEqualsRule('FAIL', CF_COLORS.RED);
+  
+  passRule.setRanges([range]);
+  reviewRule.setRanges([range]);
+  failRule.setRanges([range]);
+  
+  return [passRule, reviewRule, failRule];
+}
+
+/**
+ * Apply status conditional formatting (Active/Inactive/Pending)
+ * @param {Range} range - Range to apply formatting to
+ * @returns {Array<ConditionalFormatRule>}
+ */
+function createStatusRules(range) {
+  const activeRule = createTextEqualsRule('Active', CF_COLORS.LIGHT_GREEN);
+  const pendingRule = createTextEqualsRule('Pending', CF_COLORS.LIGHT_YELLOW);
+  const inactiveRule = createTextEqualsRule('Inactive', CF_COLORS.LIGHT_RED);
+  
+  activeRule.setRanges([range]);
+  pendingRule.setRanges([range]);
+  inactiveRule.setRanges([range]);
+  
+  return [activeRule, pendingRule, inactiveRule];
+}
+
+/**
+ * Apply effectiveness conditional formatting
+ * @param {Range} range - Range to apply formatting to
+ * @returns {Array<ConditionalFormatRule>}
+ */
+function createEffectivenessRules(range) {
+  const effectiveRule = createTextEqualsRule('Effective', CF_COLORS.GREEN);
+  const partialRule = createTextEqualsRule('Partially Effective', CF_COLORS.YELLOW);
+  const ineffectiveRule = createTextEqualsRule('Ineffective', CF_COLORS.RED);
+  
+  effectiveRule.setRanges([range]);
+  partialRule.setRanges([range]);
+  ineffectiveRule.setRanges([range]);
+  
+  return [effectiveRule, partialRule, ineffectiveRule];
+}
+
+/**
+ * Apply operating effectiveness conditional formatting
+ * @param {Range} range - Range to apply formatting to
+ * @returns {Array<ConditionalFormatRule>}
+ */
+function createOperatingEffectivenessRules(range) {
+  const effectiveRule = createTextEqualsRule('Operating Effectively', CF_COLORS.GREEN);
+  const partialRule = createTextEqualsRule('Operating Partially', CF_COLORS.YELLOW);
+  const notEffectiveRule = createTextEqualsRule('Not Operating Effectively', CF_COLORS.RED);
+  
+  effectiveRule.setRanges([range]);
+  partialRule.setRanges([range]);
+  notEffectiveRule.setRanges([range]);
+  
+  return [effectiveRule, partialRule, notEffectiveRule];
+}
+
+/**
+ * Apply positive/negative number formatting
+ * @param {Range} range - Range to apply formatting to
+ * @returns {Array<ConditionalFormatRule>}
+ */
+function createPositiveNegativeRules(range) {
+  const positiveRule = createNumberRule('greater', 0, null, CF_COLORS.GREEN);
+  const negativeRule = createNumberRule('less', 0, null, CF_COLORS.RED);
+  
+  positiveRule.setRanges([range]);
+  negativeRule.setRanges([range]);
+  
+  return [positiveRule, negativeRule];
+}
+
+/**
+ * Apply variance highlighting (non-zero values)
+ * @param {Range} range - Range to apply formatting to
+ * @param {number} tolerance - Tolerance for variance (default: 0)
+ * @returns {Array<ConditionalFormatRule>}
+ */
+function createVarianceRules(range, tolerance = 0) {
+  const varianceRule = createNumberRule('notBetween', -tolerance, tolerance, CF_COLORS.RED);
+  varianceRule.setRanges([range]);
+  
+  return [varianceRule];
+}
+
+/**
+ * Apply balance check formatting (should be zero)
+ * @param {Range} range - Range to apply formatting to
+ * @param {number} tolerance - Tolerance (default: 0.01)
+ * @returns {Array<ConditionalFormatRule>}
+ */
+function createBalanceCheckRules(range, tolerance = 0.01) {
+  const balancedRule = createNumberRule('between', -tolerance, tolerance, CF_COLORS.GREEN);
+  const unbalancedRule = createNumberRule('notBetween', -tolerance, tolerance, CF_COLORS.DARK_RED, '#ffffff');
+  
+  balancedRule.setRanges([range]);
+  unbalancedRule.setRanges([range]);
+  
+  return [balancedRule, unbalancedRule];
+}
+
+// ============================================================================
+// IND AS SPECIFIC RULES
+// ============================================================================
+
+/**
+ * Apply Ind AS 109 classification color coding
+ * @param {Range} range - Range to apply formatting to
+ * @returns {Array<ConditionalFormatRule>}
+ */
+function createIndAS109ClassificationRules(range) {
+  const acRule = createTextEqualsRule('Amortized Cost', CF_COLORS.GREEN);
+  const fvociRule = createTextEqualsRule('FVOCI', CF_COLORS.BLUE);
+  const fvtplRule = createTextEqualsRule('FVTPL', CF_COLORS.ORANGE);
+  
+  acRule.setRanges([range]);
+  fvociRule.setRanges([range]);
+  fvtplRule.setRanges([range]);
+  
+  return [acRule, fvociRule, fvtplRule];
+}
+
+/**
+ * Apply Ind AS 109 ECL stage color coding
+ * @param {Range} range - Range to apply formatting to
+ * @returns {Array<ConditionalFormatRule>}
+ */
+function createECLStageRules(range) {
+  const stage1Rule = createTextEqualsRule('Stage 1', CF_COLORS.GREEN);
+  const stage2Rule = createTextEqualsRule('Stage 2', CF_COLORS.YELLOW);
+  const stage3Rule = createTextEqualsRule('Stage 3', CF_COLORS.RED);
+  const simplifiedRule = createTextEqualsRule('Simplified (Lifetime)', CF_COLORS.PURPLE);
+  
+  stage1Rule.setRanges([range]);
+  stage2Rule.setRanges([range]);
+  stage3Rule.setRanges([range]);
+  simplifiedRule.setRanges([range]);
+  
+  return [stage1Rule, stage2Rule, stage3Rule, simplifiedRule];
+}
+
+/**
+ * Apply TDS payment status color coding
+ * @param {Range} range - Range to apply formatting to
+ * @returns {Array<ConditionalFormatRule>}
+ */
+function createTDSPaymentStatusRules(range) {
+  const paidRule = createTextEqualsRule('Paid', CF_COLORS.LIGHT_GREEN);
+  const pendingRule = createTextEqualsRule('Pending', CF_COLORS.LIGHT_YELLOW);
+  const lateRule = createTextEqualsRule('Late Payment', CF_COLORS.LIGHT_RED);
+  
+  paidRule.setRanges([range]);
+  pendingRule.setRanges([range]);
+  lateRule.setRanges([range]);
+  
+  return [paidRule, pendingRule, lateRule];
+}
+
+/**
+ * Apply TDS reconciliation status color coding
+ * @param {Range} range - Range to apply formatting to
+ * @returns {Array<ConditionalFormatRule>}
+ */
+function createTDSReconciliationRules(range) {
+  const matchedRule = createTextEqualsRule('Matched', CF_COLORS.LIGHT_GREEN);
+  const varianceRule = createTextEqualsRule('Variance', CF_COLORS.LIGHT_RED);
+  
+  matchedRule.setRanges([range]);
+  varianceRule.setRanges([range]);
+  
+  return [matchedRule, varianceRule];
+}
+
+// ============================================================================
+// UTILITY FUNCTIONS
+// ============================================================================
+
+/**
+ * Apply multiple conditional format rules to a sheet
+ * @param {Sheet} sheet - The sheet to apply rules to
+ * @param {Array<ConditionalFormatRule>} newRules - Array of rules to add
+ * @param {boolean} clearExisting - Whether to clear existing rules (default: false)
+ */
+function applyConditionalFormatRules(sheet, newRules, clearExisting = false) {
+  const existingRules = clearExisting ? [] : sheet.getConditionalFormatRules();
+  sheet.setConditionalFormatRules(existingRules.concat(newRules));
+}
+
+/**
+ * Apply standard audit workpaper conditional formatting
+ * @param {Sheet} sheet - The sheet to apply formatting to
+ * @param {Object} config - Configuration object with ranges
+ * 
+ * Example config:
+ * {
+ *   passFailRange: 'E5:E50',
+ *   statusRange: 'F5:F50',
+ *   varianceRange: 'G5:G50'
+ * }
+ */
+function applyStandardAuditFormatting(sheet, config) {
+  const rules = [];
+  
+  if (config.passFailRange) {
+    const range = sheet.getRange(config.passFailRange);
+    rules.push(...createPassFailRules(range));
+  }
+  
+  if (config.statusRange) {
+    const range = sheet.getRange(config.statusRange);
+    rules.push(...createStatusRules(range));
+  }
+  
+  if (config.varianceRange) {
+    const range = sheet.getRange(config.varianceRange);
+    rules.push(...createVarianceRules(range, config.varianceTolerance || 0));
+  }
+  
+  if (config.balanceRange) {
+    const range = sheet.getRange(config.balanceRange);
+    rules.push(...createBalanceCheckRules(range, config.balanceTolerance || 0.01));
+  }
+  
+  applyConditionalFormatRules(sheet, rules);
+}
+
+
+/**
+ * ════════════════════════════════════════════════════════════════════════════
+ * SHEET BUILDER HELPERS
+ * ════════════════════════════════════════════════════════════════════════════
+ * Common patterns for building sheets
+ */
+
+// ============================================================================
+// SHEET CREATION HELPERS
+// ============================================================================
+
+/**
+ * Get or create a sheet with a given name
+ * @param {Spreadsheet} ss - The spreadsheet
+ * @param {string} name - Sheet name
+ * @param {number} index - Position index (optional)
+ * @param {string} tabColor - Tab color (optional)
+ * @param {boolean} clearIfExists - Clear existing sheet (default: true)
+ * @returns {Sheet}
+ */
+function getOrCreateSheet(ss, name, index = null, tabColor = null, clearIfExists = true) {
+  let sheet = ss.getSheetByName(name);
+  
+  if (sheet) {
+    if (clearIfExists) {
+      sheet.clear();
+      sheet.clearConditionalFormatRules();
+    }
+  } else {
+    if (index !== null) {
+      sheet = ss.insertSheet(name, index);
+    } else {
+      sheet = ss.insertSheet(name);
+    }
+  }
+  
+  if (tabColor) {
+    sheet.setTabColor(tabColor);
+  }
+  
+  return sheet;
+}
+
+/**
+ * Create a standard header section
+ * @param {Sheet} sheet - The sheet
+ * @param {string} title - Main title
+ * @param {string} subtitle - Subtitle (optional)
+ * @param {number} startCol - Starting column (default: 1)
+ * @param {number} endCol - Ending column (default: 5)
+ */
+function createStandardHeader(sheet, title, subtitle = '', startCol = 1, endCol = 5) {
+  // Main title
+  formatHeader(sheet, 1, startCol, endCol, title, COLORS.HEADER_BG);
+  
+  // Subtitle if provided
+  if (subtitle) {
+    const range = sheet.getRange(2, startCol, 1, endCol - startCol + 1);
+    range.merge()
+         .setValue(subtitle)
+         .setBackground(COLORS.SUBHEADER_BG)
+         .setFontColor(COLORS.HEADER_TEXT)
+         .setFontSize(10)
+         .setFontStyle('italic')
+         .setHorizontalAlignment('center')
+         .setWrap(true);
+    sheet.setRowHeight(2, 25);
+  }
+}
+
+/**
+ * Create a section header
+ * @param {Sheet} sheet - The sheet
+ * @param {number} row - Row number
+ * @param {string} title - Section title
+ * @param {number} startCol - Starting column (default: 1)
+ * @param {number} endCol - Ending column (default: 5)
+ */
+function createSectionHeader(sheet, row, title, startCol = 1, endCol = 5) {
+  const range = sheet.getRange(row, startCol, 1, endCol - startCol + 1);
+  range.merge()
+       .setValue(title)
+       .setBackground(COLORS.SECTION_BG)
+       .setFontWeight('bold')
+       .setFontSize(11)
+       .setHorizontalAlignment('center');
+  sheet.setRowHeight(row, 25);
+}
+
+/**
+ * Create a data table with headers
+ * @param {Sheet} sheet - The sheet
+ * @param {number} startRow - Starting row
+ * @param {number} startCol - Starting column
+ * @param {Array<string>} headers - Column headers
+ * @param {Array<Array>} data - Data rows (optional)
+ * @param {Object} options - Additional options
+ * @returns {Object} - {headerRange, dataRange}
+ */
+function createDataTable(sheet, startRow, startCol, headers, data = [], options = {}) {
+  const numCols = headers.length;
+  
+  // Create headers
+  const headerRange = sheet.getRange(startRow, startCol, 1, numCols);
+  headerRange.setValues([headers])
+             .setBackground(options.headerBg || COLORS.HEADER_BG)
+             .setFontColor(options.headerColor || COLORS.HEADER_TEXT)
+             .setFontWeight('bold')
+             .setHorizontalAlignment('center')
+             .setWrap(true);
+  
+  if (options.headerHeight) {
+    sheet.setRowHeight(startRow, options.headerHeight);
+  }
+  
+  // Add data if provided
+  let dataRange = null;
+  if (data.length > 0) {
+    dataRange = sheet.getRange(startRow + 1, startCol, data.length, numCols);
+    dataRange.setValues(data);
+  }
+  
+  // Apply borders if requested
+  if (options.borders !== false) {
+    const borderRange = sheet.getRange(
+      startRow, 
+      startCol, 
+      (data.length || 1) + 1, 
+      numCols
+    );
+    borderRange.setBorder(
+      true, true, true, true, true, true,
+      COLORS.BORDER_COLOR,
+      SpreadsheetApp.BorderStyle.SOLID
+    );
+  }
+  
+  return {
+    headerRange: headerRange,
+    dataRange: dataRange
+  };
+}
+
+/**
+ * Create an input section with labels and input cells
+ * @param {Sheet} sheet - The sheet
+ * @param {number} startRow - Starting row
+ * @param {number} labelCol - Label column
+ * @param {number} inputCol - Input column
+ * @param {Array<Object>} inputs - Array of {label, value, type, note}
+ * @returns {number} - Next available row
+ */
+function createInputSection(sheet, startRow, labelCol, inputCol, inputs) {
+  let row = startRow;
+  
+  inputs.forEach(input => {
+    // Label
+    sheet.getRange(row, labelCol)
+         .setValue(input.label)
+         .setFontWeight('bold');
+    
+    // Input cell
+    const inputCell = sheet.getRange(row, inputCol);
+    inputCell.setBackground(input.bgColor || COLORS.INPUT_BG);
+    
+    if (input.value !== undefined) {
+      inputCell.setValue(input.value);
+    }
+    
+    // Apply formatting based on type
+    if (input.type === 'currency') {
+      formatCurrency(inputCell);
+    } else if (input.type === 'percentage') {
+      formatPercentage(inputCell);
+    } else if (input.type === 'date') {
+      formatDate(inputCell);
+    } else if (input.type === 'number' && input.format) {
+      inputCell.setNumberFormat(input.format);
+    }
+    
+    // Add note if provided
+    if (input.note) {
+      inputCell.setNote(input.note);
+    }
+    
+    // Add validation if provided
+    if (input.validation) {
+      if (typeof input.validation === 'string') {
+        // Use predefined validation
+        applyValidationList(inputCell, input.validation);
+      } else {
+        // Custom validation object
+        inputCell.setDataValidation(input.validation);
+      }
+    }
+    
+    row++;
+  });
+  
+  return row;
+}
+
+/**
+ * Create a summary/totals section
+ * @param {Sheet} sheet - The sheet
+ * @param {number} startRow - Starting row
+ * @param {number} startCol - Starting column
+ * @param {Array<Object>} totals - Array of {label, formula, format}
+ * @param {string} title - Section title (optional)
+ */
+function createTotalsSection(sheet, startRow, startCol, totals, title = 'TOTALS') {
+  let row = startRow;
+  
+  // Title if provided
+  if (title) {
+    const titleRange = sheet.getRange(row, startCol, 1, 2);
+    titleRange.merge()
+              .setValue(title)
+              .setBackground(COLORS.SECTION_BG)
+              .setFontWeight('bold')
+              .setHorizontalAlignment('center');
+    row++;
+  }
+  
+  // Totals rows
+  totals.forEach(total => {
+    sheet.getRange(row, startCol)
+         .setValue(total.label)
+         .setFontWeight('bold');
+    
+    const valueCell = sheet.getRange(row, startCol + 1);
+    
+    if (total.formula) {
+      valueCell.setFormula(total.formula);
+    } else if (total.value !== undefined) {
+      valueCell.setValue(total.value);
+    }
+    
+    valueCell.setFontWeight('bold')
+             .setBackground(total.bgColor || COLORS.TOTAL_BG);
+    
+    // Apply formatting
+    if (total.format === 'currency') {
+      formatCurrency(valueCell);
+    } else if (total.format === 'percentage') {
+      formatPercentage(valueCell);
+    } else if (total.format) {
+      valueCell.setNumberFormat(total.format);
+    }
+    
+    row++;
+  });
+  
+  return row;
+}
+
+/**
+ * Create an instructions/notes section
+ * @param {Sheet} sheet - The sheet
+ * @param {number} row - Row number
+ * @param {number} startCol - Starting column
+ * @param {number} endCol - Ending column
+ * @param {string} title - Title
+ * @param {string} text - Instructions text
+ */
+function createInstructionsSection(sheet, row, startCol, endCol, title, text) {
+  // Title
+  sheet.getRange(row, startCol, 1, endCol - startCol + 1)
+       .merge()
+       .setValue(title)
+       .setFontWeight('bold')
+       .setBackground(COLORS.INFO_BG)
+       .setHorizontalAlignment('center');
+  
+  // Text
+  sheet.getRange(row + 1, startCol, 1, endCol - startCol + 1)
+       .merge()
+       .setValue(text)
+       .setWrap(true)
+       .setVerticalAlignment('top')
+       .setBackground('#ffffff')
+       .setBorder(true, true, true, true, false, false, COLORS.BORDER_COLOR, SpreadsheetApp.BorderStyle.SOLID);
+  
+  return row + 2;
+}
+
+/**
+ * Create a navigation/table of contents section
+ * @param {Sheet} sheet - The sheet
+ * @param {number} startRow - Starting row
+ * @param {Array<Object>} items - Array of {sheet, description}
+ * @returns {number} - Next available row
+ */
+function createNavigationSection(sheet, startRow, items) {
+  const headers = ['Sheet Name', 'Description'];
+  const data = items.map(item => [item.sheet, item.description]);
+  
+  createDataTable(sheet, startRow, 1, headers, data, {
+    headerBg: COLORS.SUBHEADER_BG,
+    headerHeight: 30
+  });
+  
+  return startRow + items.length + 1;
+}
+
+/**
+ * Create a sign-off section
+ * @param {Sheet} sheet - The sheet
+ * @param {number} row - Starting row
+ * @param {number} startCol - Starting column
+ */
+function createSignOffSection(sheet, row, startCol = 1) {
+  const signOffData = [
+    ['Prepared By:', '', 'Date:', ''],
+    ['Reviewed By:', '', 'Date:', ''],
+    ['Approved By:', '', 'Date:', '']
+  ];
+  
+  signOffData.forEach((rowData, index) => {
+    sheet.getRange(row + index, startCol).setValue(rowData[0]).setFontWeight('bold');
+    sheet.getRange(row + index, startCol + 1).setBackground(COLORS.INPUT_BG);
+    sheet.getRange(row + index, startCol + 2).setValue(rowData[2]).setFontWeight('bold');
+    sheet.getRange(row + index, startCol + 3).setBackground(COLORS.INPUT_BG);
+    formatDate(sheet.getRange(row + index, startCol + 3));
+  });
+  
+  return row + signOffData.length;
+}
+
+/**
+ * Apply alternating row colors
+ * @param {Sheet} sheet - The sheet
+ * @param {number} startRow - Starting row
+ * @param {number} endRow - Ending row
+ * @param {number} startCol - Starting column
+ * @param {number} endCol - Ending column
+ * @param {string} color1 - First color (default: white)
+ * @param {string} color2 - Second color (default: light grey)
+ */
+function applyAlternatingRows(sheet, startRow, endRow, startCol, endCol, color1 = '#ffffff', color2 = '#f2f2f2') {
+  for (let row = startRow; row <= endRow; row++) {
+    const color = (row - startRow) % 2 === 0 ? color1 : color2;
+    sheet.getRange(row, startCol, 1, endCol - startCol + 1).setBackground(color);
+  }
+}
+
+/**
+ * Freeze header rows and columns
+ * @param {Sheet} sheet - The sheet
+ * @param {number} rows - Number of rows to freeze (default: 1)
+ * @param {number} cols - Number of columns to freeze (default: 0)
+ */
+function freezeHeaders(sheet, rows = 1, cols = 0) {
+  if (rows > 0) {
+    sheet.setFrozenRows(rows);
+  }
+  if (cols > 0) {
+    sheet.setFrozenColumns(cols);
+  }
+}
+
+/**
+ * Create a complete standard audit sheet
+ * @param {Spreadsheet} ss - The spreadsheet
+ * @param {Object} config - Configuration object
+ * @returns {Sheet}
+ * 
+ * Example config:
+ * {
+ *   name: 'My Sheet',
+ *   title: 'MY AUDIT SHEET',
+ *   subtitle: 'Description',
+ *   tabColor: '#1a237e',
+ *   headers: ['Col1', 'Col2', 'Col3'],
+ *   sampleData: [[1, 2, 3], [4, 5, 6]],
+ *   instructions: 'Fill in the data...',
+ *   freezeRows: 3
+ * }
+ */
+function createStandardAuditSheet(ss, config) {
+  const sheet = getOrCreateSheet(ss, config.name, config.index, config.tabColor);
+  
+  // Set column widths if provided
+  if (config.columnWidths) {
+    setColumnWidths(sheet, config.columnWidths);
+  }
+  
+  let currentRow = 1;
+  
+  // Header
+  createStandardHeader(sheet, config.title, config.subtitle, 1, config.headers.length);
+  currentRow = config.subtitle ? 3 : 2;
+  
+  // Instructions if provided
+  if (config.instructions) {
+    currentRow = createInstructionsSection(
+      sheet, currentRow, 1, config.headers.length,
+      'INSTRUCTIONS', config.instructions
+    );
+    currentRow++;
+  }
+  
+  // Data table
+  const table = createDataTable(
+    sheet, currentRow, 1,
+    config.headers,
+    config.sampleData || [],
+    config.tableOptions || {}
+  );
+  
+  // Freeze rows
+  freezeHeaders(sheet, config.freezeRows || currentRow, config.freezeCols || 0);
+  
+  return sheet;
+}
+
+
+/**
+ * ════════════════════════════════════════════════════════════════════════════
+ * NAMED RANGES SETUP
+ * ════════════════════════════════════════════════════════════════════════════
+ * Common named range setup functions
+ */
+
+// ============================================================================
+// NAMED RANGES
+// ============================================================================
+
+function setupNamedRanges(ss) {
+  // This function can be overridden in specific workbooks
+  // Default implementation does nothing
+  Logger.log('Named ranges setup (default - no ranges created)');
+}
+
+function createNamedRange(ss, name, range) {
+  try {
+    // Remove existing named range if it exists
+    const existingRange = ss.getNamedRanges().find(nr => nr.getName() === name);
+    if (existingRange) {
+      existingRange.remove();
+    }
+    
+    // Create new named range
+    ss.setNamedRange(name, range);
+    Logger.log('Created named range: ' + name);
+  } catch (error) {
+    Logger.log('Error creating named range ' + name + ': ' + error.toString());
+  }
+}
+
+
+/**
  * TDS COMPLIANCE TRACKER - GOOGLE SHEETS AUTOMATION
  * 
  * Purpose: Comprehensive TDS (Tax Deducted at Source) compliance workbook
@@ -16,6 +1324,9 @@
  */
 function createTDSComplianceWorkbook() {
   const ss = SpreadsheetApp.getActiveSpreadsheet();
+  
+  // Set workbook type for menu detection
+  setWorkbookType('TDS_COMPLIANCE');
   
   // Show progress
   SpreadsheetApp.getActiveSpreadsheet().toast('Creating TDS Compliance Workbook...', 'Please Wait', -1);

@@ -1,3 +1,17 @@
+# Node modules
 node_modules/
-.claude/
-codebase.md
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Logs
+*.log
+npm-debug.log*
+.aidigestignore

@@ -8,12 +8,42 @@
  * 1. Open a new Google Sheet
  * 2. Go to Extensions > Apps Script
  * 3. Paste this code
- * 4. Run the function: createP2PWorkpaper()
+ * 4. Run the function: createICFRP2PWorkbook()
  * 5. Authorize the script when prompted
  */
 
-function createP2PWorkpaper() {
+// ============================================================================
+// WORKBOOK-SPECIFIC CONFIGURATION
+// ============================================================================
+
+// Column mappings for ICFR P2P workbook
+const COLS = {
+  RCM: {
+    CONTROL_ID: 1,
+    PROCESS: 2,
+    RISK: 3,
+    CONTROL_ACTIVITY: 4,
+    CONTROL_TYPE: 5,
+    FREQUENCY: 6,
+    OWNER: 7,
+    KEY_CONTROL: 8
+  },
+  TEST_OF_DESIGN: {
+    CONTROL_ID: 1,
+    CONTROL_DESC: 2,
+    DESIGN_PROCEDURE: 3,
+    EVIDENCE: 4,
+    CONCLUSION: 5,
+    TESTER: 6,
+    DATE: 7
+  }
+};
+
+function createICFRP2PWorkbook() {
   const ss = SpreadsheetApp.getActiveSpreadsheet();
+  
+  // Set workbook type for menu detection
+  setWorkbookType('ICFR_P2P');
   
   // Clear existing sheets except first one
   const sheets = ss.getSheets();
