@@ -49,7 +49,7 @@ This project provides **production-ready Google Apps Script files** that automat
 | **Financial Instruments** | Ind AS 109 | High | ✅ Complete | [README](docs/INDAS109_README.md) |
 | **Lease Accounting** | Ind AS 116 | High | ✅ Complete | [README](docs/INDAS116_README.md) |
 | **Revenue Recognition** | Ind AS 115 | Medium | ✅ Complete | [README](docs/INDAS115_README.md) |
-| **Deferred Taxation** | Ind AS 12 / AS 22 | Medium | ⚠️ Known Issues | [README](docs/DEFERRED_TAX_README.md) |
+| **Deferred Taxation** | Ind AS 12 / AS 22 | Medium | ✅ Complete | [README](docs/DEFERRED_TAX_README.md) |
 
 ### Tax Compliance Tools
 
@@ -247,35 +247,31 @@ Each workbook has comprehensive documentation covering:
 
 ---
 
-## ⚠️ Known Issues
+## ✅ Known Issues - All Resolved
 
-We believe in transparency. Here are documented issues and their status:
+We believe in transparency. All previously documented issues have been resolved in version 1.0.1:
 
-### High Priority
+### Recently Resolved (v1.0.1)
 
-**Deferred Tax - Movement Analysis Flaws**
-- **Issue:** Uses hardcoded percentages instead of actual data
-- **Impact:** Unreliable movement analysis
-- **Workaround:** Enter opening balances directly in Temp_Differences
-- **Status:** Fix planned for v1.1
-- **Details:** See [todo.md](docs/todo.md) and [DEFERRED_TAX_README.md](docs/DEFERRED_TAX_README.md)
+**Deferred Tax - Movement Analysis** ✅
+- **Issue:** Used hardcoded percentages instead of actual data
+- **Resolution:** Fixed calculation logic to use dynamic data references
+- **Status:** ✅ Resolved
 
-**Ind AS 116 - Interest Calculation**
-- **Issue:** Uses average balance method instead of true EIR
-- **Impact:** Minor variance in interest expense
-- **Workaround:** Acceptable for monthly/quarterly reporting
-- **Status:** Enhancement planned
-- **Details:** See [todo.md](docs/todo.md)
+**Ind AS 116 - Interest Calculation** ✅
+- **Issue:** Used average balance method instead of true EIR
+- **Resolution:** Implemented proper EIR calculation methodology
+- **Status:** ✅ Resolved
 
-**Ind AS 109 - ECL Discounting**
+**Ind AS 109 - ECL Discounting** ✅
 - **Issue:** ECL not discounted to present value
-- **Impact:** Overstated ECL for long-term exposures
-- **Workaround:** Manual adjustment for material items
-- **Status:** Enhancement planned
-- **Details:** See [todo.md](docs/todo.md)
+- **Resolution:** Added present value discounting to ECL calculations
+- **Status:** ✅ Resolved
 
-### All Issues Documented
-See [todo.md](docs/todo.md) for complete list of known issues, their impact, and planned fixes.
+### Current Status
+**All critical issues have been resolved. The suite is production-ready for professional use.**
+
+See [todo.md](docs/todo.md) for complete details and future enhancement plans.
 
 ---
 
@@ -461,11 +457,11 @@ FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
 ## 🎯 Roadmap
 
 ### Version 1.1 (Q1 2025)
-- [ ] Fix deferred tax movement analysis
-- [ ] Improve Ind AS 116 EIR calculations
-- [ ] Add ECL discounting to Ind AS 109
 - [ ] Sample data for all workbooks
 - [ ] Video tutorials
+- [ ] Enhanced dashboard features
+- [ ] Export to Excel functionality
+- [ ] Performance optimization
 
 ### Version 2.0 (Q2 2025)
 - [ ] Ind AS 19 - Employee Benefits
@@ -497,6 +493,12 @@ Special thanks to:
 
 ## 📝 Changelog
 
+### Version 1.0.1 (November 2025)
+- ✅ Fixed deferred tax movement analysis
+- ✅ Improved Ind AS 116 EIR calculations
+- ✅ Added ECL discounting to Ind AS 109
+- ✅ All known issues resolved
+
 ### Version 1.0 (November 2025)
 - ✅ Initial release
 - ✅ Ind AS 109, 116, 115 workbooks
@@ -505,7 +507,6 @@ Special thanks to:
 - ✅ Fixed Assets Audit WP
 - ✅ ICFR P2P Testing WP
 - ✅ Comprehensive documentation
-- ✅ Known issues documented
 
 ---
 

@@ -56,25 +56,25 @@
 1. **Ind AS 109 - Financial Instruments**
    - Status: ✅ Complete
    - Quality: Production-ready
-   - Known Issues: ✅ Resolved (ECL discounting fixed)
+   - Known Issues: ✅ All Resolved (ECL discounting fixed in v1.0.1)
    - Documentation: Comprehensive
 
 2. **Ind AS 116 - Lease Accounting**
    - Status: ✅ Complete
    - Quality: Production-ready
-   - Known Issues: ✅ Resolved (EIR calculation improved)
+   - Known Issues: ✅ All Resolved (EIR calculation improved in v1.0.1)
    - Documentation: Comprehensive
 
 3. **Ind AS 115 - Revenue Recognition**
    - Status: ✅ Complete
    - Quality: Production-ready
-   - Known Issues: None
+   - Known Issues: ✅ None
    - Documentation: Comprehensive
 
 4. **Deferred Tax (Ind AS 12 / AS 22)**
    - Status: ✅ Complete
    - Quality: Production-ready
-   - Known Issues: ✅ Resolved (movement analysis fixed)
+   - Known Issues: ✅ All Resolved (movement analysis fixed in v1.0.1)
    - Documentation: Comprehensive
 
 5. **TDS Compliance Tracker**
@@ -296,6 +296,12 @@ See [todo.md](todo.md) for complete details of resolved issues.
 - ✅ Known issues documented
 - ✅ Production-ready quality
 - ✅ Open source release
+
+### Version 1.0.1 Goals (✅ Achieved)
+- ✅ Fix deferred tax movement analysis
+- ✅ Improve Ind AS 116 EIR calculations
+- ✅ Add ECL discounting to Ind AS 109
+- ✅ All known issues resolved
 
 ### Version 1.1 Goals (Q1 2025)
 - [ ] Add sample data to all workbooks

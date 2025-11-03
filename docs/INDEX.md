@@ -72,7 +72,7 @@
 - **Function:** `createDeferredTaxWorkbook()`
 - **Sheets:** 12
 - **Complexity:** ⭐⭐⭐ Medium-High
-- **Status:** ✅ Complete (all issues resolved)
+- **Status:** ✅ Complete (all issues resolved in v1.0.1)
 - **Topics Covered:**
   - Temporary differences
   - DTA/DTL calculations
@@ -298,11 +298,16 @@
 - Quick reference guide
 - All known issues resolved
 
+**What's New in v1.0.1:**
+- ✅ Fixed deferred tax movement analysis
+- ✅ Improved Ind AS 116 EIR calculations
+- ✅ Added ECL discounting to Ind AS 109
+
 **Status:**
-- ✅ Ind AS 109 - Stable (all issues resolved)
-- ✅ Ind AS 116 - Stable (all issues resolved)
+- ✅ Ind AS 109 - Stable (ECL discounting fixed)
+- ✅ Ind AS 116 - Stable (EIR calculation improved)
 - ✅ Ind AS 115 - Stable
-- ✅ Deferred Tax - Stable (all issues resolved)
+- ✅ Deferred Tax - Stable (movement analysis fixed)
 - ✅ TDS Compliance - Stable with sample data
 - ✅ Fixed Assets - Stable
 - ✅ ICFR P2P - Stable
