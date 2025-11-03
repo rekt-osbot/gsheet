@@ -18,8 +18,8 @@
 - [License](#license)
 
 **📖 Quick Navigation:**
-- [Quick Reference Guide](QUICK_REFERENCE.md) - Fast lookup for all workbooks
-- [Documentation Index](INDEX.md) - Complete documentation map
+- [Quick Reference Guide](docs/QUICK_REFERENCE.md) - Fast lookup for all workbooks
+- [Documentation Index](docs/INDEX.md) - Complete documentation map
 
 ---
 
@@ -46,23 +46,23 @@ This project provides **production-ready Google Apps Script files** that automat
 
 | Workbook | Standard | Complexity | Status | Documentation |
 |----------|----------|------------|--------|---------------|
-| **Financial Instruments** | Ind AS 109 | High | ✅ Complete | [README](INDAS109_README.md) |
-| **Lease Accounting** | Ind AS 116 | High | ✅ Complete | [README](INDAS116_README.md) |
-| **Revenue Recognition** | Ind AS 115 | Medium | ✅ Complete | [README](INDAS115_README.md) |
-| **Deferred Taxation** | Ind AS 12 / AS 22 | Medium | ⚠️ Known Issues | [README](DEFERRED_TAX_README.md) |
+| **Financial Instruments** | Ind AS 109 | High | ✅ Complete | [README](docs/INDAS109_README.md) |
+| **Lease Accounting** | Ind AS 116 | High | ✅ Complete | [README](docs/INDAS116_README.md) |
+| **Revenue Recognition** | Ind AS 115 | Medium | ✅ Complete | [README](docs/INDAS115_README.md) |
+| **Deferred Taxation** | Ind AS 12 / AS 22 | Medium | ⚠️ Known Issues | [README](docs/DEFERRED_TAX_README.md) |
 
 ### Tax Compliance Tools
 
 | Workbook | Purpose | Complexity | Status | Documentation |
 |----------|---------|------------|--------|---------------|
-| **TDS Compliance Tracker** | Complete TDS management | Medium | ✅ Complete | [README](TDS_COMPLIANCE_README.md) |
+| **TDS Compliance Tracker** | Complete TDS management | Medium | ✅ Complete | [README](docs/TDS_COMPLIANCE_README.md) |
 
 ### Audit Working Papers
 
 | Workbook | Purpose | Type | Status | Documentation |
 |----------|---------|------|--------|---------------|
-| **Fixed Assets Audit** | PPE verification | Template | ✅ Complete | [README](FIXED_ASSETS_README.md) |
-| **ICFR P2P Testing** | Procure-to-Pay controls | Template | ✅ Complete | [README](ICFR_P2P_README.md) |
+| **Fixed Assets Audit** | PPE verification | Template | ✅ Complete | [README](docs/FIXED_ASSETS_README.md) |
+| **ICFR P2P Testing** | Procure-to-Pay controls | Template | ✅ Complete | [README](docs/ICFR_P2P_README.md) |
 
 ---
 
@@ -258,24 +258,24 @@ We believe in transparency. Here are documented issues and their status:
 - **Impact:** Unreliable movement analysis
 - **Workaround:** Enter opening balances directly in Temp_Differences
 - **Status:** Fix planned for v1.1
-- **Details:** See [todo.md](todo.md) and [DEFERRED_TAX_README.md](DEFERRED_TAX_README.md)
+- **Details:** See [todo.md](docs/todo.md) and [DEFERRED_TAX_README.md](docs/DEFERRED_TAX_README.md)
 
 **Ind AS 116 - Interest Calculation**
 - **Issue:** Uses average balance method instead of true EIR
 - **Impact:** Minor variance in interest expense
 - **Workaround:** Acceptable for monthly/quarterly reporting
 - **Status:** Enhancement planned
-- **Details:** See [todo.md](todo.md)
+- **Details:** See [todo.md](docs/todo.md)
 
 **Ind AS 109 - ECL Discounting**
 - **Issue:** ECL not discounted to present value
 - **Impact:** Overstated ECL for long-term exposures
 - **Workaround:** Manual adjustment for material items
 - **Status:** Enhancement planned
-- **Details:** See [todo.md](todo.md)
+- **Details:** See [todo.md](docs/todo.md)
 
 ### All Issues Documented
-See [todo.md](todo.md) for complete list of known issues, their impact, and planned fixes.
+See [todo.md](docs/todo.md) for complete list of known issues, their impact, and planned fixes.
 
 ---
 
@@ -392,7 +392,7 @@ We welcome contributions! Here's how you can help:
 
 ### Priority Areas
 
-- Fix known issues (see [todo.md](todo.md))
+- Fix known issues (see [todo.md](docs/todo.md))
 - Add Ind AS 19 (Employee Benefits)
 - Add Ind AS 36 (Impairment)
 - Improve ECL models
