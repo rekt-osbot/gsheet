@@ -501,7 +501,7 @@ Open source - Free to use, modify, and distribute for audit purposes.
 
 ## 📝 Version History
 
-**Version 1.0 (November 2024)**
+**Version 1.0 (November 2025)**
 - Initial release
 - Comprehensive audit program
 - Testing templates for additions, disposals, depreciation

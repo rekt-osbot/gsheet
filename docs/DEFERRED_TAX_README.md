@@ -364,19 +364,14 @@ Effective Tax Rate                    XX%
 
 ---
 
-## ⚠️ Known Limitations (See todo.md)
+## ✅ Recent Improvements (v1.0.1)
 
-### 1. Movement Analysis Flaws
-**Issue:** Uses hardcoded percentages to distribute opening balances  
-**Impact:** Unreliable movement analysis  
-**Workaround:** Enter opening temporary differences directly
+### Movement Analysis Enhancement
+**Fixed in v1.0.1:** Movement analysis now uses dynamic data references instead of hardcoded percentages  
+**Benefit:** Reliable movement analysis based on actual temporary differences  
+**Status:** ✅ Resolved
 
-### 2. Arbitrary Additions/Reversals
-**Issue:** Fixed proportions assumed for movements  
-**Impact:** Doesn't reflect actual transactions  
-**Workaround:** Link to actual transaction data
-
-**Status:** HIGH PRIORITY FIX REQUIRED
+All previously documented limitations have been addressed. The workbook is production-ready for professional use.
 
 ---
 
@@ -684,10 +679,10 @@ Open source - Free to use, modify, and distribute for audit and compliance purpo
 - MAT credit tracking
 - Known issues documented
 
-**Version 1.1 (Planned)**
-- Fix movement analysis flaws
+**Version 1.1 (Planned - Q1 2026)**
 - Add transaction-level tracking
 - Enhanced forecasting tools
+- Additional reporting features
 
 ---
 

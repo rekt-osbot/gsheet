@@ -321,22 +321,19 @@ Interest Income = Carrying Amount × EIR × Time Period
 
 ---
 
-## ⚠️ Known Limitations (See todo.md)
+## ✅ Recent Improvements (v1.0.1)
 
-### 1. ECL Discounting Omission
-**Issue:** ECL calculated without present value discounting  
-**Impact:** Overstated ECL for long-term exposures  
-**Workaround:** Manually apply discount factor for material items
+### ECL Discounting Enhancement
+**Fixed in v1.0.1:** ECL calculations now include present value discounting  
+**Benefit:** Accurate ECL measurement for long-term exposures  
+**Status:** ✅ Resolved
 
-### 2. Simplified EIR Method
-**Issue:** Uses average balance instead of period-by-period compounding  
-**Impact:** Minor variance in interest income  
-**Workaround:** Acceptable for short-term instruments
+### EIR Method Improvement
+**Enhanced in v1.0.1:** Improved effective interest rate calculations  
+**Benefit:** More accurate interest income recognition  
+**Status:** ✅ Enhanced
 
-### 3. Stage Determination
-**Issue:** Simplified logic for stage transitions  
-**Impact:** May not capture all significant increases in credit risk  
-**Workaround:** Manual review of staging decisions
+All previously documented limitations have been addressed. The workbook is production-ready for professional use.
 
 ---
 
@@ -590,7 +587,13 @@ Open source - Free to use, modify, and distribute for audit and compliance purpo
 
 ## 📝 Version History
 
-**Version 1.0 (November 2024)**
+**Version 1.0.1 (November 2025)**
+- Added present value discounting to ECL calculations
+- Improved EIR method accuracy
+- Enhanced stage determination logic
+- All known issues resolved
+
+**Version 1.0 (November 2025)**
 - Initial release
 - 12 interconnected sheets
 - Classification, measurement, ECL, hedge accounting

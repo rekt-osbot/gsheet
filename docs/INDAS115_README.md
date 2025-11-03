@@ -606,7 +606,7 @@ Open source - Free to use, modify, and distribute for audit and compliance purpo
 
 ## 📝 Version History
 
-**Version 1.0 (November 2024)**
+**Version 1.0 (November 2025)**
 - Initial release
 - Complete 5-step model implementation
 - 16 interconnected sheets

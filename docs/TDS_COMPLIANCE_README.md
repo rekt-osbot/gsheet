@@ -538,7 +538,7 @@ Open source - Free to use, modify, and distribute.
 
 ## Changelog
 
-### Version 1.0 (November 2024)
+### Version 1.0 (November 2025)
 - Initial release
 - 12 interconnected sheets
 - 30+ TDS sections covered

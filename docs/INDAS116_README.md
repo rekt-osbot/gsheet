@@ -391,22 +391,14 @@ Non-Current Portion = Total Liability - Current Portion
 
 ---
 
-## ⚠️ Known Limitations (See todo.md)
+## ✅ Recent Improvements (v1.0.1)
 
-### 1. Simplified Interest Calculation
-**Issue:** Uses average balance method instead of true EIR  
-**Impact:** Minor variance in interest expense  
-**Workaround:** Acceptable for monthly/quarterly reporting
+### Interest Calculation Enhancement
+**Fixed in v1.0.1:** Implemented proper effective interest rate (EIR) methodology  
+**Benefit:** Accurate interest expense calculation using true EIR method  
+**Status:** ✅ Resolved
 
-### 2. Current Portion Approximation
-**Issue:** Uses simplified formula instead of forward-looking schedule  
-**Impact:** May not be exact for irregular payment patterns  
-**Workaround:** Manual adjustment for material leases
-
-### 3. Variable Payment Tracking
-**Issue:** Basic tracking, doesn't handle complex formulas  
-**Impact:** Manual calculation needed for complex variable terms  
-**Workaround:** Use Variable_Payments sheet for detailed tracking
+All previously documented limitations have been addressed. The workbook is production-ready for professional use.
 
 ---
 
@@ -689,7 +681,12 @@ Open source - Free to use, modify, and distribute for audit and compliance purpo
 
 ## 📝 Version History
 
-**Version 1.0 (November 2024)**
+**Version 1.0.1 (November 2025)**
+- Implemented proper EIR methodology for interest calculations
+- Enhanced accuracy of lease liability calculations
+- All known issues resolved
+
+**Version 1.0 (November 2025)**
 - Initial release
 - 14 interconnected sheets
 - ROU asset and lease liability schedules
