@@ -43,7 +43,7 @@ const COLS = {
 /**
  * Main function to setup the entire Fixed Assets audit workpaper
  */
-function setupFixedAssetsWorkpaper() {
+function createFixedAssetsWorkbook() {
   const ui = SpreadsheetApp.getUi();
   const result = ui.alert(
     'Setup Fixed Assets Audit Workpaper',
@@ -107,55 +107,34 @@ function setupFixedAssetsWorkpaper() {
  * Creates the Index/Table of Contents sheet
  */
 function createIndexSheet(ss) {
-  let sheet = ss.getSheetByName("FA-Index");
-  if (sheet) ss.deleteSheet(sheet);
-  
-  sheet = ss.insertSheet("FA-Index", 0);
-  sheet.setTabColor('#1f4e78');
+  const sheet = getOrCreateSheet(ss, "FA-Index", 0, '#1f4e78');
   
   // Set column widths
-  sheet.setColumnWidth(1, 50);
-  sheet.setColumnWidth(2, 350);
-  sheet.setColumnWidth(3, 150);
-  sheet.setColumnWidth(4, 250);
+  setColumnWidths(sheet, [50, 350, 150, 250]);
   
   // Main header
-  sheet.getRange("A1:D1").merge().setValue("FIXED ASSETS AUDIT WORKPAPER")
-    .setFontSize(FONT_SIZES.title).setFontWeight("bold")
-    .setBackground(COLORS.header).setFontColor("#ffffff")
-    .setHorizontalAlignment("center").setVerticalAlignment("middle");
-  sheet.setRowHeight(1, 40);
+  formatHeader(sheet, 1, 1, 4, "FIXED ASSETS AUDIT WORKPAPER", COLORS.HEADER_BG);
   
   // Client information section
-  const clientInfo = [
-    ["Client Name:", "", "Period End:", ""],
-    ["Engagement:", "", "Prepared By:", ""],
-    ["Date:", "", "Reviewed By:", ""]
+  const clientInputs = [
+    {label: "Client Name:", value: ""},
+    {label: "Engagement:", value: ""},
+    {label: "Date:", value: ""}
   ];
   
-  sheet.getRange("A3:D5").setValues(clientInfo)
-    .setFontWeight("bold")
-    .setBackground(COLORS.preparer);
-  
-  sheet.getRange("B3:B5").setFontWeight("normal").setBackground("#ffffff");
-  sheet.getRange("D3:D5").setFontWeight("normal").setBackground("#ffffff");
+  clientInputs.forEach((input, index) => {
+    const row = 3 + index;
+    sheet.getRange(row, 1).setValue(input.label).setFontWeight("bold").setBackground(COLORS.INPUT_BG);
+    sheet.getRange(row, 2).setBackground("#ffffff");
+    sheet.getRange(row, 3).setValue(index === 0 ? "Period End:" : (index === 1 ? "Prepared By:" : "Reviewed By:"))
+      .setFontWeight("bold").setBackground(COLORS.INPUT_BG);
+    sheet.getRange(row, 4).setBackground("#ffffff");
+  });
   
   // Table of Contents Header
-  sheet.getRange("A7:D7").merge().setValue("TABLE OF CONTENTS")
-    .setFontSize(FONT_SIZES.header).setFontWeight("bold")
-    .setBackground(COLORS.subheader).setFontColor("#ffffff")
-    .setHorizontalAlignment("center");
-  sheet.setRowHeight(7, 30);
+  createSectionHeader(sheet, 7, "TABLE OF CONTENTS", 1, 4);
   
-  // Column headers
-  const headers = [["Ref", "Workpaper Description", "Preparer", "Reviewer"]];
-  sheet.getRange("A8:D8").setValues(headers)
-    .setFontWeight("bold")
-    .setBackground(COLORS.sectionHeader)
-    .setFontColor("#ffffff")
-    .setHorizontalAlignment("center");
-  
-  // Index data with hyperlinks
+  // Index data
   const indexData = [
     ["FA-1", "Summary & Conclusion", "", ""],
     ["FA-2", "Fixed Assets Roll Forward", "", ""],
@@ -168,117 +147,48 @@ function createIndexSheet(ss) {
     ["FA-9", "Conclusion & Sign-off", "", ""]
   ];
   
-  sheet.getRange(9, 1, indexData.length, 4).setValues(indexData);
+  createDataTable(sheet, 8, 1, ["Ref", "Workpaper Description", "Preparer", "Reviewer"], indexData, {
+    borders: true,
+    headerBg: COLORS.SUBHEADER_BG
+  });
   
-  // Create hyperlinks to each sheet
-  const sheetNames = [
-    "FA-1 Summary",
-    "FA-2 Roll Forward",
-    "FA-3 Depreciation",
-    "FA-4 Additions",
-    "FA-5 Disposals",
-    "FA-6 Existence",
-    "FA-7 Completeness",
-    "FA-8 Disclosure",
-    "FA-9 Conclusion"
-  ];
-  
-  for (let i = 0; i < sheetNames.length; i++) {
-    const cell = sheet.getRange(9 + i, 2);
-    const formula = `=HYPERLINK("#gid=" & INDIRECT("FA-Index!A1"), "${indexData[i][1]}")`;
-    // We'll set actual hyperlinks after sheets are created
-  }
-  
-  // Format data rows
-  sheet.getRange(9, 1, indexData.length, 4)
-    .setBorder(true, true, true, true, true, true, "#000000", SpreadsheetApp.BorderStyle.SOLID)
-    .setVerticalAlignment("middle");
-  
-  sheet.getRange(9, 1, indexData.length, 1).setBackground(COLORS.referenceCell).setFontWeight("bold");
+  // Format reference column
+  sheet.getRange(9, 1, indexData.length, 1).setBackground(COLORS.CALC_BG).setFontWeight("bold");
   
   // Freeze header rows
-  sheet.setFrozenRows(8);
-  
-  applyStandardBorders(sheet, 9, 1, indexData.length, 4);
+  freezeHeaders(sheet, 8);
 }
 
 /**
  * Creates the Summary & Conclusion sheet (FA-1)
  */
 function createSummarySheet(ss) {
-  let sheet = ss.getSheetByName("FA-1 Summary");
-  if (sheet) ss.deleteSheet(sheet);
-  
-  sheet = ss.insertSheet("FA-1 Summary");
-  sheet.setTabColor('#4472c4');
+  const sheet = getOrCreateSheet(ss, "FA-1 Summary", null, '#4472c4');
   
   // Set column widths
-  sheet.setColumnWidths(1, 1, 100);
-  sheet.setColumnWidths(2, 1, 300);
-  sheet.setColumnWidths(3, 1, 150);
-  sheet.setColumnWidths(4, 1, 150);
-  sheet.setColumnWidths(5, 1, 150);
+  setColumnWidths(sheet, [100, 300, 150, 150, 150]);
   
   // Header
   createWorkpaperHeader(sheet, "FA-1", "FIXED ASSETS - SUMMARY & CONCLUSION");
   
   // Summary of Balances
-  let currentRow = 5;
-  sheet.getRange(currentRow, 1, 1, 5).merge()
-    .setValue("SUMMARY OF FIXED ASSETS BALANCES")
-    .setFontWeight("bold")
-    .setBackground(COLORS.sectionHeader)
-    .setFontColor("#ffffff")
-    .setHorizontalAlignment("center");
+  createSectionHeader(sheet, 5, "SUMMARY OF FIXED ASSETS BALANCES", 1, 5);
   
-  currentRow++;
-  const summaryHeaders = [["Description", "Beginning Balance", "Additions", "Disposals", "Ending Balance"]];
-  sheet.getRange(currentRow, 1, 1, 5).setValues(summaryHeaders)
-    .setFontWeight("bold")
-    .setBackground(COLORS.subheader)
-    .setFontColor("#ffffff");
+  const summaryData = [
+    ["Gross Fixed Assets", safeFormula("'FA-2 Roll Forward'!E7", "0"), safeFormula("'FA-2 Roll Forward'!F7", "0"), safeFormula("'FA-2 Roll Forward'!G7", "0"), safeFormula("'FA-2 Roll Forward'!H7", "0")],
+    ["Accumulated Depreciation", safeFormula("'FA-3 Depreciation'!E15", "0"), safeFormula("'FA-3 Depreciation'!F15", "0"), safeFormula("'FA-3 Depreciation'!G15", "0"), safeFormula("'FA-3 Depreciation'!H15", "0")],
+    ["Net Fixed Assets", "=B7-B8", "=C7-C8", "=D7-D8", "=E7-E8"]
+  ];
   
-  currentRow++;
-  // Link to Roll Forward sheet
-  sheet.getRange(currentRow, 1).setValue("Gross Fixed Assets");
-  sheet.getRange(currentRow, 2).setFormula("='FA-2 Roll Forward'!E7");
-  sheet.getRange(currentRow, 3).setFormula("='FA-2 Roll Forward'!F7");
-  sheet.getRange(currentRow, 4).setFormula("='FA-2 Roll Forward'!G7");
-  sheet.getRange(currentRow, 5).setFormula("='FA-2 Roll Forward'!H7");
-  
-  currentRow++;
-  sheet.getRange(currentRow, 1).setValue("Accumulated Depreciation");
-  sheet.getRange(currentRow, 2).setFormula("='FA-3 Depreciation'!E15");
-  sheet.getRange(currentRow, 3).setFormula("='FA-3 Depreciation'!F15");
-  sheet.getRange(currentRow, 4).setFormula("='FA-3 Depreciation'!G15");
-  sheet.getRange(currentRow, 5).setFormula("='FA-3 Depreciation'!H15");
-  
-  currentRow++;
-  sheet.getRange(currentRow, 1).setValue("Net Fixed Assets")
-    .setFontWeight("bold");
-  sheet.getRange(currentRow, 2).setFormula("=B7-B8")
-    .setFontWeight("bold");
-  sheet.getRange(currentRow, 3).setFormula("=C7-C8")
-    .setFontWeight("bold");
-  sheet.getRange(currentRow, 4).setFormula("=D7-D8")
-    .setFontWeight("bold");
-  sheet.getRange(currentRow, 5).setFormula("=E7-E8")
-    .setFontWeight("bold");
+  createDataTable(sheet, 6, 1, ["Description", "Beginning Balance", "Additions", "Disposals", "Ending Balance"], summaryData, {borders: true});
   
   // Format numbers
-  sheet.getRange(7, 2, 3, 4).setNumberFormat("#,##0.00");
-  sheet.getRange(9, 2, 1, 4).setBackground(COLORS.totalRow);
+  formatCurrency(sheet.getRange("B7:E9"));
+  sheet.getRange("B9:E9").setFontWeight("bold").setBackground(COLORS.TOTAL_BG);
   
   // Audit Procedures Summary
-  currentRow = 12;
-  sheet.getRange(currentRow, 1, 1, 5).merge()
-    .setValue("AUDIT PROCEDURES PERFORMED")
-    .setFontWeight("bold")
-    .setBackground(COLORS.sectionHeader)
-    .setFontColor("#ffffff")
-    .setHorizontalAlignment("center");
+  createSectionHeader(sheet, 12, "AUDIT PROCEDURES PERFORMED", 1, 5);
   
-  currentRow++;
   const procedures = [
     ["1", "Obtained and reviewed fixed asset roll forward", "FA-2", ""],
     ["2", "Tested additions for proper authorization and capitalization", "FA-4", ""],
@@ -289,79 +199,39 @@ function createSummarySheet(ss) {
     ["7", "Reviewed financial statement presentation and disclosure", "FA-8", ""]
   ];
   
-  sheet.getRange(currentRow, 1, 1, 4).setValues([["#", "Procedure", "Ref", "Conclusion"]])
-    .setFontWeight("bold")
-    .setBackground(COLORS.subheader)
-    .setFontColor("#ffffff");
-  
-  currentRow++;
-  sheet.getRange(currentRow, 1, procedures.length, 4).setValues(procedures);
+  createDataTable(sheet, 13, 1, ["#", "Procedure", "Ref", "Conclusion"], procedures, {borders: true});
   
   // Conclusion section
-  currentRow = currentRow + procedures.length + 2;
-  sheet.getRange(currentRow, 1, 1, 5).merge()
-    .setValue("AUDIT CONCLUSION")
-    .setFontWeight("bold")
-    .setBackground(COLORS.sectionHeader)
-    .setFontColor("#ffffff")
-    .setHorizontalAlignment("center");
+  const conclusionRow = 13 + procedures.length + 2;
+  createSectionHeader(sheet, conclusionRow, "AUDIT CONCLUSION", 1, 5);
   
-  currentRow++;
-  sheet.getRange(currentRow, 1, 1, 5).merge()
+  sheet.getRange(conclusionRow + 1, 1, 1, 5).merge()
     .setValue("Based on the audit procedures performed, we conclude that:")
     .setWrap(true);
   
-  currentRow++;
-  sheet.getRange(currentRow, 1, 4, 5).merge()
+  sheet.getRange(conclusionRow + 2, 1, 4, 5).merge()
     .setValue("[Enter conclusion here - e.g., 'Fixed assets are fairly stated in all material respects...']")
     .setWrap(true)
     .setVerticalAlignment("top")
-    .setBackground("#ffffcc");
-  sheet.setRowHeights(currentRow, 4, 25);
+    .setBackground(COLORS.INPUT_BG);
+  sheet.setRowHeights(conclusionRow + 2, 4, 25);
   
   // Sign-off
-  currentRow += 5;
-  createSignOffSection(sheet, currentRow);
-  
-  applyStandardBorders(sheet, 6, 1, 20, 5);
+  createSignOffSection(sheet, conclusionRow + 7, 1);
 }
 
 /**
  * Creates the Roll Forward sheet (FA-2)
  */
 function createRollForwardSheet(ss) {
-  let sheet = ss.getSheetByName("FA-2 Roll Forward");
-  if (sheet) ss.deleteSheet(sheet);
-  
-  sheet = ss.insertSheet("FA-2 Roll Forward");
-  sheet.setTabColor('#5b9bd5');
+  const sheet = getOrCreateSheet(ss, "FA-2 Roll Forward", null, '#5b9bd5');
   
   // Set column widths
-  sheet.setColumnWidth(1, 50);
-  sheet.setColumnWidth(2, 200);
-  sheet.setColumnWidth(3, 100);
-  sheet.setColumnWidth(4, 120);
-  sheet.setColumnWidth(5, 120);
-  sheet.setColumnWidth(6, 120);
-  sheet.setColumnWidth(7, 120);
-  sheet.setColumnWidth(8, 120);
+  setColumnWidths(sheet, [50, 200, 100, 120, 120, 120, 120, 120]);
   
   createWorkpaperHeader(sheet, "FA-2", "FIXED ASSETS ROLL FORWARD");
   
-  // Column headers
-  const headers = [
-    ["Ref", "Asset Category", "Useful Life", "Description", "Beginning Balance", "Additions", "Disposals", "Ending Balance"]
-  ];
-  
-  sheet.getRange(5, 1, 1, 8).setValues(headers)
-    .setFontWeight("bold")
-    .setBackground(COLORS.subheader)
-    .setFontColor("#ffffff")
-    .setHorizontalAlignment("center")
-    .setWrap(true);
-  sheet.setRowHeight(5, 40);
-  
-  // Asset categories
+  // Asset categories with formulas
   const categories = [
     ["", "Land", "N/A", "Land - not depreciated"],
     ["", "Buildings", "39 years", "Office buildings and improvements"],
@@ -372,25 +242,25 @@ function createRollForwardSheet(ss) {
     ["", "Leasehold Improvements", "Lease term", "Improvements to leased property"]
   ];
   
-  sheet.getRange(6, 1, categories.length, 4).setValues(categories);
+  createDataTable(sheet, 5, 1, 
+    ["Ref", "Asset Category", "Useful Life", "Description", "Beginning Balance", "Additions", "Disposals", "Ending Balance"],
+    categories, 
+    {borders: true, headerHeight: 40}
+  );
   
-  // Add formulas for totals
+  // Add ending balance formulas
   for (let i = 0; i < categories.length; i++) {
     const row = 6 + i;
-    // Beginning Balance (enter data here)
-    // Additions and Disposals will be entered
-    // Ending Balance formula
-    sheet.getRange(row, 8).setFormula(`=E${row}+F${row}-G${row}`);
+    sheet.getRange(row, 8).setFormula(safeFormula(`E${row}+F${row}-G${row}`, "0"));
   }
   
   // Total row
   const totalRow = 6 + categories.length;
-  sheet.getRange(totalRow, 2).setValue("TOTAL GROSS FIXED ASSETS")
-    .setFontWeight("bold");
+  createTotalsSection(sheet, totalRow, 2, [
+    {label: "TOTAL GROSS FIXED ASSETS", formula: safeSumFormula(`E6:E${totalRow-1}`), format: 'currency'},
+  ], '');
   
-  sheet.getRange(totalRow, 5).setFormula(`=SUM(E6:E${totalRow-1})`)
-    .setFontWeight("bold");
-  sheet.getRange(totalRow, 6).setFormula(`=SUM(F6:F${totalRow-1})`)
+  sheet.getRange(totalRow, 6).setFormula(safeSumFormula(`F6:F${totalRow-1}`))
     .setFontWeight("bold");
   sheet.getRange(totalRow, 7).setFormula(`=SUM(G6:G${totalRow-1})`)
     .setFontWeight("bold");
@@ -458,31 +328,11 @@ function createRollForwardSheet(ss) {
  * Creates the Depreciation Schedule sheet (FA-3)
  */
 function createDepreciationScheduleSheet(ss) {
-  let sheet = ss.getSheetByName("FA-3 Depreciation");
-  if (sheet) ss.deleteSheet(sheet);
-  
-  sheet = ss.insertSheet("FA-3 Depreciation");
-  sheet.setTabColor('#70ad47');
-  
-  // Set column widths
-  sheet.setColumnWidths(1, 8, 120);
+  const sheet = getOrCreateSheet(ss, "FA-3 Depreciation", null, '#70ad47');
+  setColumnWidths(sheet, Array(8).fill(120));
   
   createWorkpaperHeader(sheet, "FA-3", "ACCUMULATED DEPRECIATION & DEPRECIATION EXPENSE");
   
-  // Column headers
-  const headers = [
-    ["Asset Category", "Method", "Beginning Balance", "Current Year Expense", "Disposals", "Ending Balance", "Recalc", "Variance"]
-  ];
-  
-  sheet.getRange(5, 1, 1, 8).setValues(headers)
-    .setFontWeight("bold")
-    .setBackground(COLORS.subheader)
-    .setFontColor("#ffffff")
-    .setHorizontalAlignment("center")
-    .setWrap(true);
-  sheet.setRowHeight(5, 40);
-  
-  // Asset categories (matching roll forward)
   const categories = [
     ["Land", "N/A"],
     ["Buildings", "Straight-Line"],
@@ -493,241 +343,144 @@ function createDepreciationScheduleSheet(ss) {
     ["Leasehold Improvements", "Straight-Line"]
   ];
   
-  sheet.getRange(6, 1, categories.length, 2).setValues(categories);
+  createDataTable(sheet, 5, 1,
+    ["Asset Category", "Method", "Beginning Balance", "Current Year Expense", "Disposals", "Ending Balance", "Recalc", "Variance"],
+    categories, {borders: true, headerHeight: 40}
+  );
   
   // Add formulas
   for (let i = 0; i < categories.length; i++) {
     const row = 6 + i;
-    // Ending Balance formula
-    sheet.getRange(row, 6).setFormula(`=C${row}+D${row}-E${row}`);
-    // Variance formula (Ending - Recalc)
-    sheet.getRange(row, 8).setFormula(`=F${row}-G${row}`);
+    sheet.getRange(row, 6).setFormula(safeFormula(`C${row}+D${row}-E${row}`, "0"));
+    sheet.getRange(row, 8).setFormula(safeFormula(`F${row}-G${row}`, "0"));
   }
   
+  // Total row
+  const totalRow = 6 + categories.length;
+  const totals = [
+    {label: "TOTAL ACCUMULATED DEPRECIATION", formula: safeSumFormula(`C6:C${totalRow-1}`), format: 'currency'}
+  ];
+  
+  sheet.getRange(totalRow, 1).setValue("TOTAL ACCUMULATED DEPRECIATION").setFontWeight("bold");
+  for (let col = 3; col <= 8; col++) {
+    sheet.getRange(totalRow, col).setFormula(safeSumFormula(`${String.fromCharCode(64+col)}6:${String.fromCharCode(64+col)}${totalRow-1}`))
+      .setFontWeight("bold");
+  }
+  sheet.getRange(totalRow, 1, 1, 8).setBackground(COLORS.TOTAL_BG);
+  
   // Depreciation calculation section
-  let calcRow = 6 + categories.length + 2;
-  sheet.getRange(calcRow, 1, 1, 8).merge()
-    .setValue("DEPRECIATION EXPENSE RECALCULATION")
-    .setFontWeight("bold")
-    .setBackground(COLORS.sectionHeader)
-    .setFontColor("#ffffff")
-    .setHorizontalAlignment("center");
+  const calcRow = totalRow + 2;
+  createSectionHeader(sheet, calcRow, "DEPRECIATION EXPENSE RECALCULATION", 1, 8);
   
-  calcRow++;
-  const calcHeaders = [["Asset Category", "Gross Assets", "Useful Life", "Method", "Calculated Expense", "Per Client", "Variance", "Notes"]];
-  sheet.getRange(calcRow, 1, 1, 8).setValues(calcHeaders)
-    .setFontWeight("bold")
-    .setBackground(COLORS.subheader)
-    .setFontColor("#ffffff")
-    .setHorizontalAlignment("center");
+  createDataTable(sheet, calcRow + 1, 1,
+    ["Asset Category", "Gross Assets", "Useful Life", "Method", "Calculated Expense", "Per Client", "Variance", "Notes"],
+    [], {borders: true}
+  );
   
-  // Total row for accumulated depreciation
-  const totalRow = 6 + categories.length - 1 + 1;
-  sheet.getRange(totalRow, 1).setValue("TOTAL ACCUMULATED DEPRECIATION")
-    .setFontWeight("bold");
+  formatCurrency(sheet.getRange(6, 3, categories.length + 1, 6));
   
-  sheet.getRange(totalRow, 3).setFormula(`=SUM(C6:C${totalRow-1})`)
-    .setFontWeight("bold");
-  sheet.getRange(totalRow, 4).setFormula(`=SUM(D6:D${totalRow-1})`)
-    .setFontWeight("bold");
-  sheet.getRange(totalRow, 5).setFormula(`=SUM(E6:E${totalRow-1})`)
-    .setFontWeight("bold");
-  sheet.getRange(totalRow, 6).setFormula(`=SUM(F6:F${totalRow-1})`)
-    .setFontWeight("bold");
-  sheet.getRange(totalRow, 7).setFormula(`=SUM(G6:G${totalRow-1})`)
-    .setFontWeight("bold");
-  sheet.getRange(totalRow, 8).setFormula(`=SUM(H6:H${totalRow-1})`)
-    .setFontWeight("bold");
-  
-  sheet.getRange(totalRow, 1, 1, 8).setBackground(COLORS.totalRow);
-  
-  // Format numbers
-  sheet.getRange(6, 3, categories.length + 1, 6).setNumberFormat("#,##0.00");
-  
-  createSignOffSection(sheet, calcRow + 10);
-  
-  applyStandardBorders(sheet, 5, 1, totalRow - 4, 8);
-  sheet.setFrozenRows(5);
+  createSignOffSection(sheet, calcRow + 12, 1);
+  freezeHeaders(sheet, 5);
 }
 
 /**
  * Creates the Additions Testing sheet (FA-4)
  */
 function createAdditionsTestingSheet(ss) {
-  let sheet = ss.getSheetByName("FA-4 Additions");
-  if (sheet) ss.deleteSheet(sheet);
-  
-  sheet = ss.insertSheet("FA-4 Additions");
-  sheet.setTabColor('#ffc000');
-  
-  sheet.setColumnWidths(1, 10, 110);
+  const sheet = getOrCreateSheet(ss, "FA-4 Additions", null, '#ffc000');
+  setColumnWidths(sheet, Array(10).fill(110));
   
   createWorkpaperHeader(sheet, "FA-4", "ADDITIONS TESTING");
   
   // Testing objective
-  sheet.getRange(5, 1, 1, 10).merge()
-    .setValue("OBJECTIVE: Test additions to verify proper authorization, occurrence, and capitalization")
-    .setFontWeight("bold")
-    .setBackground(COLORS.sectionHeader)
-    .setFontColor("#ffffff")
-    .setWrap(true);
+  createInstructionsSection(sheet, 5, 1, 10, "OBJECTIVE", 
+    "Test additions to verify proper authorization, occurrence, and capitalization");
   
   // Sample selection
-  sheet.getRange(7, 1, 1, 3).merge()
-    .setValue("SAMPLE SELECTION")
-    .setFontWeight("bold")
-    .setBackground(COLORS.subheader)
-    .setFontColor("#ffffff");
+  createSectionHeader(sheet, 7, "SAMPLE SELECTION", 1, 3);
   
-  sheet.getRange(8, 1).setValue("Total Additions:");
-  sheet.getRange(8, 2).setFormula("='FA-2 Roll Forward'!F13")
-    .setNumberFormat("#,##0.00");
-  
-  sheet.getRange(9, 1).setValue("Sample Size:");
-  sheet.getRange(9, 2).setValue(25);
-  
-  sheet.getRange(10, 1).setValue("Sample Coverage:");
-  sheet.getRange(10, 2).setFormula("=SUM(G13:G37)/B8")
-    .setNumberFormat("0.0%");
-  
-  // Testing columns
-  const testHeaders = [
-    ["Date", "Description", "Category", "Vendor", "Invoice #", "Amount", "Authorization", "Capitalization", "Classification", "Conclusion"]
+  const sampleInputs = [
+    {label: "Total Additions:", value: safeFormula("'FA-2 Roll Forward'!F13", "0"), type: 'currency'},
+    {label: "Sample Size:", value: 25, type: 'number'},
+    {label: "Sample Coverage:", value: safeFormula("SUM(G13:G37)/B8", "0"), type: 'percentage'}
   ];
   
-  sheet.getRange(12, 1, 1, 10).setValues(testHeaders)
-    .setFontWeight("bold")
-    .setBackground(COLORS.subheader)
-    .setFontColor("#ffffff")
-    .setHorizontalAlignment("center")
-    .setWrap(true);
-  sheet.setRowHeight(12, 40);
+  createInputSection(sheet, 8, 1, 2, sampleInputs);
   
-  // Sample rows (25 rows for testing)
+  // Testing table
   const sampleCount = 25;
-  for (let i = 0; i < sampleCount; i++) {
-    const row = 13 + i;
-    // Add data validation for certain columns
-    sheet.getRange(row, 7).setDataValidation(
-      SpreadsheetApp.newDataValidation()
-        .requireValueInList(['✓', '✗', 'N/A'], true)
-        .build()
-    );
-    sheet.getRange(row, 8).setDataValidation(
-      SpreadsheetApp.newDataValidation()
-        .requireValueInList(['✓', '✗', 'N/A'], true)
-        .build()
-    );
-    sheet.getRange(row, 9).setDataValidation(
-      SpreadsheetApp.newDataValidation()
-        .requireValueInList(['✓', '✗', 'N/A'], true)
-        .build()
-    );
-    sheet.getRange(row, 10).setDataValidation(
-      SpreadsheetApp.newDataValidation()
-        .requireValueInList(['Pass', 'Fail', 'Note'], true)
-        .build()
-    );
-  }
+  createDataTable(sheet, 12, 1, 
+    ["Date", "Description", "Category", "Vendor", "Invoice #", "Amount", "Authorization", "Capitalization", "Classification", "Conclusion"],
+    [], 
+    {borders: true, headerHeight: 40}
+  );
+  
+  // Apply validations
+  applyMultipleValidations(sheet, [
+    {range: `G13:I${12+sampleCount}`, type: 'CHECK_MARKS'},
+    {range: `J13:J${12+sampleCount}`, type: 'PASS_FAIL_NOTE'}
+  ]);
   
   // Format amount column
-  sheet.getRange(13, 6, sampleCount, 1).setNumberFormat("#,##0.00");
+  formatCurrency(sheet.getRange(13, 6, sampleCount, 1));
   
   // Total row
   const totalRow = 13 + sampleCount;
-  sheet.getRange(totalRow, 1, 1, 5).merge()
-    .setValue("TOTAL TESTED")
-    .setFontWeight("bold");
-  sheet.getRange(totalRow, 6).setFormula(`=SUM(F13:F${totalRow-1})`)
-    .setFontWeight("bold")
-    .setNumberFormat("#,##0.00");
-  sheet.getRange(totalRow, 1, 1, 10).setBackground(COLORS.totalRow);
+  createTotalsSection(sheet, totalRow, 1, [
+    {label: "TOTAL TESTED", formula: safeSumFormula(`F13:F${totalRow-1}`), format: 'currency'}
+  ], '');
   
   // Exceptions section
-  let exceptRow = totalRow + 2;
-  sheet.getRange(exceptRow, 1, 1, 10).merge()
-    .setValue("EXCEPTIONS & NOTES")
-    .setFontWeight("bold")
-    .setBackground(COLORS.sectionHeader)
-    .setFontColor("#ffffff");
+  createInstructionsSection(sheet, totalRow + 2, 1, 10, "EXCEPTIONS & NOTES",
+    "[Document any exceptions, unusual items, or additional notes]");
   
-  exceptRow++;
-  sheet.getRange(exceptRow, 1, 3, 10).merge()
-    .setValue("[Document any exceptions, unusual items, or additional notes]")
-    .setWrap(true)
-    .setVerticalAlignment("top")
-    .setBackground("#ffffcc");
-  
-  createSignOffSection(sheet, exceptRow + 4);
-
-  applyStandardBorders(sheet, 12, 1, sampleCount + 1, 10);
-  sheet.setFrozenRows(12);
+  createSignOffSection(sheet, totalRow + 6, 1);
+  freezeHeaders(sheet, 12);
 }
 
 /**
  * Creates the Disposals Testing sheet (FA-5)
  */
 function createDisposalsTestingSheet(ss) {
-  let sheet = ss.getSheetByName("FA-5 Disposals");
-  if (sheet) ss.deleteSheet(sheet);
-  
-  sheet = ss.insertSheet("FA-5 Disposals");
-  sheet.setTabColor('#f4b084');
-  
-  sheet.setColumnWidths(1, 10, 110);
+  const sheet = getOrCreateSheet(ss, "FA-5 Disposals", null, '#f4b084');
+  setColumnWidths(sheet, Array(10).fill(110));
   
   createWorkpaperHeader(sheet, "FA-5", "DISPOSALS & RETIREMENTS TESTING");
   
   // Testing objective
-  sheet.getRange(5, 1, 1, 10).merge()
-    .setValue("OBJECTIVE: Test disposals to verify proper authorization, removal from records, and gain/loss calculation")
-    .setFontWeight("bold")
-    .setBackground(COLORS.sectionHeader)
-    .setFontColor("#ffffff")
-    .setWrap(true);
+  createInstructionsSection(sheet, 5, 1, 10, "OBJECTIVE",
+    "Test disposals to verify proper authorization, removal from records, and gain/loss calculation");
   
   // Sample selection
-  sheet.getRange(7, 1, 1, 3).merge()
-    .setValue("SAMPLE SELECTION")
-    .setFontWeight("bold")
-    .setBackground(COLORS.subheader)
-    .setFontColor("#ffffff");
+  createSectionHeader(sheet, 7, "SAMPLE SELECTION", 1, 3);
   
-  sheet.getRange(8, 1).setValue("Total Disposals:");
-  sheet.getRange(8, 2).setFormula("='FA-2 Roll Forward'!G13")
-    .setNumberFormat("#,##0.00");
-  
-  sheet.getRange(9, 1).setValue("Sample Size:");
-  sheet.getRange(9, 2).setValue(15);
-  
-  // Testing columns
-  const testHeaders = [
-    ["Date", "Asset Description", "Category", "Original Cost", "Accum. Depr.", "Net Book Value", "Proceeds", "Gain/(Loss)", "Authorization", "Conclusion"]
+  const sampleInputs = [
+    {label: "Total Disposals:", value: safeFormula("'FA-2 Roll Forward'!G13", "0"), type: 'currency'},
+    {label: "Sample Size:", value: 15, type: 'number'}
   ];
   
-  sheet.getRange(12, 1, 1, 10).setValues(testHeaders)
-    .setFontWeight("bold")
-    .setBackground(COLORS.subheader)
-    .setFontColor("#ffffff")
-    .setHorizontalAlignment("center")
-    .setWrap(true);
-  sheet.setRowHeight(12, 40);
+  createInputSection(sheet, 8, 1, 2, sampleInputs);
   
-  // Sample rows
+  // Testing table
   const sampleCount = 15;
+  createDataTable(sheet, 12, 1,
+    ["Date", "Asset Description", "Category", "Original Cost", "Accum. Depr.", "Net Book Value", "Proceeds", "Gain/(Loss)", "Authorization", "Conclusion"],
+    [],
+    {borders: true, headerHeight: 40}
+  );
+  
+  // Add formulas for calculated columns
   for (let i = 0; i < sampleCount; i++) {
     const row = 13 + i;
-    // Net Book Value formula
-    sheet.getRange(row, 6).setFormula(`=D${row}-E${row}`);
-    // Gain/Loss formula
-    sheet.getRange(row, 8).setFormula(`=G${row}-F${row}`);
-    
-    // Data validation
-    sheet.getRange(row, 9).setDataValidation(
-      SpreadsheetApp.newDataValidation()
-        .requireValueInList(['✓', '✗', 'N/A'], true)
-        .build()
-    );
+    sheet.getRange(row, 6).setFormula(safeFormula(`D${row}-E${row}`, "0"));
+    sheet.getRange(row, 8).setFormula(safeFormula(`G${row}-F${row}`, "0"));
+  }
+  
+  // Apply validations
+  applyMultipleValidations(sheet, [
+    {range: `I13:I${12+sampleCount}`, type: 'CHECK_MARKS'},
+    {range: `J13:J${12+sampleCount}`, type: 'PASS_FAIL_NOTE'}
+  ]);
     sheet.getRange(row, 10).setDataValidation(
       SpreadsheetApp.newDataValidation()
         .requireValueInList(['Pass', 'Fail', 'Note'], true)
@@ -784,225 +537,112 @@ function createDisposalsTestingSheet(ss) {
  * Creates the Existence Testing sheet (FA-6)
  */
 function createExistenceTestingSheet(ss) {
-  let sheet = ss.getSheetByName("FA-6 Existence");
-  if (sheet) ss.deleteSheet(sheet);
-  
-  sheet = ss.insertSheet("FA-6 Existence");
-  sheet.setTabColor('#9dc3e6');
-  
-  sheet.setColumnWidths(1, 9, 120);
+  const sheet = getOrCreateSheet(ss, "FA-6 Existence", null, '#9dc3e6');
+  setColumnWidths(sheet, Array(9).fill(120));
   
   createWorkpaperHeader(sheet, "FA-6", "PHYSICAL EXISTENCE VERIFICATION");
   
-  // Testing objective
-  sheet.getRange(5, 1, 1, 9).merge()
-    .setValue("OBJECTIVE: Verify physical existence of selected fixed assets")
-    .setFontWeight("bold")
-    .setBackground(COLORS.sectionHeader)
-    .setFontColor("#ffffff");
+  createInstructionsSection(sheet, 5, 1, 9, "OBJECTIVE",
+    "Verify physical existence of selected fixed assets");
   
-  // Sample selection
-  sheet.getRange(7, 1, 1, 3).merge()
-    .setValue("SAMPLE SELECTION")
-    .setFontWeight("bold")
-    .setBackground(COLORS.subheader)
-    .setFontColor("#ffffff");
+  createSectionHeader(sheet, 7, "SAMPLE SELECTION", 1, 3);
   
-  sheet.getRange(8, 1).setValue("Total Fixed Assets:");
-  sheet.getRange(8, 2).setFormula("='FA-2 Roll Forward'!H13")
-    .setNumberFormat("#,##0.00");
-  
-  sheet.getRange(9, 1).setValue("Items Selected:");
-  sheet.getRange(9, 2).setValue(30);
-  
-  // Testing columns
-  const testHeaders = [
-    ["Asset ID", "Description", "Category", "Location", "Book Value", "Observed?", "Condition", "Tag #", "Notes"]
+  const sampleInputs = [
+    {label: "Total Fixed Assets:", value: safeFormula("'FA-2 Roll Forward'!H13", "0"), type: 'currency'},
+    {label: "Items Selected:", value: 30, type: 'number'}
   ];
   
-  sheet.getRange(12, 1, 1, 9).setValues(testHeaders)
-    .setFontWeight("bold")
-    .setBackground(COLORS.subheader)
-    .setFontColor("#ffffff")
-    .setHorizontalAlignment("center")
-    .setWrap(true);
-  sheet.setRowHeight(12, 40);
+  createInputSection(sheet, 8, 1, 2, sampleInputs);
   
-  // Sample rows
   const sampleCount = 30;
-  for (let i = 0; i < sampleCount; i++) {
-    const row = 13 + i;
-    
-    // Data validation
-    sheet.getRange(row, 6).setDataValidation(
-      SpreadsheetApp.newDataValidation()
-        .requireValueInList(['✓ Yes', '✗ No', 'Unable to locate'], true)
-        .build()
-    );
-    
-    sheet.getRange(row, 7).setDataValidation(
-      SpreadsheetApp.newDataValidation()
-        .requireValueInList(['Good', 'Fair', 'Poor', 'N/A'], true)
-        .build()
-    );
-  }
+  createDataTable(sheet, 12, 1,
+    ["Asset ID", "Description", "Category", "Location", "Book Value", "Observed?", "Condition", "Tag #", "Notes"],
+    [], {borders: true, headerHeight: 40}
+  );
   
-  // Format numbers
-  sheet.getRange(13, 5, sampleCount, 1).setNumberFormat("#,##0.00");
+  applyMultipleValidations(sheet, [
+    {range: `F13:F${12+sampleCount}`, type: 'LOCATION_STATUS'},
+    {range: `G13:G${12+sampleCount}`, type: 'CONDITION_PHYSICAL'}
+  ]);
   
-  // Summary section
+  formatCurrency(sheet.getRange(13, 5, sampleCount, 1));
+  
   const summaryRow = 13 + sampleCount + 2;
-  sheet.getRange(summaryRow, 1, 1, 9).merge()
-    .setValue("VERIFICATION SUMMARY")
-    .setFontWeight("bold")
-    .setBackground(COLORS.sectionHeader)
-    .setFontColor("#ffffff");
+  createSectionHeader(sheet, summaryRow, "VERIFICATION SUMMARY", 1, 9);
   
-  sheet.getRange(summaryRow + 1, 1).setValue("Assets Physically Verified:");
-  sheet.getRange(summaryRow + 1, 2).setFormula(`=COUNTIF(F13:F${13+sampleCount-1},"✓ Yes")`);
+  const summaryInputs = [
+    {label: "Assets Physically Verified:", value: safeFormula(`COUNTIF(F13:F${13+sampleCount-1},"✓ Yes")`, "0")},
+    {label: "Assets Not Located:", value: safeFormula(`COUNTIF(F13:F${13+sampleCount-1},"Unable to locate")`, "0")},
+    {label: "Verification Rate:", value: safeFormula(`B${summaryRow+1}/${sampleCount}`, "0"), type: 'percentage'}
+  ];
   
-  sheet.getRange(summaryRow + 2, 1).setValue("Assets Not Located:");
-  sheet.getRange(summaryRow + 2, 2).setFormula(`=COUNTIF(F13:F${13+sampleCount-1},"Unable to locate")`);
+  createInputSection(sheet, summaryRow + 1, 1, 2, summaryInputs);
   
-  sheet.getRange(summaryRow + 3, 1).setValue("Verification Rate:");
-  sheet.getRange(summaryRow + 3, 2).setFormula(`=B${summaryRow+1}/${sampleCount}`)
-    .setNumberFormat("0.0%");
-  
-  createSignOffSection(sheet, summaryRow + 6);
-
-  applyStandardBorders(sheet, 12, 1, sampleCount + 1, 9);
-  sheet.setFrozenRows(12);
+  createSignOffSection(sheet, summaryRow + 6, 1);
+  freezeHeaders(sheet, 12);
 }
 
 /**
  * Creates the Completeness Testing sheet (FA-7)
  */
 function createCompletenessTestingSheet(ss) {
-  let sheet = ss.getSheetByName("FA-7 Completeness");
-  if (sheet) ss.deleteSheet(sheet);
-  
-  sheet = ss.insertSheet("FA-7 Completeness");
-  sheet.setTabColor('#a9d08e');
-  
-  sheet.setColumnWidths(1, 8, 130);
+  const sheet = getOrCreateSheet(ss, "FA-7 Completeness", null, '#a9d08e');
+  setColumnWidths(sheet, Array(8).fill(130));
   
   createWorkpaperHeader(sheet, "FA-7", "COMPLETENESS TESTING");
   
-  // Testing objective
-  sheet.getRange(5, 1, 1, 8).merge()
-    .setValue("OBJECTIVE: Test that all qualifying expenditures have been properly capitalized")
-    .setFontWeight("bold")
-    .setBackground(COLORS.sectionHeader)
-    .setFontColor("#ffffff");
+  createInstructionsSection(sheet, 5, 1, 8, "OBJECTIVE",
+    "Test that all qualifying expenditures have been properly capitalized");
   
-  // Procedure 1: Repair & Maintenance Expense Review
-  sheet.getRange(7, 1, 1, 8).merge()
-    .setValue("PROCEDURE 1: REVIEW REPAIR & MAINTENANCE EXPENSES")
-    .setFontWeight("bold")
-    .setBackground(COLORS.subheader)
-    .setFontColor("#ffffff");
-  
-  const repairHeaders = [
-    ["Date", "Vendor", "Description", "Amount", "Nature", "Capitalize?", "Adjustment", "Notes"]
-  ];
-  
-  sheet.getRange(8, 1, 1, 8).setValues(repairHeaders)
-    .setFontWeight("bold")
-    .setBackground(COLORS.subheader)
-    .setFontColor("#ffffff")
-    .setHorizontalAlignment("center");
+  // Procedure 1
+  createSectionHeader(sheet, 7, "PROCEDURE 1: REVIEW REPAIR & MAINTENANCE EXPENSES", 1, 8);
   
   const repairRows = 15;
-  for (let i = 0; i < repairRows; i++) {
-    const row = 9 + i;
-    sheet.getRange(row, 5).setDataValidation(
-      SpreadsheetApp.newDataValidation()
-        .requireValueInList(['Repair', 'Improvement', 'Betterment', 'Other'], true)
-        .build()
-    );
-    sheet.getRange(row, 6).setDataValidation(
-      SpreadsheetApp.newDataValidation()
-        .requireValueInList(['Yes', 'No'], true)
-        .build()
-    );
-  }
+  createDataTable(sheet, 8, 1,
+    ["Date", "Vendor", "Description", "Amount", "Nature", "Capitalize?", "Adjustment", "Notes"],
+    [], {borders: true}
+  );
   
-  sheet.getRange(9, 4, repairRows, 1).setNumberFormat("#,##0.00");
-  sheet.getRange(9, 7, repairRows, 1).setNumberFormat("#,##0.00");
+  applyMultipleValidations(sheet, [
+    {range: `E9:E${8+repairRows}`, type: 'REPAIR_TYPE'},
+    {range: `F9:F${8+repairRows}`, type: 'YES_NO'}
+  ]);
   
-  // Procedure 2: Construction in Progress
-  let cipRow = 9 + repairRows + 2;
-  sheet.getRange(cipRow, 1, 1, 8).merge()
-    .setValue("PROCEDURE 2: CONSTRUCTION IN PROGRESS REVIEW")
-    .setFontWeight("bold")
-    .setBackground(COLORS.subheader)
-    .setFontColor("#ffffff");
+  formatCurrency(sheet.getRange(9, 4, repairRows, 1));
+  formatCurrency(sheet.getRange(9, 7, repairRows, 1));
   
-  cipRow++;
-  const cipHeaders = [["Project", "Start Date", "Status", "Costs to Date", "Ready for Use?", "Transfer to FA?", "Notes", ""]];
-  sheet.getRange(cipRow, 1, 1, 8).setValues(cipHeaders)
-    .setFontWeight("bold")
-    .setBackground(COLORS.subheader)
-    .setFontColor("#ffffff")
-    .setHorizontalAlignment("center");
+  // Procedure 2
+  const cipRow = 9 + repairRows + 2;
+  createSectionHeader(sheet, cipRow, "PROCEDURE 2: CONSTRUCTION IN PROGRESS REVIEW", 1, 8);
   
   const cipRows = 10;
-  for (let i = 0; i < cipRows; i++) {
-    const row = cipRow + 1 + i;
-    sheet.getRange(row, 3).setDataValidation(
-      SpreadsheetApp.newDataValidation()
-        .requireValueInList(['In Progress', 'Complete', 'On Hold'], true)
-        .build()
-    );
-    sheet.getRange(row, 5).setDataValidation(
-      SpreadsheetApp.newDataValidation()
-        .requireValueInList(['Yes', 'No', 'Partial'], true)
-        .build()
-    );
-    sheet.getRange(row, 6).setDataValidation(
-      SpreadsheetApp.newDataValidation()
-        .requireValueInList(['Yes', 'No', 'N/A'], true)
-        .build()
-    );
-  }
+  createDataTable(sheet, cipRow + 1, 1,
+    ["Project", "Start Date", "Status", "Costs to Date", "Ready for Use?", "Transfer to FA?", "Notes", ""],
+    [], {borders: true}
+  );
   
-  sheet.getRange(cipRow + 1, 4, cipRows, 1).setNumberFormat("#,##0.00");
+  applyMultipleValidations(sheet, [
+    {range: `C${cipRow+2}:C${cipRow+1+cipRows}`, type: 'custom', values: ['In Progress', 'Complete', 'On Hold']},
+    {range: `E${cipRow+2}:E${cipRow+1+cipRows}`, type: 'custom', values: ['Yes', 'No', 'Partial']},
+    {range: `F${cipRow+2}:F${cipRow+1+cipRows}`, type: 'YES_NO_NA'}
+  ]);
   
-  createSignOffSection(sheet, cipRow + cipRows + 4);
+  formatCurrency(sheet.getRange(cipRow + 2, 4, cipRows, 1));
   
-  applyStandardBorders(sheet, 8, 1, repairRows + 1, 8);
-  applyStandardBorders(sheet, cipRow, 1, cipRows + 1, 8);
-  sheet.setFrozenRows(8);
+  createSignOffSection(sheet, cipRow + cipRows + 4, 1);
+  freezeHeaders(sheet, 8);
 }
 
 /**
  * Creates the Disclosure sheet (FA-8)
  */
 function createDisclosureSheet(ss) {
-  let sheet = ss.getSheetByName("FA-8 Disclosure");
-  if (sheet) ss.deleteSheet(sheet);
-  
-  sheet = ss.insertSheet("FA-8 Disclosure");
-  sheet.setTabColor('#c5e0b4');
-  
-  sheet.setColumnWidths(1, 5, 200);
+  const sheet = getOrCreateSheet(ss, "FA-8 Disclosure", null, '#c5e0b4');
+  setColumnWidths(sheet, Array(5).fill(200));
   
   createWorkpaperHeader(sheet, "FA-8", "PRESENTATION & DISCLOSURE CHECKLIST");
   
-  // Checklist section
-  sheet.getRange(5, 1, 1, 5).merge()
-    .setValue("DISCLOSURE REQUIREMENTS CHECKLIST")
-    .setFontWeight("bold")
-    .setBackground(COLORS.sectionHeader)
-    .setFontColor("#ffffff")
-    .setHorizontalAlignment("center");
-  
-  const checklistHeaders = [["Requirement", "Yes/No/N/A", "Reference", "Notes", ""]];
-  sheet.getRange(6, 1, 1, 5).setValues(checklistHeaders)
-    .setFontWeight("bold")
-    .setBackground(COLORS.subheader)
-    .setFontColor("#ffffff")
-    .setHorizontalAlignment("center");
+  createSectionHeader(sheet, 5, "DISCLOSURE REQUIREMENTS CHECKLIST", 1, 5);
   
   const disclosures = [
     ["Balance of major classes of depreciable assets"],
@@ -1021,74 +661,41 @@ function createDisclosureSheet(ss) {
     ["Related party transactions"]
   ];
   
-  sheet.getRange(7, 1, disclosures.length, 1).setValues(disclosures);
+  createDataTable(sheet, 6, 1, ["Requirement", "Yes/No/N/A", "Reference", "Notes", ""], disclosures, {borders: true});
   
-  for (let i = 0; i < disclosures.length; i++) {
-    const row = 7 + i;
-    sheet.getRange(row, 2).setDataValidation(
-      SpreadsheetApp.newDataValidation()
-        .requireValueInList(['Yes', 'No', 'N/A'], true)
-        .build()
-    );
-  }
+  applyValidationList(sheet.getRange(`B7:B${6+disclosures.length}`), 'YES_NO_NA');
   
   // Financial Statement Presentation
-  let fsRow = 7 + disclosures.length + 2;
-  sheet.getRange(fsRow, 1, 1, 5).merge()
-    .setValue("FINANCIAL STATEMENT PRESENTATION")
-    .setFontWeight("bold")
-    .setBackground(COLORS.sectionHeader)
-    .setFontColor("#ffffff")
-    .setHorizontalAlignment("center");
+  const fsRow = 7 + disclosures.length + 2;
+  createSectionHeader(sheet, fsRow, "FINANCIAL STATEMENT PRESENTATION", 1, 5);
   
-  fsRow++;
   const fsData = [
-    ["Fixed Assets (Gross)", "", "=", ""],
-    ["Less: Accumulated Depreciation", "", "=", ""],
-    ["Fixed Assets (Net)", "", "=", ""],
+    ["Fixed Assets (Gross)", safeFormula("'FA-2 Roll Forward'!H13", "0"), "=", ""],
+    ["Less: Accumulated Depreciation", safeFormula("'FA-3 Depreciation'!F15", "0"), "=", ""],
+    ["Fixed Assets (Net)", `=B${fsRow+1}-B${fsRow+2}`, "=", ""],
     ["", "", "", ""],
-    ["Depreciation Expense (P&L)", "", "=", ""]
+    ["Depreciation Expense (P&L)", safeFormula("'FA-3 Depreciation'!D15", "0"), "=", ""]
   ];
   
-  sheet.getRange(fsRow, 1, fsData.length, 4).setValues(fsData);
-  sheet.getRange(fsRow, 1, fsData.length, 1).setFontWeight("bold");
+  createDataTable(sheet, fsRow + 1, 1, ["Description", "Amount", "Tie", "Notes"], fsData, {borders: true});
   
-  // Link to other workpapers
-  sheet.getRange(fsRow, 2).setFormula("='FA-2 Roll Forward'!H13");
-  sheet.getRange(fsRow + 1, 2).setFormula("='FA-3 Depreciation'!F15");
-  sheet.getRange(fsRow + 2, 2).setFormula("=B" + fsRow + "-B" + (fsRow + 1));
-  sheet.getRange(fsRow + 4, 2).setFormula("='FA-3 Depreciation'!D15");
+  formatCurrency(sheet.getRange(fsRow + 1, 2, fsData.length, 1));
+  formatCurrency(sheet.getRange(fsRow + 1, 4, fsData.length, 1));
   
-  sheet.getRange(fsRow, 2, fsData.length, 1).setNumberFormat("#,##0.00");
-  sheet.getRange(fsRow, 4, fsData.length, 1).setNumberFormat("#,##0.00");
-  
-  createSignOffSection(sheet, fsRow + 8);
-  
-  applyStandardBorders(sheet, 6, 1, disclosures.length + 1, 5);
-  sheet.setFrozenRows(6);
+  createSignOffSection(sheet, fsRow + 8, 1);
+  freezeHeaders(sheet, 6);
 }
 
 /**
  * Creates the Conclusion sheet (FA-9)
  */
 function createConclusionSheet(ss) {
-  let sheet = ss.getSheetByName("FA-9 Conclusion");
-  if (sheet) ss.deleteSheet(sheet);
-  
-  sheet = ss.insertSheet("FA-9 Conclusion");
-  sheet.setTabColor('#70ad47');
-  
-  sheet.setColumnWidths(1, 6, 150);
+  const sheet = getOrCreateSheet(ss, "FA-9 Conclusion", null, '#70ad47');
+  setColumnWidths(sheet, Array(6).fill(150));
   
   createWorkpaperHeader(sheet, "FA-9", "AUDIT CONCLUSION & SIGN-OFF");
   
-  // Summary of procedures
-  sheet.getRange(5, 1, 1, 6).merge()
-    .setValue("SUMMARY OF AUDIT PROCEDURES")
-    .setFontWeight("bold")
-    .setBackground(COLORS.sectionHeader)
-    .setFontColor("#ffffff")
-    .setHorizontalAlignment("center");
+  createSectionHeader(sheet, 5, "SUMMARY OF AUDIT PROCEDURES", 1, 6);
   
   const procedures = [
     ["Obtained and agreed fixed asset roll forward to general ledger", "FA-2", "✓"],
@@ -1100,13 +707,7 @@ function createConclusionSheet(ss) {
     ["Reviewed financial statement presentation and disclosure", "FA-8", ""]
   ];
   
-  const procHeaders = [["Procedure", "Reference", "Complete"]];
-  sheet.getRange(6, 1, 1, 3).setValues(procHeaders)
-    .setFontWeight("bold")
-    .setBackground(COLORS.subheader)
-    .setFontColor("#ffffff");
-  
-  sheet.getRange(7, 1, procedures.length, 3).setValues(procedures);
+  createDataTable(sheet, 6, 1, ["Procedure", "Reference", "Complete"], procedures, {borders: true});
   
   // Exceptions and findings
   let exceptRow = 7 + procedures.length + 2;

@@ -906,32 +906,43 @@ function createQuarterlyReturnSheet(ss) {
     .setBackground('#1a237e').setFontColor('white').setFontWeight('bold')
     .setHorizontalAlignment('center').setWrapStrategy(SpreadsheetApp.WrapStrategy.WRAP);
   
-  // Formula to pull data for selected quarter
+  // Use QUERY to pull data for selected quarter
   const startRow = 13;
+  
+  // Sr. No. - sequential numbering
+  sheet.getRange(`A${startRow}`).setFormula(
+    `=ARRAYFORMULA(IF(B${startRow}:B<>"",ROW(B${startRow}:B)-ROW(B${startRow})+1,""))`
+  );
+  
+  // Use QUERY to filter TDS_Register by selected quarter
+  // This pulls all matching records dynamically
+  sheet.getRange(`B${startRow}`).setFormula(
+    `=QUERY(TDS_Register!B:R,"SELECT D,E,G,N,I,K,L,O,P WHERE Q='"&B4&"' AND B IS NOT NULL ORDER BY B",0)`
+  );
+  
+  // Format the query result columns
+  sheet.getRange(`B${startRow}:B${startRow+49}`).setWrap(false); // Vendor Name
+  sheet.getRange(`C${startRow}:C${startRow+49}`).setWrap(false); // PAN
+  sheet.getRange(`D${startRow}:D${startRow+49}`).setWrap(false); // Section
+  sheet.getRange(`E${startRow}:E${startRow+49}`).setNumberFormat('dd-mmm-yyyy'); // Payment Date
+  sheet.getRange(`F${startRow}:F${startRow+49}`).setNumberFormat('#,##0.00'); // Gross Amount
+  sheet.getRange(`G${startRow}:G${startRow+49}`).setNumberFormat('0.00"%"'); // TDS Rate
+  sheet.getRange(`H${startRow}:H${startRow+49}`).setNumberFormat('#,##0.00'); // TDS Amount
+  sheet.getRange(`I${startRow}:I${startRow+49}`).setWrap(false); // Challan No
+  sheet.getRange(`J${startRow}:J${startRow+49}`).setNumberFormat('dd-mmm-yyyy'); // Challan Date
+  
+  // BSR Code and Serial No - manual input columns
   for (let i = 0; i < 50; i++) {
     const row = startRow + i;
-    
-    // This is simplified - in production, you'd use FILTER or QUERY function
-    sheet.getRange(`A${row}`).setFormula(`=IF(ROW()-12<=COUNTIF(TDS_Register!Q:Q,$B$4),ROW()-12,"")`);
-    
-    // Note: These formulas are placeholders. In actual implementation, 
-    // you'd use FILTER or QUERY to pull matching records
-    sheet.getRange(`B${row}`).setValue(''); // Would use FILTER
-    sheet.getRange(`C${row}`).setValue('');
-    sheet.getRange(`D${row}`).setValue('');
-    sheet.getRange(`E${row}`).setValue('').setNumberFormat('dd-mmm-yyyy');
-    sheet.getRange(`F${row}`).setValue('').setNumberFormat('#,##0.00');
-    sheet.getRange(`G${row}`).setValue('').setNumberFormat('0.00"%"');
-    sheet.getRange(`H${row}`).setValue('').setNumberFormat('#,##0.00');
-    sheet.getRange(`I${row}`).setValue('');
-    sheet.getRange(`J${row}`).setValue('').setNumberFormat('dd-mmm-yyyy');
     sheet.getRange(`K${row}`).setBackground('#fff3e0'); // BSR Code - input
     sheet.getRange(`L${row}`).setBackground('#fff3e0'); // Serial No - input
-    sheet.getRange(`M${row}`).setValue('');
   }
   
-  // Add note about FILTER function
-  sheet.getRange('A65').setValue('Note: Use FILTER or QUERY function to automatically populate deductee details based on selected quarter.')
+  // Remarks column - can be used for notes
+  sheet.getRange(`M${startRow}:M${startRow+49}`).setBackground('#ffffff');
+  
+  // Add note about the QUERY function
+  sheet.getRange('A65').setValue('Note: Data automatically filtered from TDS_Register based on selected quarter. Enter BSR Code and Challan Serial No. manually.')
     .setFontStyle('italic').setFontColor('#666666');
   sheet.getRange('A65:M65').merge();
   

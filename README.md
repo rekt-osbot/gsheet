@@ -26,7 +26,8 @@ Automated audit workpaper generation for Indian Accounting Standards.
 
 - Auto-generated sheets with formulas
 - Built-in validations and formatting
-- Sample data for testing
+- Sample data for testing (via menu)
+- Safe formulas with error handling
 - Audit trail and references
 - No macros - pure formulas
 
@@ -46,7 +47,6 @@ Project structure:
 ## Documentation
 
 - [Developer Guide](docs/README.md)
-- [Code Improvements](docs/CODE_IMPROVEMENTS.md)
 - Individual workbook READMEs in `docs/`
 
 ## License

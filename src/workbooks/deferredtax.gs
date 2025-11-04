@@ -130,15 +130,10 @@ const ROWS = {
 // ============================================================================
 
 function createCoverSheet(ss) {
-  let sheet = ss.getSheetByName("Cover");
-  if (!sheet) {
-    sheet = ss.insertSheet("Cover", 0);
-  }
-  
-  sheet.clear();
+  const sheet = getOrCreateSheet(ss, "Cover", 0);
   setColumnWidths(sheet, [50, 200, 250, 200, 150, 150]);
   
-  // Title Section
+  // Title Section - using manual formatting for custom multi-row header
   sheet.getRange("B2:F4").merge()
     .setValue("DEFERRED TAXATION WORKINGS")
     .setFontSize(24)
@@ -156,125 +151,89 @@ function createCoverSheet(ss) {
     .setBackground(COLORS.SUBHEADER_BG)
     .setFontColor(COLORS.HEADER_TEXT);
   
-  // Entity Information Section
-  sheet.getRange("B7").setValue("Entity Name:")
-    .setFontWeight("bold");
-  sheet.getRange("C7").setFormula('=Assumptions!B3')
-    .setFontSize(11);
+  // Entity Information Section - using createInputSection
+  const entityInputs = [
+    {label: "Entity Name:", value: "=Assumptions!B3"},
+    {label: "Financial Year:", value: "=Assumptions!B4"},
+    {label: "Framework:", value: "=Assumptions!B5"},
+    {label: "Reporting Date:", value: '=TEXT(Assumptions!B6,"DD-MMM-YYYY")'}
+  ];
   
-  sheet.getRange("B8").setValue("Financial Year:")
-    .setFontWeight("bold");
-  sheet.getRange("C8").setFormula('=Assumptions!B4')
-    .setFontSize(11);
+  entityInputs.forEach((input, index) => {
+    const row = 7 + index;
+    sheet.getRange(row, 2).setValue(input.label).setFontWeight("bold");
+    sheet.getRange(row, 3).setFormula(input.value).setFontSize(11);
+    if (input.label === "Framework:") {
+      sheet.getRange(row, 3).setFontWeight("bold").setFontColor("#d32f2f");
+    }
+  });
   
-  sheet.getRange("B9").setValue("Framework:")
-    .setFontWeight("bold");
-  sheet.getRange("C9").setFormula('=Assumptions!B5')
-    .setFontSize(11)
-    .setFontWeight("bold")
-    .setFontColor("#d32f2f");
-  
-  sheet.getRange("B10").setValue("Reporting Date:")
-    .setFontWeight("bold");
-  sheet.getRange("C10").setFormula('=TEXT(Assumptions!B6,"DD-MMM-YYYY")')
-    .setFontSize(11);
-  
-  // Key Metrics Summary
-  sheet.getRange("B12:F12").merge()
-    .setValue("KEY METRICS SUMMARY")
-    .setFontSize(14)
-    .setFontWeight("bold")
-    .setHorizontalAlignment("center")
-    .setBackground(COLORS.SECTION_BG);
+  // Key Metrics Summary - using createSectionHeader and createDataTable
+  createSectionHeader(sheet, 12, "KEY METRICS SUMMARY", 2, 6);
   
   const metrics = [
     ["Metric", "Current Year", "Prior Year", "Movement", "% Change"],
-    ["Deferred Tax Assets (DTA)", "=Movement_Analysis!F65", "=Movement_Analysis!C65", "=Movement_Analysis!I65", "=IF(Movement_Analysis!C65<>0,Movement_Analysis!I65/Movement_Analysis!C65,\"-\")"],
-    ["Deferred Tax Liabilities (DTL)", "=Movement_Analysis!F66", "=Movement_Analysis!C66", "=Movement_Analysis!I66", "=IF(Movement_Analysis!C66<>0,Movement_Analysis!I66/Movement_Analysis!C66,\"-\")"],
-    ["Net DTA/(DTL)", "=Movement_Analysis!F67", "=Movement_Analysis!C67", "=Movement_Analysis!I67", "=IF(Movement_Analysis!C67<>0,Movement_Analysis!I67/Movement_Analysis!C67,\"-\")"],
+    ["Deferred Tax Assets (DTA)", safeFormula("Movement_Analysis!F65", "0"), safeFormula("Movement_Analysis!C65", "0"), safeFormula("Movement_Analysis!I65", "0"), safeFormula("IF(Movement_Analysis!C65<>0,Movement_Analysis!I65/Movement_Analysis!C65,0)", '"-"')],
+    ["Deferred Tax Liabilities (DTL)", safeFormula("Movement_Analysis!F66", "0"), safeFormula("Movement_Analysis!C66", "0"), safeFormula("Movement_Analysis!I66", "0"), safeFormula("IF(Movement_Analysis!C66<>0,Movement_Analysis!I66/Movement_Analysis!C66,0)", '"-"')],
+    ["Net DTA/(DTL)", safeFormula("Movement_Analysis!F67", "0"), safeFormula("Movement_Analysis!C67", "0"), safeFormula("Movement_Analysis!I67", "0"), safeFormula("IF(Movement_Analysis!C67<>0,Movement_Analysis!I67/Movement_Analysis!C67,0)", '"-"')],
     ["", "", "", "", ""],
-    ["Deferred Tax Expense/(Income)", "=PL_Reconciliation!C8", "", "", ""],
-    ["Effective Tax Rate", "=PL_Reconciliation!C15", "", "", ""]
+    ["Deferred Tax Expense/(Income)", safeFormula("PL_Reconciliation!C8", "0"), "", "", ""],
+    ["Effective Tax Rate", safeFormula("PL_Reconciliation!C15", "0"), "", "", ""]
   ];
   
-  sheet.getRange(13, 2, metrics.length, 5).setValues(metrics);
-  sheet.getRange("B13:F13").setBackground(COLORS.HEADER_BG)
-    .setFontColor(COLORS.HEADER_TEXT)
-    .setFontWeight("bold");
+  createDataTable(sheet, 13, 2, metrics[0], metrics.slice(1), {borders: true});
   
-  sheet.getRange("B14:B17").setNumberFormat("#,##0");
-  sheet.getRange("C14:E17").setNumberFormat("#,##0");
-  sheet.getRange("F14:F17").setNumberFormat("0.00%");
-  sheet.getRange("C19").setNumberFormat("#,##0");
-  sheet.getRange("C20").setNumberFormat("0.00%");
+  // Format numbers
+  sheet.getRange("C14:C17").setNumberFormat("#,##0");
+  sheet.getRange("D14:F17").setNumberFormat("#,##0");
+  sheet.getRange("G14:G17").setNumberFormat("0.00%");
+  sheet.getRange("D19:D20").setNumberFormat("#,##0");
+  sheet.getRange("D20").setNumberFormat("0.00%");
   
-  // Navigation Buttons Section
-  sheet.getRange("B22:F22").merge()
-    .setValue("QUICK NAVIGATION")
-    .setFontSize(14)
-    .setFontWeight("bold")
-    .setHorizontalAlignment("center")
-    .setBackground(COLORS.SECTION_BG);
+  // Navigation Section - using createNavigationSection
+  createSectionHeader(sheet, 22, "QUICK NAVIGATION", 2, 6);
   
-  const navigationButtons = [
-    ["Sheet", "Purpose"],
-    ["Assumptions", "Entity details, framework selection, tax rates"],
-    ["Temp_Differences", "Input temporary differences data"],
-    ["DT_Schedule", "Main deferred tax calculation schedule"],
-    ["Movement_Analysis", "Opening to closing reconciliation"],
-    ["PL_Reconciliation", "Tax expense and effective rate analysis"],
-    ["BS_Reconciliation", "Balance sheet presentation of DTA/DTL"],
-    ["References", "Accounting standards guidance"],
-    ["Audit_Notes", "Audit assertions and control checks"]
+  const navigationItems = [
+    {sheet: "Assumptions", description: "Entity details, framework selection, tax rates"},
+    {sheet: "Temp_Differences", description: "Input temporary differences data"},
+    {sheet: "DT_Schedule", description: "Main deferred tax calculation schedule"},
+    {sheet: "Movement_Analysis", description: "Opening to closing reconciliation"},
+    {sheet: "PL_Reconciliation", description: "Tax expense and effective rate analysis"},
+    {sheet: "BS_Reconciliation", description: "Balance sheet presentation of DTA/DTL"},
+    {sheet: "References", description: "Accounting standards guidance"},
+    {sheet: "Audit_Notes", description: "Audit assertions and control checks"}
   ];
   
-  sheet.getRange(23, 2, navigationButtons.length, 2).setValues(navigationButtons);
-  sheet.getRange("B23:C23").setBackground(COLORS.HEADER_BG)
-    .setFontColor(COLORS.HEADER_TEXT)
-    .setFontWeight("bold");
+  const navData = navigationItems.map(item => [item.sheet, item.description]);
+  createDataTable(sheet, 23, 2, ["Sheet", "Purpose"], navData, {borders: true});
   
-  // Instructions
-  sheet.getRange("B33:F33").merge()
-    .setValue("INSTRUCTIONS FOR USE")
-    .setFontSize(14)
-    .setFontWeight("bold")
-    .setHorizontalAlignment("center")
-    .setBackground(COLORS.SECTION_BG);
+  // Instructions Section - using createInstructionsSection
+  const instructionsText = 
+    "1. Navigate to 'Assumptions' sheet and complete all yellow highlighted input cells\n" +
+    "2. Select your accounting framework (IGAAP or Ind AS) - this will adjust calculations automatically\n" +
+    "3. Enter your entity's tax rates (current and deferred tax rates)\n" +
+    "4. Go to 'Temp_Differences' sheet and enter all temporary differences line by line\n" +
+    "5. Review 'DT_Schedule' for detailed deferred tax calculations\n" +
+    "6. Check 'Movement_Analysis' for period-wise movement\n" +
+    "7. Verify 'PL_Reconciliation' for tax expense correctness\n" +
+    "8. Review 'BS_Reconciliation' for balance sheet presentation\n" +
+    "9. Use 'Audit_Notes' sheet to document review points and control checks\n\n" +
+    "NOTE: All yellow/light blue cells are input cells. All other cells are formula-driven.";
   
-  const instructions = [
-    ["Step", "Action"],
-    ["1", "Navigate to 'Assumptions' sheet and complete all yellow highlighted input cells"],
-    ["2", "Select your accounting framework (IGAAP or Ind AS) - this will adjust calculations automatically"],
-    ["3", "Enter your entity's tax rates (current and deferred tax rates)"],
-    ["4", "Go to 'Temp_Differences' sheet and enter all temporary differences line by line"],
-    ["5", "Review 'DT_Schedule' for detailed deferred tax calculations"],
-    ["6", "Check 'Movement_Analysis' for period-wise movement"],
-    ["7", "Verify 'PL_Reconciliation' for tax expense correctness"],
-    ["8", "Review 'BS_Reconciliation' for balance sheet presentation"],
-    ["9", "Use 'Audit_Notes' sheet to document review points and control checks"],
-    ["", ""],
-    ["NOTE", "All yellow/light blue cells are input cells. All other cells are formula-driven."]
-  ];
+  createInstructionsSection(sheet, 33, 2, 6, "INSTRUCTIONS FOR USE", instructionsText);
   
-  sheet.getRange(34, 2, instructions.length, 2).setValues(instructions);
-  sheet.getRange("B34:C34").setBackground(COLORS.HEADER_BG)
-    .setFontColor(COLORS.HEADER_TEXT)
-    .setFontWeight("bold");
-  
+  // Additional note
   sheet.getRange("B45").setValue("NOTE:")
     .setFontWeight("bold")
     .setFontColor("#d32f2f");
   sheet.getRange("C45").setValue("All yellow/light blue cells are input cells. All other cells are formula-driven.")
     .setFontStyle("italic");
   
-  // Borders
+  // Borders for entity info
   sheet.getRange("B7:C10").setBorder(true, true, true, true, true, true, COLORS.BORDER_COLOR, SpreadsheetApp.BorderStyle.SOLID);
-  sheet.getRange("B13:F20").setBorder(true, true, true, true, true, true, COLORS.BORDER_COLOR, SpreadsheetApp.BorderStyle.SOLID);
-  sheet.getRange("B23:C31").setBorder(true, true, true, true, true, true, COLORS.BORDER_COLOR, SpreadsheetApp.BorderStyle.SOLID);
-  sheet.getRange("B34:C45").setBorder(true, true, true, true, true, true, COLORS.BORDER_COLOR, SpreadsheetApp.BorderStyle.SOLID);
   
   // Freeze header
-  sheet.setFrozenRows(1);
+  freezeHeaders(sheet, 1);
 }
 
 // ============================================================================
@@ -282,29 +241,14 @@ function createCoverSheet(ss) {
 // ============================================================================
 
 function createAssumptionsSheet(ss) {
-  let sheet = ss.getSheetByName("Assumptions");
-  if (!sheet) {
-    sheet = ss.insertSheet("Assumptions", 1);
-  }
-  
-  sheet.clear();
+  const sheet = getOrCreateSheet(ss, "Assumptions", 1);
   setColumnWidths(sheet, [30, 300, 200, 250, 150]);
   
   // Header
-  sheet.getRange("A1:E1").merge()
-    .setValue("ASSUMPTIONS & INPUT PARAMETERS")
-    .setFontSize(16)
-    .setFontWeight("bold")
-    .setHorizontalAlignment("center")
-    .setBackground(COLORS.HEADER_BG)
-    .setFontColor(COLORS.HEADER_TEXT);
+  createStandardHeader(sheet, "ASSUMPTIONS & INPUT PARAMETERS", "", 1, 5);
   
   // Entity Information Section
-  sheet.getRange("A3:E3").merge()
-    .setValue("ENTITY INFORMATION")
-    .setFontSize(12)
-    .setFontWeight("bold")
-    .setBackground(COLORS.SECTION_BG);
+  createSectionHeader(sheet, 3, "ENTITY INFORMATION", 1, 5);
   
   const entityInfo = [
     ["Parameter", "Value", "Instructions", ""],
@@ -315,28 +259,19 @@ function createAssumptionsSheet(ss) {
     ["Prior Period Reporting Date", "31-Mar-2024", "Enter prior period balance sheet date", "DATE"]
   ];
   
-  sheet.getRange(4, 1, entityInfo.length, 4).setValues(entityInfo);
-  sheet.getRange("A4:D4").setBackground(COLORS.HEADER_BG)
-    .setFontColor(COLORS.HEADER_TEXT)
-    .setFontWeight("bold");
+  createDataTable(sheet, 4, 1, entityInfo[0], entityInfo.slice(1), {borders: true});
   
   // Input cells styling
   sheet.getRange("B5:B9").setBackground(COLORS.INPUT_BG);
   
   // Data validation for Framework
-  const frameworkRule = SpreadsheetApp.newDataValidation()
-    .requireValueInList(["IGAAP", "Ind AS"], true)
-    .setAllowInvalid(false)
-    .setHelpText("Select the accounting framework: IGAAP (AS 22) or Ind AS (Ind AS 12)")
-    .build();
-  sheet.getRange("B6").setDataValidation(frameworkRule);
+  applyValidationList(sheet.getRange("B7"), 'custom', "Select the accounting framework: IGAAP (AS 22) or Ind AS (Ind AS 12)");
+  applyMultipleValidations(sheet, [
+    {range: 'B7', type: 'custom', values: ['IGAAP', 'Ind AS'], helpText: 'Select the accounting framework'}
+  ]);
   
   // Tax Rates Section
-  sheet.getRange("A11:E11").merge()
-    .setValue("TAX RATES")
-    .setFontSize(12)
-    .setFontWeight("bold")
-    .setBackground(COLORS.SECTION_BG);
+  createSectionHeader(sheet, 11, "TAX RATES", 1, 5);
   
   const taxRates = [
     ["Tax Rate Parameter", "Rate (%)", "Instructions", ""],
@@ -349,20 +284,13 @@ function createAssumptionsSheet(ss) {
     ["", "IGAAP (AS 22) requires use of enacted rates", "", ""]
   ];
   
-  sheet.getRange(12, 1, taxRates.length, 4).setValues(taxRates);
-  sheet.getRange("A12:D12").setBackground(COLORS.HEADER_BG)
-    .setFontColor(COLORS.HEADER_TEXT)
-    .setFontWeight("bold");
+  createDataTable(sheet, 12, 1, taxRates[0], taxRates.slice(1), {borders: true});
   
   sheet.getRange("B13:B16").setBackground(COLORS.INPUT_BG)
     .setNumberFormat("0.00%");
   
   // Period Information Section
-  sheet.getRange("A22:E22").merge()
-    .setValue("PERIOD INFORMATION")
-    .setFontSize(12)
-    .setFontWeight("bold")
-    .setBackground(COLORS.SECTION_BG);
+  createSectionHeader(sheet, 22, "PERIOD INFORMATION", 1, 5);
   
   const periodInfo = [
     ["Period Parameter", "Amount (₹)", "Instructions", ""],
@@ -374,20 +302,13 @@ function createAssumptionsSheet(ss) {
     ["Opening Balance - DTL", "750,000", "Enter opening DTL from prior year balance sheet", ""],
   ];
   
-  sheet.getRange(23, 1, periodInfo.length, 4).setValues(periodInfo);
-  sheet.getRange("A23:D23").setBackground(COLORS.HEADER_BG)
-    .setFontColor(COLORS.HEADER_TEXT)
-    .setFontWeight("bold");
+  createDataTable(sheet, 23, 1, periodInfo[0], periodInfo.slice(1), {borders: true});
   
   sheet.getRange("B24:B29").setBackground(COLORS.INPUT_BG)
     .setNumberFormat("#,##0");
   
   // Recognition Thresholds (Ind AS specific)
-  sheet.getRange("A32:E32").merge()
-    .setValue("RECOGNITION CRITERIA (Ind AS 12)")
-    .setFontSize(12)
-    .setFontWeight("bold")
-    .setBackground(COLORS.SECTION_BG);
+  createSectionHeader(sheet, 32, "RECOGNITION CRITERIA (Ind AS 12)", 1, 5);
   
   const recognition = [
     ["Recognition Parameter", "Policy", "Instructions", ""],
@@ -399,25 +320,12 @@ function createAssumptionsSheet(ss) {
     ["", "Ind AS 12 requires reasonable certainty (probable future taxable profits)", "", ""]
   ];
   
-  sheet.getRange(33, 1, recognition.length, 4).setValues(recognition);
-  sheet.getRange("A33:D33").setBackground(COLORS.HEADER_BG)
-    .setFontColor(COLORS.HEADER_TEXT)
-    .setFontWeight("bold");
+  createDataTable(sheet, 33, 1, recognition[0], recognition.slice(1), {borders: true});
   
   sheet.getRange("B34:B36").setBackground(COLORS.INPUT_ALT_BG);
   
   // Data validation for Yes/No dropdowns
-  const yesNoRule = SpreadsheetApp.newDataValidation()
-    .requireValueInList(["Yes", "No"], true)
-    .setAllowInvalid(false)
-    .build();
-  sheet.getRange("B34:B36").setDataValidation(yesNoRule);
-  
-  // Borders
-  sheet.getRange("A4:D9").setBorder(true, true, true, true, true, true, COLORS.BORDER_COLOR, SpreadsheetApp.BorderStyle.SOLID);
-  sheet.getRange("A12:D19").setBorder(true, true, true, true, true, true, COLORS.BORDER_COLOR, SpreadsheetApp.BorderStyle.SOLID);
-  sheet.getRange("A23:D29").setBorder(true, true, true, true, true, true, COLORS.BORDER_COLOR, SpreadsheetApp.BorderStyle.SOLID);
-  sheet.getRange("A33:D39").setBorder(true, true, true, true, true, true, COLORS.BORDER_COLOR, SpreadsheetApp.BorderStyle.SOLID);
+  applyValidationList(sheet.getRange("B34:B36"), 'YES_NO');
   
   // Add cell notes
   sheet.getRange("B6").setNote("Critical: Framework selection affects recognition criteria and disclosure requirements.\n\nIGAAP (AS 22): More conservative, requires virtual certainty for DTA on losses.\n\nInd AS 12: Allows DTA recognition when probable (>50% likelihood) that taxable profits will be available.");
@@ -426,8 +334,8 @@ function createAssumptionsSheet(ss) {
   
   sheet.getRange("B14").setNote("Use the tax rate substantively enacted (Ind AS) or enacted (IGAAP) as at balance sheet date for recognizing deferred tax.");
   
-  // Freeze rows only (columns removed to avoid splitting merged cells)
-  sheet.setFrozenRows(1);
+  // Freeze rows
+  freezeHeaders(sheet, 1);
 }
 
 // ============================================================================
@@ -435,37 +343,11 @@ function createAssumptionsSheet(ss) {
 // ============================================================================
 
 function createInputVariablesSheet(ss) {
-  let sheet = ss.getSheetByName("Input_Variables");
-  if (!sheet) {
-    sheet = ss.insertSheet("Input_Variables", 2);
-  }
-  
-  sheet.clear();
+  const sheet = getOrCreateSheet(ss, "Input_Variables", 2);
   setColumnWidths(sheet, [30, 200, 150, 250, 120, 150]);
   
   // Header
-  sheet.getRange("A1:F1").merge()
-    .setValue("INPUT VARIABLES CATALOG")
-    .setFontSize(16)
-    .setFontWeight("bold")
-    .setHorizontalAlignment("center")
-    .setBackground(COLORS.HEADER_BG)
-    .setFontColor(COLORS.HEADER_TEXT);
-  
-  sheet.getRange("A2:F2").merge()
-    .setValue("Complete list of all user input cells across the workbook")
-    .setFontSize(10)
-    .setFontStyle("italic")
-    .setHorizontalAlignment("center")
-    .setBackground(COLORS.SUBHEADER_BG)
-    .setFontColor(COLORS.HEADER_TEXT);
-  
-  // Column headers
-  const headers = [["Sheet Name", "Cell Reference", "Parameter Name", "Purpose", "Data Type", "Sample Value"]];
-  sheet.getRange(4, 1, 1, 6).setValues(headers);
-  sheet.getRange("A4:F4").setBackground(COLORS.HEADER_BG)
-    .setFontColor(COLORS.HEADER_TEXT)
-    .setFontWeight("bold");
+  createStandardHeader(sheet, "INPUT VARIABLES CATALOG", "Complete list of all user input cells across the workbook", 1, 6);
   
   // Input variables data
   const inputVars = [
@@ -529,38 +411,14 @@ function createInputVariablesSheet(ss) {
 // ============================================================================
 
 function createTempDifferencesSheet(ss) {
-  let sheet = ss.getSheetByName("Temp_Differences");
-  if (!sheet) {
-    sheet = ss.insertSheet("Temp_Differences", 3);
-  }
-  
-  sheet.clear();
+  const sheet = getOrCreateSheet(ss, "Temp_Differences", 3);
   setColumnWidths(sheet, [40, 250, 150, 120, 120, 120, 80, 120, 120, 120, 120, 150]);
   
-  // Header
-  sheet.getRange("A1:L1").merge()
-    .setValue("TEMPORARY DIFFERENCES INPUT SCHEDULE")
-    .setFontSize(16)
-    .setFontWeight("bold")
-    .setHorizontalAlignment("center")
-    .setBackground(COLORS.HEADER_BG)
-    .setFontColor(COLORS.HEADER_TEXT);
+  createStandardHeader(sheet, "TEMPORARY DIFFERENCES INPUT SCHEDULE", 
+    "Enter all temporary differences between book and tax basis of assets and liabilities", 1, 12);
   
-  sheet.getRange("A2:L2").merge()
-    .setValue("Enter all temporary differences between book and tax basis of assets and liabilities")
-    .setFontSize(10)
-    .setFontStyle("italic")
-    .setHorizontalAlignment("center")
-    .setBackground(COLORS.SUBHEADER_BG)
-    .setFontColor(COLORS.HEADER_TEXT);
-  
-  // Instructions
-  sheet.getRange("A4:L4").merge()
-    .setValue("INSTRUCTIONS: Enter temporary differences line by line. System will auto-calculate DTA/DTL. Yellow cells are inputs.")
-    .setFontSize(10)
-    .setFontWeight("bold")
-    .setHorizontalAlignment("center")
-    .setBackground(COLORS.INFO_BG);
+  createInstructionsSection(sheet, 4, 1, 12, "INSTRUCTIONS",
+    "Enter temporary differences line by line. System will auto-calculate DTA/DTL. Yellow cells are inputs.");
   
   // Column headers
   const headers = [
@@ -1005,11 +863,11 @@ function createMovementAnalysisSheet(ss) {
 
   const dtaHeaderRow = 7;
   const dtaDataStartRow = dtaHeaderRow + 1;
-  const dtaDataRows = 20;
+  const dtaDataRows = 50; // Increased from 20 to 50 to handle more items
   const dtaSubtotalRow = dtaDataStartRow + dtaDataRows;
   const dtlHeaderRow = dtaSubtotalRow + 2;
   const dtlDataStartRow = dtlHeaderRow + 1;
-  const dtlDataRows = 20;
+  const dtlDataRows = 50; // Increased from 20 to 50 to handle more items
   const dtlSubtotalRow = dtlDataStartRow + dtlDataRows;
   const netHeaderRow = dtlSubtotalRow + 2;
   const netDataRow = netHeaderRow + 1;
@@ -1041,14 +899,15 @@ function createMovementAnalysisSheet(ss) {
   sheet.getRange(dtaDataStartRow, 6, dtaDataRows, 1).setFormulaR1C1('=IF(RC[-4]="","",RC[-3]+RC[-2]-RC[-1]+IF(RC[2]="",0,RC[2]))');
   sheet.getRange(dtaDataStartRow, 9, dtaDataRows, 1).setFormulaR1C1('=IF(RC[-8]="","",RC[-2]+RC[-1])');
 
-  // DTA Subtotal
+  // DTA Subtotal - using full column reference for dynamic range
   sheet.getRange(`A${dtaSubtotalRow}:B${dtaSubtotalRow}`).merge()
     .setValue("Subtotal - DTA")
     .setFontWeight("bold")
     .setBackground(COLORS.CALC_BG);
   for (let col = 3; col <= 9; col++) {
     const colLetter = String.fromCharCode(64 + col);
-    sheet.getRange(dtaSubtotalRow, col).setFormula(`=SUM(${colLetter}${dtaDataStartRow}:${colLetter}${dtaSubtotalRow - 1})`)
+    // Use SUMIF to sum only non-empty rows dynamically
+    sheet.getRange(dtaSubtotalRow, col).setFormula(`=SUMIF(B${dtaDataStartRow}:B${dtaSubtotalRow - 1},"<>",${colLetter}${dtaDataStartRow}:${colLetter}${dtaSubtotalRow - 1})`)
       .setFontWeight("bold")
       .setBackground(COLORS.CALC_BG);
   }
@@ -1071,13 +930,15 @@ function createMovementAnalysisSheet(ss) {
   sheet.getRange(dtlDataStartRow, 6, dtlDataRows, 1).setFormulaR1C1('=IF(RC[-4]="","",RC[-3]+RC[-2]-RC[-1]+IF(RC[2]="",0,RC[2]))');
   sheet.getRange(dtlDataStartRow, 9, dtlDataRows, 1).setFormulaR1C1('=IF(RC[-8]="","",RC[-2]+RC[-1])');
 
+  // DTL Subtotal - using full column reference for dynamic range
   sheet.getRange(`A${dtlSubtotalRow}:B${dtlSubtotalRow}`).merge()
     .setValue("Subtotal - DTL")
     .setFontWeight("bold")
     .setBackground(COLORS.CALC_BG);
   for (let col = 3; col <= 9; col++) {
     const colLetter = String.fromCharCode(64 + col);
-    sheet.getRange(dtlSubtotalRow, col).setFormula(`=SUM(${colLetter}${dtlDataStartRow}:${colLetter}${dtlSubtotalRow - 1})`)
+    // Use SUMIF to sum only non-empty rows dynamically
+    sheet.getRange(dtlSubtotalRow, col).setFormula(`=SUMIF(B${dtlDataStartRow}:B${dtlSubtotalRow - 1},"<>",${colLetter}${dtlDataStartRow}:${colLetter}${dtlSubtotalRow - 1})`)
       .setFontWeight("bold")
       .setBackground(COLORS.CALC_BG);
   }

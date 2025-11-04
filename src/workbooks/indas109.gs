@@ -23,7 +23,7 @@
 // MAIN EXECUTION FUNCTION
 // ═══════════════════════════════════════════════════════════════════════════
 
-function createIndAS109WorkingPapers() {
+function createIndAS109Workbook() {
   const ss = SpreadsheetApp.getActiveSpreadsheet();
   
   // Set workbook type for menu detection

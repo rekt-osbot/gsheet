@@ -28,7 +28,7 @@
  * MAIN EXECUTION FUNCTION
  * Run this function to build the entire Ind AS 115 audit workpaper
  */
-function buildIndAS115Workpaper() {
+function createIndAS115Workbook() {
   const ss = SpreadsheetApp.getActiveSpreadsheet();
   
   // Set workbook type for menu detection
@@ -108,18 +108,10 @@ const COLS = {
  * ============================================================================
  */
 function createCoverSheet(ss) {
-  let sheet = ss.getSheetByName('Cover');
-  if (!sheet) {
-    sheet = ss.insertSheet('Cover', 0);
-  } else {
-    sheet.clear();
-  }
+  const sheet = getOrCreateSheet(ss, 'Cover', 0);
+  setColumnWidths(sheet, [150, 200, 200, 200, 200]);
   
-  // Set column widths
-  sheet.setColumnWidth(1, 150);
-  sheet.setColumnWidths(2, 4, 200);
-  
-  // Title Section
+  // Title Section - custom formatting for this specific header
   sheet.getRange('B2:E2').merge()
     .setValue('IND AS 115 - REVENUE FROM CONTRACTS WITH CUSTOMERS')
     .setFontSize(16)
@@ -131,7 +123,6 @@ function createCoverSheet(ss) {
   
   sheet.setRowHeight(2, 50);
   
-  // Subtitle
   sheet.getRange('B3:E3').merge()
     .setValue('Audit Workpaper - Period-End Book Closure')
     .setFontSize(11)
@@ -1979,73 +1970,7 @@ function finalFormatting(ss) {
     // protection.setWarningOnly(true);
   });
   
-  // Add a custom menu for easy navigation
-  createCustomMenu();
-  
   SpreadsheetApp.getActiveSpreadsheet().toast('Formatting complete!', 'Success', 2);
-}
-
-/**
- * ============================================================================
- * CUSTOM MENU FOR NAVIGATION
- * ============================================================================
- */
-function createCustomMenu() {
-  const ui = SpreadsheetApp.getUi();
-  
-  ui.createMenu('📊 Ind AS 115 Navigator')
-    .addItem('🏠 Go to Cover', 'goToCover')
-    .addItem('⚙️ Go to Assumptions', 'goToAssumptions')
-    .addSeparator()
-    .addItem('📋 Contract Register', 'goToContractRegister')
-    .addItem('💰 Revenue Recognition', 'goToRevenueRecognition')
-    .addItem('📊 Contract Balances', 'goToContractBalances')
-    .addSeparator()
-    .addItem('📝 Period-End Adjustments', 'goToPeriodEndAdjustments')
-    .addItem('🔄 IGAAP Reconciliation', 'goToIGAAPReconciliation')
-    .addSeparator()
-    .addItem('📚 References', 'goToReferences')
-    .addItem('✅ Audit Notes', 'goToAuditNotes')
-    .addSeparator()
-    .addItem('🔄 Rebuild Workpaper', 'buildIndAS115Workpaper')
-    .addToUi();
-}
-
-// Navigation functions
-function goToCover() {
-  SpreadsheetApp.getActiveSpreadsheet().getSheetByName('Cover').activate();
-}
-
-function goToAssumptions() {
-  SpreadsheetApp.getActiveSpreadsheet().getSheetByName('Assumptions').activate();
-}
-
-function goToContractRegister() {
-  SpreadsheetApp.getActiveSpreadsheet().getSheetByName('Contract Register').activate();
-}
-
-function goToRevenueRecognition() {
-  SpreadsheetApp.getActiveSpreadsheet().getSheetByName('Revenue Recognition').activate();
-}
-
-function goToContractBalances() {
-  SpreadsheetApp.getActiveSpreadsheet().getSheetByName('Contract Balances').activate();
-}
-
-function goToPeriodEndAdjustments() {
-  SpreadsheetApp.getActiveSpreadsheet().getSheetByName('Period-End Adjustments').activate();
-}
-
-function goToIGAAPReconciliation() {
-  SpreadsheetApp.getActiveSpreadsheet().getSheetByName('IGAAP Reconciliation').activate();
-}
-
-function goToReferences() {
-  SpreadsheetApp.getActiveSpreadsheet().getSheetByName('References').activate();
-}
-
-function goToAuditNotes() {
-  SpreadsheetApp.getActiveSpreadsheet().getSheetByName('Audit Notes').activate();
 }
 
 /**

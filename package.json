@@ -1,6 +1,6 @@
 {
   "name": "gsheet-audit-workpapers",
-  "version": "1.0.1",
+  "version": "1.1.0",
   "description": "IGAAP-Ind AS Audit Workpaper Builder - Modular Development with Build System",
   "main": "build.js",
   "scripts": {

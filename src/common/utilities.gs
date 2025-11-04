@@ -67,18 +67,22 @@ function onOpen() {
   // Map workbook types to menu configurations
   const workbookConfig = {
     'DEFERRED_TAX': { menuName: 'Deferred Tax Tools', functionName: 'createDeferredTaxWorkbook' },
-    'INDAS109': { menuName: 'Ind AS 109 Tools', functionName: 'createIndAS109WorkingPapers' },
-    'INDAS115': { menuName: 'Ind AS 115 Tools', functionName: 'buildIndAS115Workpaper' },
+    'INDAS109': { menuName: 'Ind AS 109 Tools', functionName: 'createIndAS109Workbook' },
+    'INDAS115': { menuName: 'Ind AS 115 Tools', functionName: 'createIndAS115Workbook' },
     'INDAS116': { menuName: 'Ind AS 116 Tools', functionName: 'createIndAS116Workbook' },
-    'FIXED_ASSETS': { menuName: 'Fixed Assets Tools', functionName: 'setupFixedAssetsWorkpaper' },
-    'TDS_COMPLIANCE': { menuName: 'TDS Tools', functionName: 'createTDSWorkbook' },
-    'ICFR_P2P': { menuName: 'ICFR Tools', functionName: 'createICFRP2PWorkbook' }
+    'FIXED_ASSETS': { menuName: 'Fixed Assets Tools', functionName: 'createFixedAssetsWorkbook' },
+    'TDS_COMPLIANCE': { menuName: 'TDS Tools', functionName: 'createTDSComplianceWorkbook' },
+    'ICFR_P2P': { menuName: 'ICFR Tools', functionName: 'createICFRP2PWorkbook' },
+    'IA_MASTER': { menuName: 'Internal Audit Tools', functionName: 'createIAMasterWorkbook' }
   };
   
   const config = workbookConfig[workbookType] || { menuName: 'Audit Tools', functionName: 'createWorkbook' };
   
   ui.createMenu(config.menuName)
     .addItem('Create/Refresh Workbook', config.functionName)
+    .addSeparator()
+    .addItem('Populate Sample Data', 'populateSampleData')
+    .addItem('Clear All Input Data', 'clearSampleData')
     .addSeparator()
     .addItem('About', 'showAbout')
     .addToUi();

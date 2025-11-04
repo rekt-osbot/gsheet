@@ -17,7 +17,11 @@ const commonFiles = [
   path.join(srcDir, 'common', 'dataValidation.gs'),
   path.join(srcDir, 'common', 'conditionalFormatting.gs'),
   path.join(srcDir, 'common', 'sheetBuilders.gs'),
-  path.join(srcDir, 'common', 'namedRanges.gs')
+  path.join(srcDir, 'common', 'namedRanges.gs'),
+  path.join(srcDir, 'common', 'errorHandling.gs'),
+  path.join(srcDir, 'common', 'testing.gs'),
+  path.join(srcDir, 'common', 'configBuilder.gs'),
+  path.join(srcDir, 'common', 'sampleData.gs')
 ];
 
 const workbookDir = path.join(srcDir, 'workbooks');
