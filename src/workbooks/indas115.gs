@@ -54,10 +54,10 @@ function createIndAS115Workbook() {
   createAuditNotesSheet(ss);
   
   // Setup named ranges for key inputs
-  setupNamedRanges(ss);
-  
+  registerIndAS115NamedRanges(ss);
+
   // Final formatting and protection
-  finalFormatting(ss);
+  applyDefaultWorkbookFormatting(ss);
 
   const tempSheet = ss.getSheetByName('_temp_sheet_');
   if (tempSheet) {
@@ -1939,43 +1939,13 @@ function createAuditNotesSheet(ss) {
 
 /**
  * ============================================================================
- * SETUP NAMED RANGES
+ * NAMED RANGE REGISTRATION
  * ============================================================================
  */
-function setupNamedRanges(ss) {
-  try {
-    // Key input ranges for easy reference in formulas
-    ss.setNamedRange('ReportingPeriodStart', ss.getRange('Assumptions!C5'));
-    ss.setNamedRange('ReportingPeriodEnd', ss.getRange('Assumptions!C6'));
-    ss.setNamedRange('FunctionalCurrency', ss.getRange('Assumptions!C9'));
-    ss.setNamedRange('GSTRate', ss.getRange('Assumptions!C26'));
-    ss.setNamedRange('MaterialityThreshold', ss.getRange('Assumptions!C20'));
-    
-    SpreadsheetApp.getActiveSpreadsheet().toast('Named ranges created successfully', 'Setup', 2);
-  } catch (e) {
-    SpreadsheetApp.getActiveSpreadsheet().toast('Warning: Some named ranges could not be created', 'Setup', 3);
-  }
-}
-
-/**
- * ============================================================================
- * FINAL FORMATTING & PROTECTION
- * ============================================================================
- */
-function finalFormatting(ss) {
-  // Set theme colors and final touches
-  const allSheets = ss.getSheets();
-  
-  allSheets.forEach(sheet => {
-    // Set grid lines
-    sheet.setHiddenGridlines(false);
-    
-    // Protect formulas (optional - uncomment if needed)
-    // const protection = sheet.protect().setDescription('Protect formula cells');
-    // protection.setWarningOnly(true);
-  });
-  
-  SpreadsheetApp.getActiveSpreadsheet().toast('Formatting complete!', 'Success', 2);
+function registerIndAS115NamedRanges(ss) {
+  createNamedRangeFromSheet(ss, '_INPUT_INDAS115_Assumptions', 'Assumptions', 'C5:C26');
+  createNamedRangeFromSheet(ss, '_INPUT_INDAS115_Contracts', 'Contract_Register', 'B5:O200');
+  createNamedRangeFromSheet(ss, '_INPUT_INDAS115_RevenueRecognition', 'Revenue_Recognition', 'B5:J200');
 }
 
 /**

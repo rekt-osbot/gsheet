@@ -56,6 +56,9 @@ function createICFRP2PWorkbook() {
   createTestOfEffectiveness(ss);
   createDashboard(ss);
 
+  registerICFRP2PNamedRanges(ss);
+  applyDefaultWorkbookFormatting(ss);
+
   const tempSheet = ss.getSheetByName('_temp_sheet_');
   if (tempSheet) {
     ss.deleteSheet(tempSheet);
@@ -1064,7 +1067,7 @@ function createDashboard(ss) {
   const priorityRules = sheet.getConditionalFormatRules();
   priorityRules.push(highPriorityRule, mediumPriorityRule, lowPriorityRule);
   sheet.setConditionalFormatRules(priorityRules);
-  
+
   // Footer
   const footerRow = findingsRow + findingsData.length + 2;
   sheet.getRange('A' + footerRow + ':H' + footerRow)
@@ -1074,9 +1077,16 @@ function createDashboard(ss) {
     .setFontStyle('italic')
     .setHorizontalAlignment('center')
     .setBackground('#e3f2fd');
-  
+
   // Freeze header
   sheet.setFrozenRows(1);
+}
+
+function registerICFRP2PNamedRanges(ss) {
+  createNamedRangeFromSheet(ss, '_INPUT_ICFRP2P_Cover', 'Cover Sheet', 'B3:B20');
+  createNamedRangeFromSheet(ss, '_INPUT_ICFRP2P_RCM', 'RCM Summary', 'A3:M200');
+  createNamedRangeFromSheet(ss, '_INPUT_ICFRP2P_ToD', 'Test of Design (ToD)', 'A4:H200');
+  createNamedRangeFromSheet(ss, '_INPUT_ICFRP2P_ToE', 'Test of Effectiveness (ToE)', 'A4:J200');
 }
 
 // ==================== HELPER FUNCTIONS ====================

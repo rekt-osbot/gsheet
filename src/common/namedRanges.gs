@@ -22,11 +22,21 @@ function createNamedRange(ss, name, range) {
     if (existingRange) {
       existingRange.remove();
     }
-    
+
     // Create new named range
     ss.setNamedRange(name, range);
     Logger.log('Created named range: ' + name);
   } catch (error) {
     Logger.log('Error creating named range ' + name + ': ' + error.toString());
   }
+}
+
+function createNamedRangeFromSheet(ss, name, sheetName, a1Notation) {
+  const sheet = ss.getSheetByName(sheetName);
+  if (!sheet) {
+    Logger.log('Cannot create named range ' + name + ' - sheet ' + sheetName + ' not found');
+    return;
+  }
+
+  createNamedRange(ss, name, sheet.getRange(a1Notation));
 }

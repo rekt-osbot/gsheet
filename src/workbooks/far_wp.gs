@@ -80,6 +80,9 @@ function createFixedAssetsWorkbook() {
     createDisclosureSheet(ss);
     createConclusionSheet(ss);
 
+    registerFixedAssetsNamedRanges(ss);
+    applyDefaultWorkbookFormatting(ss);
+
     const tempSheet = ss.getSheetByName('_temp_sheet_');
     if (tempSheet) {
       ss.deleteSheet(tempSheet);
@@ -330,7 +333,11 @@ function createRollForwardSheet(ss) {
   
   createSignOffSection(sheet, reconRow + 4);
 
-  applyStandardBorders(sheet, 5, 1, totalRow - 4, 8);
+  sheet.getRange(5, 1, totalRow - 4, 8).setBorder(
+    true, true, true, true, true, true,
+    COLORS.BORDER_COLOR,
+    SpreadsheetApp.BorderStyle.SOLID
+  );
   sheet.setFrozenRows(5);
 }
 
@@ -533,7 +540,11 @@ function createDisposalsTestingSheet(ss) {
   
   createSignOffSection(sheet, totalRow + 5);
 
-  applyStandardBorders(sheet, 12, 1, sampleCount + 1, 10);
+  sheet.getRange(12, 1, sampleCount + 1, 10).setBorder(
+    true, true, true, true, true, true,
+    COLORS.BORDER_COLOR,
+    SpreadsheetApp.BorderStyle.SOLID
+  );
   sheet.setFrozenRows(12);
 }
 
@@ -751,12 +762,28 @@ function createConclusionSheet(ss) {
     .setVerticalAlignment("top")
     .setBackground("#d9ead3");
   sheet.setRowHeights(exceptRow, 5, 25);
-  
+
   // Final sign-off
   exceptRow += 6;
   createSignOffSection(sheet, exceptRow);
-  
-  applyStandardBorders(sheet, 6, 1, procedures.length + 1, 3);
+
+  sheet.getRange(6, 1, procedures.length + 1, 3).setBorder(
+    true, true, true, true, true, true,
+    COLORS.BORDER_COLOR,
+    SpreadsheetApp.BorderStyle.SOLID
+  );
+}
+
+function registerFixedAssetsNamedRanges(ss) {
+  createNamedRangeFromSheet(ss, '_INPUT_FAR_Index', 'FA-Index', 'A3:D200');
+  createNamedRangeFromSheet(ss, '_INPUT_FAR_Summary', 'FA-1 Summary', 'A6:E40');
+  createNamedRangeFromSheet(ss, '_INPUT_FAR_RollForward', 'FA-2 Roll Forward', 'A7:L200');
+  createNamedRangeFromSheet(ss, '_INPUT_FAR_Depreciation', 'FA-3 Depreciation', 'A7:K200');
+  createNamedRangeFromSheet(ss, '_INPUT_FAR_Additions', 'FA-4 Additions', 'A7:K200');
+  createNamedRangeFromSheet(ss, '_INPUT_FAR_Disposals', 'FA-5 Disposals', 'A7:K200');
+  createNamedRangeFromSheet(ss, '_INPUT_FAR_Existence', 'FA-6 Existence', 'A7:G200');
+  createNamedRangeFromSheet(ss, '_INPUT_FAR_Completeness', 'FA-7 Completeness', 'A7:G200');
+  createNamedRangeFromSheet(ss, '_INPUT_FAR_Disclosure', 'FA-8 Disclosure', 'A7:H120');
 }
 
 /**
@@ -874,99 +901,17 @@ function createSignOffSection(sheet, startRow) {
 /**
  * Helper function to apply standard borders
  */
-function applyStandardBorders(sheet, startRow, startCol, numRows, numCols) {
-  const range = sheet.getRange(startRow, startCol, numRows, numCols);
-  range.setBorder(
-    true, true, true, true, true, true,
-    "#000000",
-    SpreadsheetApp.BorderStyle.SOLID
-  );
-}
+
 
 /**
  * Adds sample data to the workpaper for demonstration
  */
-function addSampleData() {
-  const ui = SpreadsheetApp.getUi();
-  const result = ui.alert(
-    'Add Sample Data',
-    'This will populate the workpaper with sample data for demonstration. Continue?',
-    ui.ButtonSet.YES_NO
-  );
-  
-  if (result !== ui.Button.YES) return;
-  
-  const ss = SpreadsheetApp.getActiveSpreadsheet();
-  
-  // Add sample data to Roll Forward
-  const rollForward = ss.getSheetByName("FA-2 Roll Forward");
-  if (rollForward) {
-    const sampleData = [
-      [1250000, 0, 0],
-      [3500000, 250000, 0],
-      [2800000, 450000, 125000],
-      [450000, 75000, 25000],
-      [325000, 45000, 30000],
-      [680000, 125000, 85000],
-      [420000, 95000, 15000]
-    ];
-    rollForward.getRange(6, 5, 7, 3).setValues(sampleData);
-  }
-  
-  // Add sample data to Depreciation
-  const depreciation = ss.getSheetByName("FA-3 Depreciation");
-  if (depreciation) {
-    const depData = [
-      [0, 0, 0],
-      [1250000, 89750, 0],
-      [980000, 350000, 45000],
-      [185000, 64285, 12500],
-      [145000, 65000, 15000],
-      [425000, 170000, 65000],
-      [210000, 95000, 7500]
-    ];
-    depreciation.getRange(6, 3, 7, 3).setValues(depData);
-  }
-  
-  ui.alert('Success', 'Sample data has been added to the workpaper.', ui.ButtonSet.OK);
-}
+
 
 /**
  * Clears all data but keeps formatting
  */
-function clearAllData() {
-  const ui = SpreadsheetApp.getUi();
-  const result = ui.alert(
-    'Clear All Data',
-    'This will clear all entered data but keep the formatting. Continue?',
-    ui.ButtonSet.YES_NO
-  );
-  
-  if (result !== ui.Button.YES) return;
-  
-  const ss = SpreadsheetApp.getActiveSpreadsheet();
-  const sheets = ss.getSheets();
-  
-  sheets.forEach(sheet => {
-    const lastRow = sheet.getMaxRows();
-    const lastCol = sheet.getMaxColumns();
-    
-    // Clear content but keep formatting
-    for (let row = 1; row <= lastRow; row++) {
-      for (let col = 1; col <= lastCol; col++) {
-        const cell = sheet.getRange(row, col);
-        const background = cell.getBackground();
-        
-        // Only clear white cells (data entry cells)
-        if (background === "#ffffff" || background === "#ffffcc") {
-          cell.clearContent();
-        }
-      }
-    }
-  });
-  
-  ui.alert('Success', 'All data has been cleared. Formatting preserved.', ui.ButtonSet.OK);
-}
+
 
 /**
  * Export workpaper to PDF (placeholder - requires additional setup)

@@ -66,11 +66,11 @@ function createDeferredTaxWorkbook() {
   
   // Set up named ranges
   Logger.log("Setting up named ranges...");
-  setupNamedRanges(ss);
-  
+  registerDeferredTaxNamedRanges(ss);
+
   // Format all sheets
   Logger.log("Applying final formatting...");
-  applyFinalFormatting(ss);
+  applyDefaultWorkbookFormatting(ss);
 
   const tempSheet = ss.getSheetByName('_temp_sheet_');
   if (tempSheet) {
@@ -137,24 +137,15 @@ const ROWS = {
 function createCoverSheet(ss) {
   const sheet = getOrCreateSheet(ss, "Cover", 0);
   setColumnWidths(sheet, [50, 200, 250, 200, 150, 150]);
-  
-  // Title Section - using manual formatting for custom multi-row header
-  sheet.getRange("B2:F4").merge()
-    .setValue("DEFERRED TAXATION WORKINGS")
-    .setFontSize(24)
-    .setFontWeight("bold")
-    .setHorizontalAlignment("center")
-    .setVerticalAlignment("middle")
-    .setBackground(COLORS.HEADER_BG)
-    .setFontColor(COLORS.HEADER_TEXT);
-  
-  sheet.getRange("B5:F5").merge()
-    .setValue("IGAAP (AS 22) & Ind AS (Ind AS 12) Compliant Audit Workings")
-    .setFontSize(12)
-    .setFontStyle("italic")
-    .setHorizontalAlignment("center")
-    .setBackground(COLORS.SUBHEADER_BG)
-    .setFontColor(COLORS.HEADER_TEXT);
+
+  // Title Section - standardized header utilities
+  createStandardHeader(
+    sheet,
+    'DEFERRED TAXATION WORKINGS',
+    'IGAAP (AS 22) & Ind AS (Ind AS 12) Compliant Audit Workings',
+    2,
+    6
+  );
   
   // Entity Information Section - using createInputSection
   const entityInputs = [
@@ -631,21 +622,13 @@ function createDTScheduleSheet(ss) {
   setColumnWidths(sheet, [40, 250, 120, 120, 120, 120, 120, 120, 120, 150]);
   
   // Header
-  sheet.getRange("A1:J1").merge()
-    .setValue("DEFERRED TAX CALCULATION SCHEDULE")
-    .setFontSize(16)
-    .setFontWeight("bold")
-    .setHorizontalAlignment("center")
-    .setBackground(COLORS.HEADER_BG)
-    .setFontColor(COLORS.HEADER_TEXT);
-  
-  sheet.getRange("A2:J2").merge()
-    .setValue("Detailed computation of Deferred Tax Assets and Liabilities")
-    .setFontSize(10)
-    .setFontStyle("italic")
-    .setHorizontalAlignment("center")
-    .setBackground(COLORS.SUBHEADER_BG)
-    .setFontColor(COLORS.HEADER_TEXT);
+  createStandardHeader(
+    sheet,
+    'DEFERRED TAX CALCULATION SCHEDULE',
+    'Detailed computation of Deferred Tax Assets and Liabilities',
+    1,
+    10
+  );
   
   // Framework indicator
   sheet.getRange("A4").setValue("Framework:");
@@ -839,21 +822,13 @@ function createMovementAnalysisSheet(ss) {
   setColumnWidths(sheet, [40, 250, 120, 120, 120, 120, 120, 120, 120]);
 
   // Header
-  sheet.getRange("A1:I1").merge()
-    .setValue("DEFERRED TAX MOVEMENT ANALYSIS")
-    .setFontSize(16)
-    .setFontWeight("bold")
-    .setHorizontalAlignment("center")
-    .setBackground(COLORS.HEADER_BG)
-    .setFontColor(COLORS.HEADER_TEXT);
-
-  sheet.getRange("A2:I2").merge()
-    .setValue("Reconciliation of opening to closing balances of Deferred Tax Assets and Liabilities")
-    .setFontSize(10)
-    .setFontStyle("italic")
-    .setHorizontalAlignment("center")
-    .setBackground(COLORS.SUBHEADER_BG)
-    .setFontColor(COLORS.HEADER_TEXT);
+  createStandardHeader(
+    sheet,
+    'DEFERRED TAX MOVEMENT ANALYSIS',
+    'Reconciliation of opening to closing balances of Deferred Tax Assets and Liabilities',
+    1,
+    9
+  );
 
   // Column headers
   const headers = [
@@ -1727,48 +1702,13 @@ function createAuditNotesSheet(ss) {
 }
 
 // ============================================================================
-// NAMED RANGES SETUP
+// NAMED RANGE REGISTRATION
 // ============================================================================
 
-function setupNamedRanges(ss) {
-  // Key input ranges
-  try {
-    ss.setNamedRange("Framework", ss.getSheetByName("Assumptions").getRange("B7"));
-    ss.setNamedRange("CurrentTaxRate", ss.getSheetByName("Assumptions").getRange("B13"));
-    ss.setNamedRange("DeferredTaxRate", ss.getSheetByName("Assumptions").getRange("B14"));
-    ss.setNamedRange("PBT_Current", ss.getSheetByName("Assumptions").getRange("B24"));
-    ss.setNamedRange("Opening_DTA", ss.getSheetByName("Assumptions").getRange("B28"));
-    ss.setNamedRange("Opening_DTL", ss.getSheetByName("Assumptions").getRange("B29"));
-    
-    // Output ranges
-    ss.setNamedRange("Closing_DTA", ss.getSheetByName("Movement_Analysis").getRange("F28"));
-    ss.setNamedRange("Closing_DTL", ss.getSheetByName("Movement_Analysis").getRange("F51"));
-    ss.setNamedRange("Net_DTA_DTL", ss.getSheetByName("Movement_Analysis").getRange("F54"));
-    ss.setNamedRange("DeferredTaxExpense", ss.getSheetByName("PL_Reconciliation").getRange("C7"));
-    ss.setNamedRange("EffectiveTaxRate", ss.getSheetByName("PL_Reconciliation").getRange("C16"));
-    
-    Logger.log("Named ranges set up successfully");
-  } catch (error) {
-    Logger.log("Error setting up named ranges: " + error.toString());
-  }
-}
-
-// ============================================================================
-// FINAL FORMATTING
-// ============================================================================
-
-function applyFinalFormatting(ss) {
-  const sheets = ss.getSheets();
-
-  sheets.forEach(sheet => {
-    // Set default font per 109 guide professional standards
-    sheet.getDataRange().setFontFamily("Arial").setFontSize(10);
-
-    // Hide gridlines for clean, professional sleek appearance
-    sheet.setHiddenGridlines(true);
-  });
-
-  Logger.log("Final formatting applied - gridlines hidden for professional appearance");
+function registerDeferredTaxNamedRanges(ss) {
+  createNamedRangeFromSheet(ss, '_INPUT_DT_Assumptions', 'Assumptions', 'B5:B36');
+  createNamedRangeFromSheet(ss, '_INPUT_DT_TempDifferences', 'Temp_Differences', 'B7:E56');
+  createNamedRangeFromSheet(ss, '_INPUT_DT_TempDifferencesMovements', 'Temp_Differences', 'H7:K56');
 }
 
 // ============================================================================
