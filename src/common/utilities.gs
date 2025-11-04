@@ -11,25 +11,18 @@
 
 function clearExistingSheets(ss) {
   const sheets = ss.getSheets();
-  
-  // If there's only one sheet, just clear it instead of deleting
-  if (sheets.length === 1) {
-    sheets[0].clear();
-    sheets[0].setName('_temp_sheet_');
-    return;
+
+  sheets.slice(1).forEach(sheet => {
+    ss.deleteSheet(sheet);
+  });
+
+  let remainingSheet = ss.getSheets()[0];
+  if (!remainingSheet) {
+    remainingSheet = ss.insertSheet();
   }
-  
-  // Keep at least one sheet - delete all except the last one
-  for (let i = sheets.length - 1; i >= 0; i--) {
-    if (sheets.length > 1) {  // Always keep at least one sheet
-      ss.deleteSheet(sheets[i]);
-    }
-  }
-  
-  // Rename the remaining sheet to a temporary name
-  if (ss.getSheets().length === 1) {
-    ss.getSheets()[0].setName('_temp_sheet_');
-  }
+
+  remainingSheet.clear({contentsOnly: false});
+  remainingSheet.setName('_temp_sheet_');
 }
 
 // ============================================================================

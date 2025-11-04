@@ -79,7 +79,12 @@ function createFixedAssetsWorkbook() {
     createCompletenessTestingSheet(ss);
     createDisclosureSheet(ss);
     createConclusionSheet(ss);
-    
+
+    const tempSheet = ss.getSheetByName('_temp_sheet_');
+    if (tempSheet) {
+      ss.deleteSheet(tempSheet);
+    }
+
     // Set the Index as the active sheet
     ss.setActiveSheet(ss.getSheetByName("FA-Index"));
     

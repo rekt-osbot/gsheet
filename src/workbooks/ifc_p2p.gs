@@ -55,7 +55,12 @@ function createICFRP2PWorkbook() {
   createTestOfDesign(ss);
   createTestOfEffectiveness(ss);
   createDashboard(ss);
-  
+
+  const tempSheet = ss.getSheetByName('_temp_sheet_');
+  if (tempSheet) {
+    ss.deleteSheet(tempSheet);
+  }
+
   // Set Cover Sheet as active
   ss.setActiveSheet(ss.getSheetByName('Cover Sheet'));
   
