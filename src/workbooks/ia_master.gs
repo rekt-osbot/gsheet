@@ -106,7 +106,7 @@ function createWorkpaperIndexSheet_IA(ss) {
 function createProgressDashboardSheet_IA(ss) {
   const sheet = getOrCreateSheet(ss, 'Progress Dashboard', 3, '#5e35b1');
   createStandardHeader(sheet, 'PROGRESS DASHBOARD', '', 1, 5);
-  
+
   let row = 3;
   createSectionHeader(sheet, row++, 'OVERALL STATUS', 1, 3);
   const overall = [
@@ -116,22 +116,52 @@ function createProgressDashboardSheet_IA(ss) {
   ];
   createDataTable(sheet, row, 1, ['Phase', 'Status', '%'], overall);
   row += overall.length + 2;
-  
-  createSectionHeader(sheet, row++, 'H1 PROGRESS', 1, 5);
-  const h1 = [
-    ['Revenue/OTC', '13', '0', '13'],
-    ['P2P', '14', '0', '14'],
-    ['Taxation', '12', '0', '12'],
-    ['Treasury', '8', '0', '8'],
-    ['Systems', '12', '0', '12']
+
+  const progressSections = [
+    {
+      title: 'H1 PROGRESS',
+      phase: 'H1',
+      areas: ['Revenue/OTC', 'P2P', 'Taxation', 'Treasury', 'Systems']
+    },
+    {
+      title: 'Q3 PROGRESS',
+      phase: 'Q3',
+      areas: ['Payroll/HR']
+    },
+    {
+      title: 'Q4 PROGRESS',
+      phase: 'Q4',
+      areas: ['Fixed Assets', 'Close/MIS', 'IFC']
+    }
   ];
-  createDataTable(sheet, row, 1, ['Area', 'Total', 'Done', 'Pending'], h1);
-  
+
+  progressSections.forEach(section => {
+    createSectionHeader(sheet, row++, section.title, 1, 4);
+
+    const data = section.areas.map(area => [area, '', '', '']);
+    createDataTable(sheet, row, 1, ['Area', 'Total', 'Done', 'Pending'], data);
+
+    section.areas.forEach((area, index) => {
+      const currentRow = row + 1 + index;
+      const sanitizedArea = area.replace(/"/g, '""');
+      const phaseCriterion = `"${section.phase}"`;
+      const areaCriterion = `"${sanitizedArea}"`;
+
+      const totalFormula = `=COUNTIFS('Workpaper Index'!$B:$B, ${phaseCriterion}, 'Workpaper Index'!$C:$C, ${areaCriterion})`;
+      const doneFormula = `=COUNTIFS('Workpaper Index'!$B:$B, ${phaseCriterion}, 'Workpaper Index'!$C:$C, ${areaCriterion}, 'Workpaper Index'!$F:$F, "Complete")`;
+
+      sheet.getRange(currentRow, 2).setFormula(totalFormula);
+      sheet.getRange(currentRow, 3).setFormula(doneFormula);
+      sheet.getRange(currentRow, 4).setFormula(`=B${currentRow}-C${currentRow}`);
+    });
+
+    row += section.areas.length + 2;
+  });
+
   sheet.setColumnWidth(1, 180);
-  sheet.setColumnWidth(2, 100);
-  sheet.setColumnWidth(3, 100);
-  sheet.setColumnWidth(4, 100);
-  sheet.setColumnWidth(5, 100);
+  sheet.setColumnWidth(2, 120);
+  sheet.setColumnWidth(3, 120);
+  sheet.setColumnWidth(4, 120);
 }
 
 function createFindingsTrackerSheet_IA(ss) {

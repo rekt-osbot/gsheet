@@ -45,7 +45,12 @@ function createTDSComplianceWorkbook() {
   
   // Reorder sheets
   reorderSheets(ss);
-  
+
+  const tempSheet = ss.getSheetByName('_temp_sheet_');
+  if (tempSheet) {
+    ss.deleteSheet(tempSheet);
+  }
+
   // Show completion message
   SpreadsheetApp.getActiveSpreadsheet().toast('TDS Compliance Workbook created successfully!', 'Complete', 5);
   ss.getSheetByName('Dashboard').activate();

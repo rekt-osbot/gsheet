@@ -58,7 +58,12 @@ function createIndAS115Workbook() {
   
   // Final formatting and protection
   finalFormatting(ss);
-  
+
+  const tempSheet = ss.getSheetByName('_temp_sheet_');
+  if (tempSheet) {
+    ss.deleteSheet(tempSheet);
+  }
+
   // Set Cover sheet as active
   ss.getSheetByName('Cover').activate();
   

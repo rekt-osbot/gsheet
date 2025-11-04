@@ -15,7 +15,8 @@ const SAMPLE_DATA_REGISTRY = {
   'INDAS115': getSampleDataIndAS115,
   'INDAS116': getSampleDataIndAS116,
   'FIXED_ASSETS': getSampleDataFixedAssets,
-  'ICFR_P2P': getSampleDataICFRP2P
+  'ICFR_P2P': getSampleDataICFRP2P,
+  'IA_MASTER': getSampleDataIAMaster
 };
 
 /**
@@ -284,6 +285,30 @@ function getSampleDataICFRP2P() {
   };
 }
 
+function getSampleDataIAMaster() {
+  return {
+    'Workpaper Index': {
+      'A4:G9': [
+        ['H1-REV-01', 'H1', 'Revenue/OTC', 'Revenue recognition walkthrough', 'TM1', 'Complete', "=DATE(2025,10,5)"],
+        ['H1-P2P-02', 'H1', 'P2P', 'Three-way match testing', 'TM2', 'In Progress', "=DATE(2025,10,7)"],
+        ['H1-TAX-03', 'H1', 'Taxation', 'Indirect tax reconciliations', 'TM3', 'In Progress', "=DATE(2025,10,9)"],
+        ['H1-TRE-04', 'H1', 'Treasury', 'Cash forecasting controls review', 'TM1', 'Complete', "=DATE(2025,10,12)"],
+        ['Q3-PAY-01', 'Q3', 'Payroll/HR', 'Payroll master data audit', 'IA Manager', 'Complete', "=DATE(2026,1,18)"],
+        ['Q4-FAR-01', 'Q4', 'Fixed Assets', 'Asset verification procedures', 'TM2', 'Complete', "=DATE(2026,4,12)"],
+        ['Q4-IFC-02', 'Q4', 'IFC', 'Control design walkthroughs', 'TM3', 'In Progress', "=DATE(2026,4,20)"]
+      ]
+    },
+    'Findings Tracker': {
+      'A4:I8': [
+        ['IA-001', 'H1', 'Revenue/OTC', 'Segregation of duties gap in billing', 'High', 'Introduce automated approval workflow', 'To be discussed with ERP team', 'Revenue Head', 'Open'],
+        ['IA-002', 'H1', 'P2P', 'Delayed vendor reconciliations', 'Medium', 'Implement monthly reconciliation tracker', 'Process roll-out underway', 'Procurement Lead', 'In Progress'],
+        ['IA-003', 'Q4', 'Fixed Assets', 'Physical verification gaps noted', 'Critical', 'Schedule quarterly surprise checks', 'Awaiting management confirmation', 'IA Manager', 'Remediated'],
+        ['IA-004', 'Q4', 'IFC', 'User access reviews not documented', 'Low', 'Implement quarterly review checklist', 'Checklist drafted for approval', 'TM2', 'Closed']
+      ]
+    }
+  };
+}
+
 /**
  * Clear all sample data from input sections
  * @param {Spreadsheet} ss - The spreadsheet
@@ -292,35 +317,32 @@ function clearSampleData(ss) {
   const ui = SpreadsheetApp.getUi();
   const result = ui.alert(
     'Clear All Data?',
-    'This will clear all data from input cells and tables. Are you sure?',
+    'This will clear all data from input sections linked to named ranges. Are you sure?',
     ui.ButtonSet.YES_NO
   );
 
-  if (result === ui.Button.YES) {
-    // Find and clear all cells with INPUT_BG color
-    const sheets = ss.getSheets();
-    let clearedCount = 0;
-
-    sheets.forEach(sheet => {
-      const range = sheet.getDataRange();
-      const values = range.getValues();
-      const backgrounds = range.getBackgrounds();
-
-      // Clear cells with input background color
-      for (let i = 0; i < backgrounds.length; i++) {
-        for (let j = 0; j < backgrounds[i].length; j++) {
-          if (backgrounds[i][j] === COLORS.INPUT_BG) {
-            sheet.getRange(i + 1, j + 1).clearContent();
-            clearedCount++;
-          }
-        }
-      }
-    });
-
-    ui.alert(
-      'Data Cleared',
-      `Cleared ${clearedCount} input cells across all sheets.`,
-      ui.ButtonSet.OK
-    );
+  if (result !== ui.Button.YES) {
+    return;
   }
+
+  const prefix = '_INPUT_';
+  const namedRanges = ss.getNamedRanges();
+  let clearedCells = 0;
+
+  namedRanges.forEach(namedRange => {
+    const name = namedRange.getName();
+    if (name && name.startsWith(prefix)) {
+      const range = namedRange.getRange();
+      clearedCells += range.getNumRows() * range.getNumColumns();
+      range.clearContent();
+    }
+  });
+
+  ui.alert(
+    'Sample Data Cleared',
+    clearedCells > 0
+      ? `Cleared input data across ${clearedCells} cells linked to named ranges.`
+      : 'No named ranges with the _INPUT_ prefix were found.',
+    ui.ButtonSet.OK
+  );
 }

@@ -53,6 +53,11 @@ function createIndAS109Workbook() {
   // Apply final professional formatting
   finalizeWorkingPapers(ss);
 
+  const tempSheet = ss.getSheetByName('_temp_sheet_');
+  if (tempSheet) {
+    ss.deleteSheet(tempSheet);
+  }
+
   // Activate Cover sheet
   ss.setActiveSheet(ss.getSheetByName('Cover'));
 

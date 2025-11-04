@@ -47,7 +47,12 @@ function createIndAS116Workbook() {
   
   // Final formatting and protection
   finalizeWorkbook(ss);
-  
+
+  const tempSheet = ss.getSheetByName('_temp_sheet_');
+  if (tempSheet) {
+    ss.deleteSheet(tempSheet);
+  }
+
   SpreadsheetApp.getUi().alert(
     '✓ Ind AS 116 Workbook Created Successfully!\n\n' +
     'Please navigate to the Cover sheet and start with the Assumptions sheet.\n' +

@@ -71,7 +71,12 @@ function createDeferredTaxWorkbook() {
   // Format all sheets
   Logger.log("Applying final formatting...");
   applyFinalFormatting(ss);
-  
+
+  const tempSheet = ss.getSheetByName('_temp_sheet_');
+  if (tempSheet) {
+    ss.deleteSheet(tempSheet);
+  }
+
   // Activate Cover sheet
   ss.getSheetByName("Cover").activate();
   
