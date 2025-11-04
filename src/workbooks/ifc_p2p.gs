@@ -41,16 +41,13 @@ const COLS = {
 
 function createICFRP2PWorkbook() {
   const ss = SpreadsheetApp.getActiveSpreadsheet();
-  
+
   // Set workbook type for menu detection
   setWorkbookType('ICFR_P2P');
-  
-  // Clear existing sheets except first one
-  const sheets = ss.getSheets();
-  for (let i = sheets.length - 1; i > 0; i--) {
-    ss.deleteSheet(sheets[i]);
-  }
-  
+
+  // Clear existing sheets using standardized utility function
+  clearExistingSheets(ss);
+
   // Create all sheets
   createCoverSheet(ss);
   createReferencesSheet(ss);

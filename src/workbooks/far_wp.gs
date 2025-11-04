@@ -9,7 +9,7 @@
  * 4. Save the project (name it "Fixed Assets Audit Automation")
  * 5. Refresh your spreadsheet
  * 6. A new menu "Audit Tools" will appear
- * 7. Click "Audit Tools" > "Setup Fixed Assets Workpaper"
+ * 7. Click "Audit Tools" > "Create Fixed Assets Workbook"
  * 8. Wait for completion message
  */
 
@@ -57,17 +57,16 @@ function createFixedAssetsWorkbook() {
   }
   
   const ss = SpreadsheetApp.getActiveSpreadsheet();
-  
+
   // Set workbook type for menu detection
   setWorkbookType('FIXED_ASSETS');
-  
+
   // Show progress
   ui.alert('Setting up workpaper...', 'This may take 15-30 seconds. Please wait.', ui.ButtonSet.OK);
-  
-  // Delete existing sheets except the first one (we'll recreate everything)
-  const sheets = ss.getSheets();
-  const keepFirstSheet = sheets[0];
-  
+
+  // Clear existing sheets using standardized utility function
+  clearExistingSheets(ss);
+
   try {
     // Create all sheets
     createIndexSheet(ss);
@@ -80,11 +79,6 @@ function createFixedAssetsWorkbook() {
     createCompletenessTestingSheet(ss);
     createDisclosureSheet(ss);
     createConclusionSheet(ss);
-    
-    // Delete the original blank sheet if it exists and is named "Sheet1"
-    if (keepFirstSheet.getName() === "Sheet1") {
-      ss.deleteSheet(keepFirstSheet);
-    }
     
     // Set the Index as the active sheet
     ss.setActiveSheet(ss.getSheetByName("FA-Index"));
@@ -117,18 +111,27 @@ function createIndexSheet(ss) {
   
   // Client information section
   const clientInputs = [
-    {label: "Client Name:", value: ""},
-    {label: "Engagement:", value: ""},
-    {label: "Date:", value: ""}
+    {label: "Client Name:", type: "text"},
+    {label: "Engagement:", type: "text"},
+    {label: "Date:", type: "date"}
   ];
-  
+
+  // Add period end, preparer, and reviewer fields with proper formatting
   clientInputs.forEach((input, index) => {
     const row = 3 + index;
-    sheet.getRange(row, 1).setValue(input.label).setFontWeight("bold").setBackground(COLORS.INPUT_BG);
-    sheet.getRange(row, 2).setBackground("#ffffff");
-    sheet.getRange(row, 3).setValue(index === 0 ? "Period End:" : (index === 1 ? "Prepared By:" : "Reviewed By:"))
-      .setFontWeight("bold").setBackground(COLORS.INPUT_BG);
-    sheet.getRange(row, 4).setBackground("#ffffff");
+    const labelRange = sheet.getRange(row, 1);
+    const valueRange = sheet.getRange(row, 2);
+    const label2Range = sheet.getRange(row, 3);
+    const value2Range = sheet.getRange(row, 4);
+
+    // Format input cells
+    safeRangeFormat(labelRange, {fontWeight: "bold", background: COLORS.INPUT_BG});
+    safeRangeFormat(valueRange, {background: "#ffffff"});
+    safeRangeFormat(label2Range, {fontWeight: "bold", background: COLORS.INPUT_BG});
+    safeRangeFormat(value2Range, {background: "#ffffff"});
+
+    labelRange.setValue(input.label);
+    label2Range.setValue(index === 0 ? "Period End:" : (index === 1 ? "Prepared By:" : "Reviewed By:"));
   });
   
   // Table of Contents Header
@@ -152,8 +155,9 @@ function createIndexSheet(ss) {
     headerBg: COLORS.SUBHEADER_BG
   });
   
-  // Format reference column
-  sheet.getRange(9, 1, indexData.length, 1).setBackground(COLORS.CALC_BG).setFontWeight("bold");
+  // Format reference column using safe formatting
+  const refColRange = sheet.getRange(9, 1, indexData.length, 1);
+  safeRangeFormat(refColRange, {background: COLORS.CALC_BG, fontWeight: "bold"});
   
   // Freeze header rows
   freezeHeaders(sheet, 8);
@@ -182,9 +186,10 @@ function createSummarySheet(ss) {
   
   createDataTable(sheet, 6, 1, ["Description", "Beginning Balance", "Additions", "Disposals", "Ending Balance"], summaryData, {borders: true});
   
-  // Format numbers
+  // Format numbers and totals row
   formatCurrency(sheet.getRange("B7:E9"));
-  sheet.getRange("B9:E9").setFontWeight("bold").setBackground(COLORS.TOTAL_BG);
+  const totalsRange = sheet.getRange("B9:E9");
+  safeRangeFormat(totalsRange, {fontWeight: "bold", background: COLORS.TOTAL_BG});
   
   // Audit Procedures Summary
   createSectionHeader(sheet, 12, "AUDIT PROCEDURES PERFORMED", 1, 5);
@@ -476,20 +481,14 @@ function createDisposalsTestingSheet(ss) {
     sheet.getRange(row, 8).setFormula(safeFormula(`G${row}-F${row}`, "0"));
   }
   
-  // Apply validations
+  // Apply validations using common helpers
   applyMultipleValidations(sheet, [
     {range: `I13:I${12+sampleCount}`, type: 'CHECK_MARKS'},
     {range: `J13:J${12+sampleCount}`, type: 'PASS_FAIL_NOTE'}
   ]);
-    sheet.getRange(row, 10).setDataValidation(
-      SpreadsheetApp.newDataValidation()
-        .requireValueInList(['Pass', 'Fail', 'Note'], true)
-        .build()
-    );
-  }
-  
-  // Format numbers
-  sheet.getRange(13, 4, sampleCount, 5).setNumberFormat("#,##0.00");
+
+  // Format numbers as currency
+  formatCurrency(sheet.getRange(13, 4, sampleCount, 5));
   
   // Conditional formatting for gain/loss
   const gainLossRange = sheet.getRange(13, 8, sampleCount, 1);
@@ -757,70 +756,114 @@ function createConclusionSheet(ss) {
 
 /**
  * Helper function to create standard workpaper header
+ * Uses safe formatting helpers from common/errorHandling.gs
  */
 function createWorkpaperHeader(sheet, reference, title) {
-  // Title row
-  sheet.getRange("A1:H1").merge()
-    .setValue(title)
-    .setFontSize(FONT_SIZES.title)
-    .setFontWeight("bold")
-    .setBackground(COLORS.header)
-    .setFontColor("#ffffff")
-    .setHorizontalAlignment("center")
-    .setVerticalAlignment("middle");
+  // Title row with safe formatting
+  const titleRange = sheet.getRange("A1:H1");
+  titleRange.merge();
+  safeRangeFormat(titleRange, {
+    fontSize: FONT_SIZES.title,
+    fontWeight: "bold",
+    background: COLORS.header,
+    fontColor: "#ffffff"
+  });
+  // Set alignment after safe format
+  titleRange.setHorizontalAlignment("center");
+  titleRange.setVerticalAlignment("middle");
+  titleRange.setValue(title);
   sheet.setRowHeight(1, 35);
-  
-  // Reference and metadata
-  sheet.getRange("A2").setValue("Reference:");
-  sheet.getRange("B2").setValue(reference)
-    .setFontWeight("bold")
-    .setBackground(COLORS.referenceCell);
-  
-  sheet.getRange("D2").setValue("Prepared By:");
-  sheet.getRange("E2").setBackground("#ffffff");
-  
-  sheet.getRange("F2").setValue("Date:");
-  sheet.getRange("G2").setBackground("#ffffff");
-  
-  sheet.getRange("A3").setValue("Client:");
-  sheet.getRange("B3:C3").merge().setBackground("#ffffff");
-  
-  sheet.getRange("D3").setValue("Reviewed By:");
-  sheet.getRange("E3").setBackground("#ffffff");
-  
-  sheet.getRange("F3").setValue("Date:");
-  sheet.getRange("G3").setBackground("#ffffff");
-  
-  sheet.getRange("A2:A3").setFontWeight("bold");
-  sheet.getRange("D2:F3").setFontWeight("bold");
+
+  // Reference and metadata with safe formatting
+  const refLabelRange = sheet.getRange("A2");
+  const refValueRange = sheet.getRange("B2");
+  const prepByLabelRange = sheet.getRange("D2");
+  const prepByValueRange = sheet.getRange("E2");
+  const dateLabelRange = sheet.getRange("F2");
+  const dateValueRange = sheet.getRange("G2");
+
+  refLabelRange.setValue("Reference:");
+  safeRangeFormat(refLabelRange, {fontWeight: "bold"});
+
+  refValueRange.setValue(reference);
+  safeRangeFormat(refValueRange, {fontWeight: "bold", background: COLORS.referenceCell});
+
+  prepByLabelRange.setValue("Prepared By:");
+  safeRangeFormat(prepByLabelRange, {fontWeight: "bold"});
+  safeRangeFormat(prepByValueRange, {background: "#ffffff"});
+
+  dateLabelRange.setValue("Date:");
+  safeRangeFormat(dateLabelRange, {fontWeight: "bold"});
+  safeRangeFormat(dateValueRange, {background: "#ffffff"});
+
+  // Row 3: Client and Reviewed By
+  const clientLabelRange = sheet.getRange("A3");
+  const clientValueRange = sheet.getRange("B3:C3");
+  const revByLabelRange = sheet.getRange("D3");
+  const revByValueRange = sheet.getRange("E3");
+  const dateLabelRange2 = sheet.getRange("F3");
+  const dateValueRange2 = sheet.getRange("G3");
+
+  clientLabelRange.setValue("Client:");
+  safeRangeFormat(clientLabelRange, {fontWeight: "bold"});
+
+  clientValueRange.merge();
+  safeRangeFormat(clientValueRange, {background: "#ffffff"});
+
+  revByLabelRange.setValue("Reviewed By:");
+  safeRangeFormat(revByLabelRange, {fontWeight: "bold"});
+  safeRangeFormat(revByValueRange, {background: "#ffffff"});
+
+  dateLabelRange2.setValue("Date:");
+  safeRangeFormat(dateLabelRange2, {fontWeight: "bold"});
+  safeRangeFormat(dateValueRange2, {background: "#ffffff"});
 }
 
 /**
  * Helper function to create sign-off section
+ * Uses safe formatting helpers from common/errorHandling.gs
  */
 function createSignOffSection(sheet, startRow) {
-  sheet.getRange(startRow, 1, 1, 8).merge()
-    .setValue("PREPARER & REVIEWER SIGN-OFF")
-    .setFontWeight("bold")
-    .setBackground(COLORS.sectionHeader)
-    .setFontColor("#ffffff")
-    .setHorizontalAlignment("center");
-  
+  // Header row
+  const headerRange = sheet.getRange(startRow, 1, 1, 8);
+  headerRange.merge();
+  safeRangeFormat(headerRange, {
+    fontWeight: "bold",
+    background: COLORS.sectionHeader,
+    fontColor: "#ffffff"
+  });
+  headerRange.setHorizontalAlignment("center");
+  headerRange.setValue("PREPARER & REVIEWER SIGN-OFF");
+
+  // Prepared By row
   startRow++;
-  
-  sheet.getRange(startRow, 1).setValue("Prepared By:");
-  sheet.getRange(startRow, 2).setBackground(COLORS.preparer);
-  sheet.getRange(startRow, 3).setValue("Date:");
-  sheet.getRange(startRow, 4).setBackground(COLORS.preparer);
-  
+  const prepByLabelRange = sheet.getRange(startRow, 1);
+  const prepByValueRange = sheet.getRange(startRow, 2);
+  const dateLabel1Range = sheet.getRange(startRow, 3);
+  const dateValue1Range = sheet.getRange(startRow, 4);
+
+  prepByLabelRange.setValue("Prepared By:");
+  safeRangeFormat(prepByLabelRange, {fontWeight: "bold"});
+  safeRangeFormat(prepByValueRange, {background: COLORS.preparer});
+
+  dateLabel1Range.setValue("Date:");
+  safeRangeFormat(dateLabel1Range, {fontWeight: "bold"});
+  safeRangeFormat(dateValue1Range, {background: COLORS.preparer});
+
+  // Reviewed By row
   startRow++;
-  sheet.getRange(startRow, 1).setValue("Reviewed By:");
-  sheet.getRange(startRow, 2).setBackground(COLORS.reviewer);
-  sheet.getRange(startRow, 3).setValue("Date:");
-  sheet.getRange(startRow, 4).setBackground(COLORS.reviewer);
-  
-  sheet.getRange(startRow - 1, 1, 2, 1).setFontWeight("bold");
-  sheet.getRange(startRow - 1, 3, 2, 1).setFontWeight("bold");
+  const revByLabelRange = sheet.getRange(startRow, 1);
+  const revByValueRange = sheet.getRange(startRow, 2);
+  const dateLabel2Range = sheet.getRange(startRow, 3);
+  const dateValue2Range = sheet.getRange(startRow, 4);
+
+  revByLabelRange.setValue("Reviewed By:");
+  safeRangeFormat(revByLabelRange, {fontWeight: "bold"});
+  safeRangeFormat(revByValueRange, {background: COLORS.reviewer});
+
+  dateLabel2Range.setValue("Date:");
+  safeRangeFormat(dateLabel2Range, {fontWeight: "bold"});
+  safeRangeFormat(dateValue2Range, {background: COLORS.reviewer});
 }
 
 /**
