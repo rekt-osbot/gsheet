@@ -48,10 +48,10 @@ function createIndAS109Workbook() {
   createAuditNotesSheet(ss);
   
   // Set up named ranges
-  setupNamedRanges(ss);
+  registerIndAS109NamedRanges(ss);
 
   // Apply final professional formatting
-  finalizeWorkingPapers(ss);
+  applyDefaultWorkbookFormatting(ss);
 
   const tempSheet = ss.getSheetByName('_temp_sheet_');
   if (tempSheet) {
@@ -1829,52 +1829,14 @@ function createAuditNotesSheet(ss) {
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
-// NAMED RANGES SETUP
+// NAMED RANGE REGISTRATION
 // ═══════════════════════════════════════════════════════════════════════════
 
-function setupNamedRanges(ss) {
-  try {
-    // Input Variables
-    ss.setNamedRange('ReportingDate', ss.getRange('Input_Variables!B4'));
-    ss.setNamedRange('RiskFreeRate', ss.getRange('Input_Variables!B6'));
-    ss.setNamedRange('PD_Stage1', ss.getRange('Input_Variables!B10'));
-    ss.setNamedRange('PD_Stage2', ss.getRange('Input_Variables!B11'));
-    ss.setNamedRange('PD_Stage3', ss.getRange('Input_Variables!B12'));
-    
-    // Instruments
-    ss.setNamedRange('InstrumentsList', ss.getRange('Instruments_Register!A3:P250'));
-    
-    Logger.log('Named ranges created successfully.');
-  } catch (error) {
-    Logger.log('Error creating named ranges: ' + error);
-  }
-}
-
-// ═══════════════════════════════════════════════════════════════════════════
-// FINALIZATION FUNCTION
-// ═══════════════════════════════════════════════════════════════════════════
-
-function finalizeWorkingPapers(ss) {
-  /**
-   * Apply professional formatting to all sheets per 109 guide standards
-   * - Hide gridlines for clean, sleek professional appearance
-   * - Set consistent fonts and sizing
-   * - Freeze header rows
-   */
-  ss.getSheets().forEach(sheet => {
-    // Hide gridlines for professional clean appearance
-    sheet.setHiddenGridlines(true);
-
-    // Set professional Arial font throughout
-    sheet.getDataRange().setFontFamily("Arial").setFontSize(10);
-
-    // Freeze top rows for better navigation
-    if (sheet.getMaxRows() > 3) {
-      sheet.setFrozenRows(3);
-    }
-  });
-
-  Logger.log('Working papers finalized - gridlines hidden for professional appearance');
+function registerIndAS109NamedRanges(ss) {
+  createNamedRangeFromSheet(ss, '_INPUT_INDAS109_InputVariables', 'Input_Variables', 'B4:B40');
+  createNamedRangeFromSheet(ss, '_INPUT_INDAS109_Instruments', 'Instruments_Register', 'A3:T250');
+  createNamedRangeFromSheet(ss, '_INPUT_INDAS109_FairValue', 'Fair_Value_Workings', 'B6:I150');
+  createNamedRangeFromSheet(ss, '_INPUT_INDAS109_ECL', 'ECL_Impairment', 'B6:H200');
 }
 
 // ═══════════════════════════════════════════════════════════════════════════

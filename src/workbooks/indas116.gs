@@ -43,10 +43,10 @@ function createIndAS116Workbook() {
   createAuditTrailSheet(ss);
   
   // Set up named ranges for key inputs
-  setupNamedRanges(ss);
-  
+  registerIndAS116NamedRanges(ss);
+
   // Final formatting and protection
-  finalizeWorkbook(ss);
+  applyDefaultWorkbookFormatting(ss);
 
   const tempSheet = ss.getSheetByName('_temp_sheet_');
   if (tempSheet) {
@@ -90,40 +90,10 @@ const COLS = {
   }
 };
 
-function setupNamedRanges(ss) {
-  try {
-    // Key named ranges for formulas
-    const assumptions = ss.getSheetByName('Assumptions');
-    
-    ss.setNamedRange('ReportingDate', assumptions.getRange('C4'));
-    ss.setNamedRange('CompanyName', assumptions.getRange('C3'));
-    ss.setNamedRange('BaseCurrency', assumptions.getRange('C5'));
-    ss.setNamedRange('DefaultIBR', assumptions.getRange('C8'));
-    
-  } catch (e) {
-    Logger.log('Named ranges setup: ' + e);
-  }
-}
-
-function finalizeWorkbook(ss) {
-  // Set Cover sheet as active
-  ss.getSheetByName('Cover').activate();
-
-  // Apply professional formatting to all sheets
-  ss.getSheets().forEach(sheet => {
-    // Freeze header rows
-    if (sheet.getMaxRows() > 3) {
-      sheet.setFrozenRows(3);
-    }
-
-    // Hide gridlines for clean, professional sleek appearance per 109 guide
-    sheet.setHiddenGridlines(true);
-
-    // Set professional font
-    sheet.getDataRange().setFontFamily("Arial").setFontSize(10);
-  });
-
-  Logger.log("Workbook finalized - gridlines hidden for professional appearance");
+function registerIndAS116NamedRanges(ss) {
+  createNamedRangeFromSheet(ss, '_INPUT_INDAS116_Assumptions', 'Assumptions', 'C3:C12');
+  createNamedRangeFromSheet(ss, '_INPUT_INDAS116_LeaseRegister', 'Lease Register', 'B5:N200');
+  createNamedRangeFromSheet(ss, '_INPUT_INDAS116_Payments', 'Payment Schedule', 'B6:H240');
 }
 
 /**

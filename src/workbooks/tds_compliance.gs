@@ -41,9 +41,10 @@ function createTDSComplianceWorkbook() {
   createAuditNotesSheet(ss);
   
   // Set up named ranges for easy reference
-  setupNamedRanges(ss);
-  
-  // Reorder sheets
+  registerTDSComplianceNamedRanges(ss);
+
+  // Apply standard formatting and reorder sheets
+  applyDefaultWorkbookFormatting(ss);
   reorderSheets(ss);
 
   const tempSheet = ss.getSheetByName('_temp_sheet_');
@@ -1330,17 +1331,13 @@ function createAuditNotesSheet(ss) {
 /**
  * Setup named ranges for easy reference
  */
-function setupNamedRanges(ss) {
-  // Vendor Master
-  ss.setNamedRange('VendorCodes', ss.getSheetByName('Vendor_Master').getRange('A4:A1000'));
-  ss.setNamedRange('VendorNames', ss.getSheetByName('Vendor_Master').getRange('B4:B1000'));
-  ss.setNamedRange('VendorPANs', ss.getSheetByName('Vendor_Master').getRange('C4:C1000'));
-  
-  // TDS Register
-  ss.setNamedRange('TDSTransactions', ss.getSheetByName('TDS_Register').getRange('A4:R1000'));
-  
-  // Section Rates
-  ss.setNamedRange('SectionRates', ss.getSheetByName('Section_Rates').getRange('A4:J100'));
+function registerTDSComplianceNamedRanges(ss) {
+  createNamedRangeFromSheet(ss, '_INPUT_TDS_Assumptions', 'Assumptions', 'B4:F26');
+  createNamedRangeFromSheet(ss, '_INPUT_TDS_Vendors', 'Vendor_Master', 'A4:L1000');
+  createNamedRangeFromSheet(ss, '_INPUT_TDS_Register', 'TDS_Register', 'A4:R1000');
+  createNamedRangeFromSheet(ss, '_INPUT_TDS_LowerCertificates', 'Lower_Deduction_Cert', 'A4:J200');
+  createNamedRangeFromSheet(ss, '_INPUT_TDS_PayableLedger', 'TDS_Payable_Ledger', 'A4:H200');
+  createNamedRangeFromSheet(ss, '_INPUT_TDS_26AS', '26AS_Reconciliation', 'A5:H200');
 }
 
 /**
@@ -1375,198 +1372,7 @@ function reorderSheets(ss) {
  * POPULATE SAMPLE DATA - For demonstration and testing
  * Run this after creating the workbook to add realistic sample data
  */
-function populateSampleData() {
-  const ss = SpreadsheetApp.getActiveSpreadsheet();
-  
-  SpreadsheetApp.getActiveSpreadsheet().toast('Populating sample data...', 'Please Wait', -1);
-  
-  // Populate Assumptions
-  populateAssumptionsSample(ss);
-  
-  // Populate Vendor Master
-  populateVendorMasterSample(ss);
-  
-  // Populate TDS Register
-  populateTDSRegisterSample(ss);
-  
-  // Populate Lower Deduction Certificates
-  populateLowerDeductionCertSample(ss);
-  
-  // Populate TDS Payable Ledger (payment details)
-  populateTDSPayableSample(ss);
-  
-  // Populate 26AS data
-  populate26ASSample(ss);
-  
-  SpreadsheetApp.getActiveSpreadsheet().toast('Sample data populated successfully!', 'Complete', 5);
-  ss.getSheetByName('Dashboard').activate();
-}
 
-/**
- * Populate Assumptions with sample entity data
- */
-function populateAssumptionsSample(ss) {
-  const sheet = ss.getSheetByName('Assumptions');
-  
-  sheet.getRange('B4').setValue('ABC Manufacturing Pvt Ltd');
-  sheet.getRange('B5').setValue('AAAPL1234C');
-  sheet.getRange('D5').setValue('MUMM12345D');
-  sheet.getRange('B6').setValue('Plot No. 123, Industrial Area, Phase-II');
-  sheet.getRange('B7').setValue('Mumbai');
-  sheet.getRange('D7').setValue('Maharashtra');
-  sheet.getRange('F7').setValue('400001');
-  sheet.getRange('B8').setValue('Rajesh Kumar');
-  sheet.getRange('D8').setValue('rajesh.kumar@abcmfg.com');
-  sheet.getRange('F8').setValue('9876543210');
-  
-  sheet.getRange('B15').setValue('HDFC Bank Ltd');
-  sheet.getRange('B16').setValue('50100123456789');
-  sheet.getRange('D16').setValue('HDFC0001234');
-}
-
-/**
- * Populate Vendor Master with realistic vendors
- */
-function populateVendorMasterSample(ss) {
-  const sheet = ss.getSheetByName('Vendor_Master');
-  
-  const vendors = [
-    ['V001', 'XYZ Contractors Pvt Ltd', 'AABCX1234F', '', 'Company', '45 MG Road, Andheri', 'Mumbai', 'Maharashtra', 'contact@xyzcontractors.com', '9876543211', 'No', 'Civil works contractor'],
-    ['V002', 'Ramesh Consultants', 'AEMPR5678K', '', 'Individual', '12 Park Street', 'Pune', 'Maharashtra', 'ramesh@consultants.com', '9876543212', 'Yes', 'Technical consultant - Lower cert valid'],
-    ['V003', 'Global Tech Solutions Pvt Ltd', 'AADCG9012L', '', 'Company', '789 IT Park, Whitefield', 'Bangalore', 'Karnataka', 'info@globaltech.com', '9876543213', 'No', 'Software development'],
-    ['V004', 'Priya Advertising Agency', 'AHJPP3456M', '', 'Firm', '23 Commercial Complex', 'Delhi', 'Delhi', 'priya@advertising.com', '9876543214', 'No', 'Marketing services'],
-    ['V005', 'Sharma & Associates', 'AAKFS7890N', '', 'Firm', '56 Legal Chambers', 'Mumbai', 'Maharashtra', 'sharma@legal.com', '9876543215', 'No', 'Legal consultancy'],
-    ['V006', 'Metro Property Rentals', 'AABCM2345P', '', 'Company', '101 Real Estate Plaza', 'Mumbai', 'Maharashtra', 'metro@property.com', '9876543216', 'No', 'Office space rental'],
-    ['V007', 'Suresh Transport Services', 'ACDPS6789Q', '', 'Individual', '78 Transport Nagar', 'Pune', 'Maharashtra', 'suresh@transport.com', '9876543217', 'No', 'Logistics services'],
-    ['V008', 'ICICI Bank Ltd', 'AAACI1234R', '', 'Company', 'ICICI Towers, BKC', 'Mumbai', 'Maharashtra', 'corporate@icici.com', '1800123456', 'No', 'Interest on FD'],
-    ['V009', 'Anita Design Studio', 'AHJPA4567S', '', 'Individual', '34 Creative Hub', 'Bangalore', 'Karnataka', 'anita@design.com', '9876543218', 'No', 'Graphic design services'],
-    ['V010', 'BuildRight Engineers', 'AABCB8901T', '', 'Company', '67 Engineering Complex', 'Chennai', 'Tamil Nadu', 'info@buildright.com', '9876543219', 'No', 'Construction services']
-  ];
-  
-  sheet.getRange(4, 1, vendors.length, 12).setValues(vendors);
-}
-
-/**
- * Populate TDS Register with realistic transactions across FY
- */
-function populateTDSRegisterSample(ss) {
-  const sheet = ss.getSheetByName('TDS_Register');
-  
-  const transactions = [
-    // Q1 Transactions (Apr-Jun 2024)
-    ['', new Date(2024, 3, 15), 'V001', '', '', '', '194C', 'Civil construction work', 250000, '', '', '', '', new Date(2024, 3, 20), '', '', '', 'Q1 - Foundation work'],
-    ['', new Date(2024, 3, 25), 'V008', '', '', '', '194A', 'Interest on Fixed Deposit', 45000, '', '', '', '', new Date(2024, 3, 30), '', '', '', 'Q1 FD interest'],
-    ['', new Date(2024, 4, 10), 'V003', '', '', '', '194J', 'Software development fees', 180000, '', '', '', '', new Date(2024, 4, 15), '', '', '', 'Custom ERP module'],
-    ['', new Date(2024, 4, 20), 'V002', '', '', '', '194J', 'Technical consultancy', 85000, '', '', '', '', new Date(2024, 4, 25), '', '', '', 'Process optimization - Lower cert applied'],
-    ['', new Date(2024, 5, 5), 'V006', '', '', '', '194I', 'Office rent - May 2024', 150000, '', '', '', '', new Date(2024, 5, 10), '', '', '', 'Monthly office rent'],
-    ['', new Date(2024, 5, 15), 'V004', '', '', '', '194H', 'Marketing commission', 75000, '', '', '', '', new Date(2024, 5, 20), '', '', '', 'Q1 marketing campaign'],
-    ['', new Date(2024, 5, 25), 'V007', '', '', '', '194C', 'Transportation charges', 120000, '', '', '', '', new Date(2024, 5, 30), '', '', '', 'Logistics - June'],
-    
-    // Q2 Transactions (Jul-Sep 2024)
-    ['', new Date(2024, 6, 8), 'V001', '', '', '', '194C', 'Structural work', 320000, '', '', '', '', new Date(2024, 6, 12), '', '', '', 'Q2 - Building structure'],
-    ['', new Date(2024, 6, 18), 'V005', '', '', '', '194J', 'Legal consultancy fees', 95000, '', '', '', '', new Date(2024, 6, 22), '', '', '', 'Contract review'],
-    ['', new Date(2024, 7, 5), 'V006', '', '', '', '194I', 'Office rent - Aug 2024', 150000, '', '', '', '', new Date(2024, 7, 10), '', '', '', 'Monthly office rent'],
-    ['', new Date(2024, 7, 15), 'V009', '', '', '', '194J', 'Graphic design services', 42000, '', '', '', '', new Date(2024, 7, 20), '', '', '', 'Brand identity design'],
-    ['', new Date(2024, 7, 25), 'V003', '', '', '', '194J', 'IT support & maintenance', 125000, '', '', '', '', new Date(2024, 7, 28), '', '', '', 'Annual maintenance'],
-    ['', new Date(2024, 8, 10), 'V010', '', '', '', '194C', 'Electrical installation', 280000, '', '', '', '', new Date(2024, 8, 15), '', '', '', 'Electrical work'],
-    ['', new Date(2024, 8, 20), 'V004', '', '', '', '194H', 'Sales commission', 68000, '', '', '', '', new Date(2024, 8, 25), '', '', '', 'Q2 sales incentive'],
-    
-    // Q3 Transactions (Oct-Dec 2024)
-    ['', new Date(2024, 9, 5), 'V006', '', '', '', '194I', 'Office rent - Oct 2024', 150000, '', '', '', '', new Date(2024, 9, 10), '', '', '', 'Monthly office rent'],
-    ['', new Date(2024, 9, 15), 'V001', '', '', '', '194C', 'Interior finishing work', 195000, '', '', '', '', new Date(2024, 9, 20), '', '', '', 'Interior work'],
-    ['', new Date(2024, 9, 28), 'V008', '', '', '', '194A', 'Interest on Fixed Deposit', 48000, '', '', '', '', new Date(2024, 10, 5), '', '', '', 'Q3 FD interest - LATE PAYMENT'],
-    ['', new Date(2024, 10, 8), 'V002', '', '', '', '194J', 'Process audit services', 92000, '', '', '', '', new Date(2024, 10, 12), '', '', '', 'Annual process audit'],
-    ['', new Date(2024, 10, 18), 'V007', '', '', '', '194C', 'Transportation charges', 135000, '', '', '', '', new Date(2024, 10, 22), '', '', '', 'Logistics - Nov'],
-    ['', new Date(2024, 11, 5), 'V006', '', '', '', '194I', 'Office rent - Dec 2024', 150000, '', '', '', '', new Date(2024, 11, 10), '', '', '', 'Monthly office rent'],
-    ['', new Date(2024, 11, 15), 'V003', '', '', '', '194J', 'Cloud services', 78000, '', '', '', '', new Date(2024, 11, 20), '', '', '', 'Cloud hosting charges'],
-    ['', new Date(2024, 11, 28), 'V009', '', '', '', '194J', 'Website redesign', 115000, '', '', '', '', new Date(2025, 0, 5), '', '', '', 'Website project - LATE PAYMENT'],
-    
-    // Q4 Transactions (Jan-Mar 2025)
-    ['', new Date(2025, 0, 10), 'V006', '', '', '', '194I', 'Office rent - Jan 2025', 150000, '', '', '', '', new Date(2025, 0, 15), '', '', '', 'Monthly office rent'],
-    ['', new Date(2025, 0, 20), 'V010', '', '', '', '194C', 'HVAC installation', 245000, '', '', '', '', new Date(2025, 0, 25), '', '', '', 'Air conditioning work'],
-    ['', new Date(2025, 1, 5), 'V006', '', '', '', '194I', 'Office rent - Feb 2025', 150000, '', '', '', '', new Date(2025, 1, 10), '', '', '', 'Monthly office rent'],
-    ['', new Date(2025, 1, 15), 'V005', '', '', '', '194J', 'Legal retainer fees', 105000, '', '', '', '', new Date(2025, 1, 20), '', '', '', 'Quarterly retainer'],
-    ['', new Date(2025, 1, 25), 'V004', '', '', '', '194H', 'Marketing commission', 82000, '', '', '', '', new Date(2025, 2, 10), '', '', '', 'Q4 marketing - LATE PAYMENT'],
-    ['', new Date(2025, 2, 5), 'V006', '', '', '', '194I', 'Office rent - Mar 2025', 150000, '', '', '', '', new Date(2025, 2, 10), '', '', '', 'Monthly office rent'],
-    ['', new Date(2025, 2, 15), 'V001', '', '', '', '194C', 'Final finishing work', 175000, '', '', '', '', new Date(2025, 2, 20), '', '', '', 'Project completion'],
-    ['', new Date(2025, 2, 25), 'V003', '', '', '', '194J', 'Year-end IT support', 98000, '', '', '', '', new Date(2025, 2, 28), '', '', '', 'FY closing support']
-  ];
-  
-  sheet.getRange(4, 1, transactions.length, 18).setValues(transactions);
-}
-
-/**
- * Populate Lower Deduction Certificate sample
- */
-function populateLowerDeductionCertSample(ss) {
-  const sheet = ss.getSheetByName('Lower_Deduction_Cert');
-  
-  const certificates = [
-    ['CERT/2024/12345', 'V002', '', '', new Date(2024, 3, 1), new Date(2025, 2, 31), '194J', 2, 1000000, ''],
-    ['CERT/2024/67890', 'V003', '', '', new Date(2024, 0, 1), new Date(2024, 11, 31), '194J', 5, 2000000, '']
-  ];
-  
-  sheet.getRange(4, 1, certificates.length, 10).setValues(certificates);
-}
-
-/**
- * Populate TDS Payable Ledger with payment details
- */
-function populateTDSPayableSample(ss) {
-  const sheet = ss.getSheetByName('TDS_Payable_Ledger');
-  
-  // Add challan numbers and payment dates for most months
-  const payments = [
-    ['BSR0001234', new Date(2024, 4, 7), ''], // Apr - paid on time
-    ['BSR0001235', new Date(2024, 5, 7), ''], // May - paid on time
-    ['BSR0001236', new Date(2024, 6, 7), ''], // Jun - paid on time
-    ['BSR0001237', new Date(2024, 7, 7), ''], // Jul - paid on time
-    ['BSR0001238', new Date(2024, 8, 7), ''], // Aug - paid on time
-    ['BSR0001239', new Date(2024, 9, 7), ''], // Sep - paid on time
-    ['BSR0001240', new Date(2024, 10, 12), ''], // Oct - LATE (due 7th, paid 12th)
-    ['BSR0001241', new Date(2024, 11, 7), ''], // Nov - paid on time
-    ['BSR0001242', new Date(2025, 0, 7), ''], // Dec - paid on time
-    ['BSR0001243', new Date(2025, 1, 7), ''], // Jan - paid on time
-    ['BSR0001244', new Date(2025, 2, 15), ''], // Feb - LATE (due 7th, paid 15th)
-    ['', '', ''] // Mar - not yet paid (pending)
-  ];
-  
-  for (let i = 0; i < payments.length; i++) {
-    const row = 4 + i;
-    if (payments[i][0]) {
-      sheet.getRange(`D${row}`).setValue(payments[i][0]); // Challan No
-      sheet.getRange(`E${row}`).setValue(payments[i][1]); // Payment Date
-      
-      // Amount Paid = TDS Deducted (copy from column B)
-      const tdsAmount = sheet.getRange(`B${row}`).getValue();
-      if (tdsAmount) {
-        sheet.getRange(`F${row}`).setValue(tdsAmount);
-      }
-    }
-  }
-}
-
-/**
- * Populate 26AS Reconciliation with sample data
- */
-function populate26ASSample(ss) {
-  const sheet = ss.getSheetByName('26AS_Reconciliation');
-  
-  // Populate Form 26AS data (slightly different from books to show variance)
-  const form26ASData = [
-    [8, 1825000, 36500], // Q1 - matches books
-    [7, 1193000, 23860], // Q2 - variance in count and amount
-    [7, 1213000, 24260], // Q3 - variance
-    [5, 1055000, 21100]  // Q4 - variance
-  ];
-  
-  for (let i = 0; i < form26ASData.length; i++) {
-    const row = 14 + i;
-    sheet.getRange(`C${row}`).setValue(form26ASData[i][0]); // No. of Entries
-    sheet.getRange(`D${row}`).setValue(form26ASData[i][1]); // Gross Amount
-    sheet.getRange(`E${row}`).setValue(form26ASData[i][2]); // TDS Amount
-  }
-}
 
 // onOpen() is handled by common/utilities.gs
 

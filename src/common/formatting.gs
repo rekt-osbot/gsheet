@@ -92,3 +92,18 @@ function protectSheet(sheet, warningOnly = true) {
     protection.setWarningOnly(true);
   }
 }
+
+/**
+ * Apply consistent default formatting across all sheets in a workbook.
+ * @param {Spreadsheet} ss - Active spreadsheet instance
+ * @param {Object} [options] - Optional overrides (font, fontSize)
+ */
+function applyDefaultWorkbookFormatting(ss, options = {}) {
+  const fontFamily = options.font || 'Arial';
+  const fontSize = options.fontSize || 10;
+
+  ss.getSheets().forEach(sheet => {
+    sheet.setHiddenGridlines(true);
+    sheet.getDataRange().setFontFamily(fontFamily).setFontSize(fontSize);
+  });
+}
