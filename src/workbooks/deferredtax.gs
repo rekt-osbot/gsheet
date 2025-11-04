@@ -1910,10 +1910,6 @@ function applyFinalFormatting(ss) {
 // ============================================================================
 
 // onOpen() is handled by common/utilities.gs - auto-detects workbook type
-    .addSeparator()
-    .addItem('ℹ️ Help & Instructions', 'showHelp')
-    .addToUi();
-}
 
 function refreshAllFormulas() {
   SpreadsheetApp.flush();

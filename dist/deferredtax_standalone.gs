@@ -1,7 +1,7 @@
 /**
  * @name deferredtax
  * @version 1.0.1
- * @built 2025-11-03T12:27:00.894Z
+ * @built 2025-11-04T04:52:51.619Z
  * @description Standalone script. Do not edit directly - edit source files in src/ folder.
  * 
  * This file is auto-generated from:
@@ -3218,10 +3218,6 @@ function applyFinalFormatting(ss) {
 // ============================================================================
 
 // onOpen() is handled by common/utilities.gs - auto-detects workbook type
-    .addSeparator()
-    .addItem('ℹ️ Help & Instructions', 'showHelp')
-    .addToUi();
-}
 
 function refreshAllFormulas() {
   SpreadsheetApp.flush();

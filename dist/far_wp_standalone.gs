@@ -1,7 +1,7 @@
 /**
  * @name far_wp
  * @version 1.0.1
- * @built 2025-11-03T12:27:00.902Z
+ * @built 2025-11-04T04:52:51.622Z
  * @description Standalone script. Do not edit directly - edit source files in src/ folder.
  * 
  * This file is auto-generated from:
@@ -1347,8 +1347,6 @@ const COLS = {
  * Creates custom menu when spreadsheet opens
  */
 // onOpen() is handled by common/utilities.gs - auto-detects workbook type
-    .addToUi();
-}
 
 /**
  * Main function to setup the entire Fixed Assets audit workpaper

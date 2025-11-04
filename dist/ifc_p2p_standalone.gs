@@ -1,7 +1,7 @@
 /**
  * @name ifc_p2p
  * @version 1.0.1
- * @built 2025-11-03T12:27:00.907Z
+ * @built 2025-11-04T04:52:51.625Z
  * @description Standalone script. Do not edit directly - edit source files in src/ folder.
  * 
  * This file is auto-generated from:

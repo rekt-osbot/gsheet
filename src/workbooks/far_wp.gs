@@ -39,8 +39,6 @@ const COLS = {
  * Creates custom menu when spreadsheet opens
  */
 // onOpen() is handled by common/utilities.gs - auto-detects workbook type
-    .addToUi();
-}
 
 /**
  * Main function to setup the entire Fixed Assets audit workpaper
